@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SA_VehicleAdvanced", "SA_Ve
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "III_OpenComponent", "III_OpenComponent\III_OpenComponent.vcxproj", "{6CC45B39-299C-432E-851C-BAA0A811431F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "III_AdditionalComponents", "III_AdditionalComponents\III_AdditionalComponents.vcxproj", "{A485C3DF-D0B7-47EB-904B-DA92E1AC7C1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -27,6 +29,10 @@ Global
 		{6CC45B39-299C-432E-851C-BAA0A811431F}.Debug|x86.Build.0 = Debug|Win32
 		{6CC45B39-299C-432E-851C-BAA0A811431F}.Release|x86.ActiveCfg = Release|Win32
 		{6CC45B39-299C-432E-851C-BAA0A811431F}.Release|x86.Build.0 = Release|Win32
+		{A485C3DF-D0B7-47EB-904B-DA92E1AC7C1A}.Debug|x86.ActiveCfg = Debug|Win32
+		{A485C3DF-D0B7-47EB-904B-DA92E1AC7C1A}.Debug|x86.Build.0 = Debug|Win32
+		{A485C3DF-D0B7-47EB-904B-DA92E1AC7C1A}.Release|x86.ActiveCfg = Release|Win32
+		{A485C3DF-D0B7-47EB-904B-DA92E1AC7C1A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
