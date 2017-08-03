@@ -1,0 +1,22 @@
+#A - Id tractor
+#B - Id trailer first variant 
+#C - Id trailer second variant 
+#D - Id trailer third variant  
+#E - Id trailer fourth variant 
+#F - Colours of the trailer as at the tractor (0-no, 1-yes)
+#G - Extras at the trailer as at the tractor (0-no, 1-yes)
+#H - Trailer Constant (0-no, 1-yes)
+ 
+#B,C,D,E - For trailers "towtruck" it is possible to write not only ID models, but also a model class.
+# 0-normal, 1-poorfamily, 2-richfamily, 3-executive, 4-worker (look a file vehicles.ide)
+ 
+#A,   B,   C,   D,   E,  F, G, H 
+ 
+trailer
+403, 435, 450, 584, 591, 0, 0, 0
+485, 606, 607, 607, 606, 0, 0, 0
+514, 584, 584, 584, 584, 0, 0, 1
+515, 435, 450, 584, 591, 0, 0, 0
+525, 400, 0,   1,   2,   0, 0, 1
+end
+
