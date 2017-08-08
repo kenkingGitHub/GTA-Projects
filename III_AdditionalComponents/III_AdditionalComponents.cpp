@@ -78,6 +78,7 @@ public:
                     swprintf(text, L"angle %.2f", automobile->m_aDoors[1].m_fAngle);
                     CFont::PrintString(10.0f, 50.0f, text);
                 }
+
             }
 
         };
