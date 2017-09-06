@@ -12,8 +12,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{30c99c1c-20ce-4b1b-9f50-35cde68d46bd}</ProjectGuid>
-    <RootNamespace>SA_TruckTrailer</RootNamespace>
+    <ProjectGuid>{c13724fe-cede-4d51-8ec1-b10e8117872f}</ProjectGuid>
+    <RootNamespace>SA_VehicleHierarchy</RootNamespace>
     <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -68,7 +68,7 @@
       <PreprocessorDefinitions>_USING_V110_SDK71_;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>D:/Projects/plugin-sdk/output\lib\plugin_sa\Debug\;D:/Projects/plugin-sdk/output\lib\paths\Debug\; % (AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:/Projects/plugin-sdk/output\lib\; % (AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>plugin_d.lib;paths_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
@@ -92,13 +92,13 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>D:/Projects/plugin-sdk/output\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:/Projects/plugin-sdk/output\lib\; % (AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>plugin.lib;paths.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="SA_TruckTrailer.cpp" />
+    <ClCompile Include="SA_VehicleHierarchy.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

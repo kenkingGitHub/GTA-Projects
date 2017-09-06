@@ -12,8 +12,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{30c99c1c-20ce-4b1b-9f50-35cde68d46bd}</ProjectGuid>
-    <RootNamespace>SA_TruckTrailer</RootNamespace>
+    <ProjectGuid>{ff3eabae-585c-413f-8f50-d2d493734bde}</ProjectGuid>
+    <RootNamespace>SA_MoreVehiclesSpawner</RootNamespace>
     <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -98,7 +98,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="SA_TruckTrailer.cpp" />
+    <ClCompile Include="SA_MoreVehiclesSpawner.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

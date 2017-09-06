@@ -59,27 +59,27 @@ public:
             }
 
 
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-                if (automobile->m_aCarNodes[CAR_BOOT]) {
-                    // вывод текста
-                    CFont::SetScale(0.5f, 1.0f);
-                    CFont::SetColor(CRGBA(255, 255, 255, 255));
-                    CFont::SetJustifyOn();
-                    CFont::SetFontStyle(0);
-                    CFont::SetPropOn();
-                    CFont::SetWrapx(600.0f);
-                    wchar_t text[32];
-                    swprintf(text, L"boot %d", automobile->m_carDamage.GetDoorStatus(BOOT));
-                    CFont::PrintString(10.0f, 10.0f, text);
-                    swprintf(text, L"wing %d", automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT));
-                    CFont::PrintString(10.0f, 30.0f, text);
-                    swprintf(text, L"angle %.2f", automobile->m_aDoors[1].m_fAngle);
-                    CFont::PrintString(10.0f, 50.0f, text);
-                }
+            //CVehicle *vehicle = FindPlayerVehicle();
+            //if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+            //    CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+            //    if (automobile->m_aCarNodes[CAR_BOOT]) {
+            //        // вывод текста
+            //        CFont::SetScale(0.5f, 1.0f);
+            //        CFont::SetColor(CRGBA(255, 255, 255, 255));
+            //        CFont::SetJustifyOn();
+            //        CFont::SetFontStyle(0);
+            //        CFont::SetPropOn();
+            //        CFont::SetWrapx(600.0f);
+            //        wchar_t text[32];
+            //        swprintf(text, L"boot %d", automobile->m_carDamage.GetDoorStatus(BOOT));
+            //        CFont::PrintString(10.0f, 10.0f, text);
+            //        swprintf(text, L"wing %d", automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT));
+            //        CFont::PrintString(10.0f, 30.0f, text);
+            //        swprintf(text, L"angle %.2f", automobile->m_aDoors[1].m_fAngle);
+            //        CFont::PrintString(10.0f, 50.0f, text);
+            //    }
 
-            }
+            //}
 
         };
 

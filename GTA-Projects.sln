@@ -19,6 +19,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SA_OpenComponent", "SA_Open
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VC_taxi+", "VC_taxi+\VC_taxi+.vcxproj", "{BA9B7AC7-EBCB-4D02-9DFC-E32FF552A0EB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SA_MoreVehiclesSpawner", "SA_MoreVehiclesSpawner\SA_MoreVehiclesSpawner.vcxproj", "{FF3EABAE-585C-413F-8F50-D2D493734BDE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SA_VehicleHierarchy", "SA_VehicleHierarchy\SA_VehicleHierarchy.vcxproj", "{C13724FE-CEDE-4D51-8EC1-B10E8117872F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -57,6 +61,14 @@ Global
 		{BA9B7AC7-EBCB-4D02-9DFC-E32FF552A0EB}.Debug|x86.Build.0 = Debug|Win32
 		{BA9B7AC7-EBCB-4D02-9DFC-E32FF552A0EB}.Release|x86.ActiveCfg = Release|Win32
 		{BA9B7AC7-EBCB-4D02-9DFC-E32FF552A0EB}.Release|x86.Build.0 = Release|Win32
+		{FF3EABAE-585C-413F-8F50-D2D493734BDE}.Debug|x86.ActiveCfg = Debug|Win32
+		{FF3EABAE-585C-413F-8F50-D2D493734BDE}.Debug|x86.Build.0 = Debug|Win32
+		{FF3EABAE-585C-413F-8F50-D2D493734BDE}.Release|x86.ActiveCfg = Release|Win32
+		{FF3EABAE-585C-413F-8F50-D2D493734BDE}.Release|x86.Build.0 = Release|Win32
+		{C13724FE-CEDE-4D51-8EC1-B10E8117872F}.Debug|x86.ActiveCfg = Debug|Win32
+		{C13724FE-CEDE-4D51-8EC1-B10E8117872F}.Debug|x86.Build.0 = Debug|Win32
+		{C13724FE-CEDE-4D51-8EC1-B10E8117872F}.Release|x86.ActiveCfg = Release|Win32
+		{C13724FE-CEDE-4D51-8EC1-B10E8117872F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
