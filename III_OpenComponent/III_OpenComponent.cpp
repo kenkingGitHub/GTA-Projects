@@ -81,7 +81,7 @@ public:
                         event.m_openingState -= ACTION_TIME_STEP;
                         if (event.m_openingState < 0.0f) { // Если полностью открыли
                             event.m_active = false; // Отключаем обработку
-                            automobile->OpenDoor(componentByDoorId[doorId], doorId, 0.0f); // Полностью открываем
+                            automobile->OpenDoor(componentByDoorId[doorId], doorId, 0.0f); // Полностью закрываем
                             event.m_openingState = 0.0f;
                         }
                         else
