@@ -43,6 +43,18 @@ public:
         }
     };
 
+    static void MatrixSetRotateXOnly(RwFrame *component, float angle) {
+        CMatrix matrix(&component->modelling, false);
+        matrix.SetRotateXOnly(angle);
+        matrix.UpdateRW();
+    }
+
+    static void MatrixSetRotateYOnly(RwFrame *component, float angle) {
+        CMatrix matrix(&component->modelling, false);
+        matrix.SetRotateYOnly(angle);
+        matrix.UpdateRW();
+    }
+
     AdditionalComponents() {
         static VehicleExtendedData<VehicleComponents> vehComps; // —оздаем экземпл€р нашего расширени€. vehComps - это переменна€, через которую мы будем
                                                                 // обращатьс€ к нашим данным (использу€ метод Get(CVehicle *транспорт) )
@@ -66,17 +78,17 @@ public:
 
         Events::drawingEvent += [] {
         //Events::gameProcessEvent += [] {
-            /*KeyCheck::Update();
-            if (KeyCheck::CheckWithDelay(0xBE, 500)) {
-                if (m_wiperOnOff == true) {
-                    m_wiperOnOff = false;
-                    CMessages::AddMessageJumpQ(L"state: wiperOff", 2000, 0);
-                }
-                else {
-                    m_wiperOnOff = true;
-                    CMessages::AddMessageJumpQ(L"state: wiperOn", 2000, 0);
-                }
-            }*/
+            //KeyCheck::Update();
+            //if (KeyCheck::CheckWithDelay(0xBE, 500)) {
+            //    if (m_wiperOnOff == true) {
+            //        m_wiperOnOff = false;
+            //        CMessages::AddMessageJumpQ(L"state: wiperOff", 2000, 0);
+            //    }
+            //    else {
+            //        m_wiperOnOff = true;
+            //        CMessages::AddMessageJumpQ(L"state: wiperOn", 2000, 0);
+            //    }
+            //}
             
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
@@ -95,84 +107,57 @@ public:
                     }
                     // багажник с дворником
                     if (vehComps.Get(vehicle).m_pBootMirage && automobile->m_aCarNodes[CAR_BOOT]) {
-                        CMatrix matrixBootMirage(&vehComps.Get(vehicle).m_pBootMirage->modelling, false);
-                        matrixBootMirage.SetRotateXOnly(automobile->m_aDoors[1].m_fAngle);
-                        matrixBootMirage.UpdateRW();
+                        if ((automobile->m_aDoors[1].m_fAngle < 0.0f) && (vehicle->m_nVehicleFlags & 0x20)) 
+                            MatrixSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->m_aDoors[1].m_fAngle);
+                        MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->m_aDoors[1].m_fAngle);
                         RwV3d scaleBootMirage;
-                        if (automobile->m_aDoors[1].IsClosed())
-                            automobile->OpenDoor(18, BOOT, 0.5f);
-                        if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3) {
-                            automobile->OpenDoor(18, BOOT, 0.0f);
-                            //automobile->m_aDoors[1].m_fAngle = 0.0f;
+                        if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3) 
                             scaleBootMirage = { 0.0f, 0.0f, 0.0f };
-                        }
                         else 
                             scaleBootMirage = { 1.0f, 1.0f, 1.0f };
                         RwFrameScale(vehComps.Get(vehicle).m_pBootMirage, &scaleBootMirage, rwCOMBINEPRECONCAT);
-                        //RwV3d axis = { 1.0f, 0.0f, 0.0f };
-                        //RwFrameRotate(vehComps.Get(vehicle).m_pBootMirage, &axis, automobile->m_aDoors[1].m_fAngle, rwCOMBINEPRECONCAT);
-                        //RwMatrixRotate(&automobile->m_aCarNodes[CAR_MISC_A]->modelling, &axis, 1.0f, rwCOMBINEPRECONCAT);
                     }
                     // руль
                     if (vehComps.Get(vehicle).m_pSteerWheel) {
-                        CMatrix matrixSteerWheel(&vehComps.Get(vehicle).m_pSteerWheel->modelling, false);
-                        matrixSteerWheel.SetRotateYOnly(vehicle->m_fSteerAngle * (-7.0f));
-                        matrixSteerWheel.UpdateRW();
+                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pSteerWheel, (vehicle->m_fSteerAngle * (-7.0f)));
                     }
                     // дворники тип 1
                     if (vehComps.Get(vehicle).m_pWiperOneR && vehComps.Get(vehicle).m_pWiperOneL) {
                         if (vehicle->m_pDriver && wather->NewWeatherType == 2) 
                             vehComps.Get(vehicle).wiperState = true;
                         if (vehComps.Get(vehicle).wiperState == true) {
-                            CMatrix matrixWiperOneR(&vehComps.Get(vehicle).m_pWiperOneR->modelling, false);
-                            CMatrix matrixWiperOneL(&vehComps.Get(vehicle).m_pWiperOneL->modelling, false);
                             switch (m_currentWiperState) {
                             case STATE_LEFT:
                                 wiperAngle -= 0.05f;
-                                matrixWiperOneR.SetRotateYOnly(wiperAngle);
-                                matrixWiperOneR.UpdateRW();
-                                matrixWiperOneL.SetRotateYOnly(wiperAngle);
-                                matrixWiperOneL.UpdateRW();
+                                MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperAngle);
+                                MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperAngle);
                                 if (vehComps.Get(vehicle).m_pWiperOneM) {
-                                    CMatrix matrixWiperOneM(&vehComps.Get(vehicle).m_pWiperOneM->modelling, false);
-                                    matrixWiperOneM.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneM.UpdateRW();
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperAngle);
                                 }
                                 if (wiperAngle < -1.4f) {
                                     wiperAngle = -1.4f;
-                                    matrixWiperOneR.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneR.UpdateRW();
-                                    matrixWiperOneL.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneL.UpdateRW();
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperAngle);
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperAngle);
                                     if (vehComps.Get(vehicle).m_pWiperOneM) {
                                         CMatrix matrixWiperOneM(&vehComps.Get(vehicle).m_pWiperOneM->modelling, false);
-                                        matrixWiperOneM.SetRotateYOnly(wiperAngle);
-                                        matrixWiperOneM.UpdateRW();
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperAngle);
                                     }
                                     m_currentWiperState = STATE_RIGHT;
                                 }
                                 break;
                             case STATE_RIGHT:
                                 wiperAngle += 0.05f;
-                                matrixWiperOneR.SetRotateYOnly(wiperAngle);
-                                matrixWiperOneR.UpdateRW();
-                                matrixWiperOneL.SetRotateYOnly(wiperAngle);
-                                matrixWiperOneL.UpdateRW();
+                                MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperAngle);
+                                MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperAngle);
                                 if (vehComps.Get(vehicle).m_pWiperOneM) {
-                                    CMatrix matrixWiperOneM(&vehComps.Get(vehicle).m_pWiperOneM->modelling, false);
-                                    matrixWiperOneM.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneM.UpdateRW();
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperAngle);
                                 }
                                 if (wiperAngle > 0.0f) {
                                     wiperAngle = 0.0f;
-                                    matrixWiperOneR.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneR.UpdateRW();
-                                    matrixWiperOneL.SetRotateYOnly(wiperAngle);
-                                    matrixWiperOneL.UpdateRW();
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperAngle);
+                                    MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperAngle);
                                     if (vehComps.Get(vehicle).m_pWiperOneM) {
-                                        CMatrix matrixWiperOneM(&vehComps.Get(vehicle).m_pWiperOneM->modelling, false);
-                                        matrixWiperOneM.SetRotateYOnly(wiperAngle);
-                                        matrixWiperOneM.UpdateRW();
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperAngle);
                                     }
                                     if (!vehicle->m_pDriver)
                                         vehComps.Get(vehicle).wiperState = true;
@@ -192,6 +177,24 @@ public:
             CVehicle *vehicle = FindPlayerVehicle();
             if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                //KeyCheck::Update();
+                //if (KeyCheck::CheckWithDelay(0xBE, 500)) {
+                //    if (automobile->m_aDoors[1].IsClosed()) {
+                //        //vehicle->m_nVehicleFlags &= 0xEF;
+                //        //RwV3d axis = { 1.0f, 0.0f, 0.0f };
+                //        //RwFrameRotate(automobile->m_aCarNodes[CAR_BOOT], &axis, 1.0f, rwCOMBINEPRECONCAT);
+                //        //RwMatrixRotate(&automobile->m_aCarNodes[CAR_BOOT]->modelling, &axis, 1.0f, rwCOMBINEPRECONCAT);
+                //        CMessages::AddMessageJumpQ(L"IsClosed", 2000, 0);
+                //    }
+                //    else {
+                //        //vehicle->m_nVehicleFlags |= 0x10;
+                //        //RwV3d axis = { 1.0f, 0.0f, 0.0f };
+                //        //RwFrameRotate(automobile->m_aCarNodes[CAR_BOOT], &axis, 0.0f, rwCOMBINEPRECONCAT);
+                //        //RwMatrixRotate(&automobile->m_aCarNodes[CAR_BOOT]->modelling, &axis, 0.0f, rwCOMBINEPRECONCAT);
+                //        CMessages::AddMessageJumpQ(L"Open", 2000, 0);
+                //    }
+                //}
+
             //CPed *player2 = FindPlayerPed();
             //if (player2) {
                 // вывод текста
@@ -220,12 +223,14 @@ public:
                 }
                 //swprintf(text, L"weather %d", wather->NewWeatherType);
                 CFont::PrintString(10.0f, 10.0f, text);
-                swprintf(text, L"m bAxis %d", automobile->m_aDoors[1].m_bAxis);
-                CFont::PrintString(10.0f, 30.0f, text);
-                swprintf(text, L"AngleWhenOpen %2f", automobile->m_aDoors[1].RetAngleWhenOpen());
-                CFont::PrintString(10.0f, 50.0f, text);
-                swprintf(text, L"AngVel %.2f", automobile->m_aDoors[1].m_fAngVel);
-                CFont::PrintString(10.0f, 80.0f, text);
+                //swprintf(text, L"dvig %d", vehicle->m_nVehicleFlags);
+                //CFont::PrintString(10.0f, 30.0f, text);
+                //swprintf(text, L"OpenRatio %1f", automobile->m_aDoors[1].GetAngleOpenRatio());
+                //CFont::PrintString(10.0f, 50.0f, text);
+                //swprintf(text, L"Angle %.2f", automobile->m_aDoors[1].m_fAngle);
+                //CFont::PrintString(10.0f, 80.0f, text);
+                //swprintf(text, L"PrevAngle %.2f", automobile->m_aDoors[1].m_fPrevAngle);
+                //CFont::PrintString(10.0f, 110.0f, text);
             }
 
         };
