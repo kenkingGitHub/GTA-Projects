@@ -33,19 +33,15 @@ public:
 
     class VehicleComponents { //  ласс, который представл€ет наши данные (можно сказать, что эти данные "прикрепл€ютс€" к структуре транспорта)
     public:
-        RwFrame *m_pBootSliding;
-        RwFrame *m_pBootMirage;
-        RwFrame *m_pSteerWheel;
-        RwFrame *m_pWiperOneR;
-        RwFrame *m_pWiperOneL;
-        RwFrame *m_pWiperOneM;
-        RwFrame *m_pWiperTwoR;
-        RwFrame *m_pWiperTwoL;
+        RwFrame *m_pBootSliding; RwFrame *m_pSteerWheel; RwFrame *m_pBootMirage;
+        RwFrame *m_pWiperOneR; RwFrame *m_pWiperOneL; RwFrame *m_pWiperOneM;
+        RwFrame *m_pWiperTwoR;  RwFrame *m_pWiperTwoL;
+        RwFrame *m_pWiperOneTwoR; RwFrame *m_pWiperOneTwoL; RwFrame *m_pBrushOneR; RwFrame *m_pBrushOneL;
         bool wiperState;
 
         VehicleComponents(CVehicle *) { //  онструктор этого класса будет вызван при вызове конструктора транспорта (CVehicle::CVehicle)
             m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = nullptr;  // устанавливаем все указатели в 0
-            m_pWiperTwoR = m_pWiperTwoL = nullptr;
+            m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL = nullptr;
             wiperState = false;
 
         }
@@ -69,19 +65,24 @@ public:
 
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) { // ¬ыполн€ем нашу функцию, когда игра устанавливает модель транспорту
             if (vehicle->m_pRwClump) { // Ќаходим компоненты в иерархии и записываем их в наш класс
-                vehComps.Get(vehicle).m_pBootSliding = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_sliding");
-                vehComps.Get(vehicle).m_pBootMirage = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_mirage");
-                vehComps.Get(vehicle).m_pSteerWheel = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "steerwheel"); 
-                vehComps.Get(vehicle).m_pWiperOneR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_or");
-                vehComps.Get(vehicle).m_pWiperOneL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_ol");
-                vehComps.Get(vehicle).m_pWiperOneM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_om");
-                vehComps.Get(vehicle).m_pWiperTwoR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tr");
-                vehComps.Get(vehicle).m_pWiperTwoL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tl");
+                vehComps.Get(vehicle).m_pBootSliding  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_sliding");
+                vehComps.Get(vehicle).m_pBootMirage   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_mirage");
+                vehComps.Get(vehicle).m_pSteerWheel   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "steerwheel"); 
+                vehComps.Get(vehicle).m_pWiperOneR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_or");
+                vehComps.Get(vehicle).m_pWiperOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_ol");
+                vehComps.Get(vehicle).m_pWiperOneM    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_om");
+                vehComps.Get(vehicle).m_pWiperTwoR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tr");
+                vehComps.Get(vehicle).m_pWiperTwoL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tl");
+                vehComps.Get(vehicle).m_pWiperOneTwoR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_otr");
+                vehComps.Get(vehicle).m_pWiperOneTwoL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_otl");
+                vehComps.Get(vehicle).m_pBrushOneR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_or");
+                vehComps.Get(vehicle).m_pBrushOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
 
             }
             else {
                 vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR = vehComps.Get(vehicle).m_pWiperOneL = nullptr;
                 vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = nullptr;
+                vehComps.Get(vehicle).m_pWiperOneTwoR = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL =nullptr;
 
             }
         };
@@ -103,7 +104,7 @@ public:
                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
                 if (vehicle && vehicle->GetIsOnScreen() && vehicle->m_fHealth > 0.0f && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
                     CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-                    // багажник роллставни
+                    // багажник рольставни
                     if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pBootSliding) {
                         if (automobile->m_aCarNodes[CAR_BOOT] && automobile->m_aCarNodes[CAR_WING_LR]) {
                             if (automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT) == 0) {
@@ -142,6 +143,14 @@ public:
                                     MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperOneAngle);
                                     if (vehComps.Get(vehicle).m_pWiperOneM) 
                                         MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pWiperOneTwoR)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoR, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pWiperOneTwoL)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoL, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pBrushOneR)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneR, -wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pBrushOneL)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneL, -wiperOneAngle);
                                 }
                                 else {
                                     wiperOneAngle = -1.4f;
@@ -155,6 +164,14 @@ public:
                                     MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperOneAngle);
                                     if (vehComps.Get(vehicle).m_pWiperOneM) 
                                         MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pWiperOneTwoR)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoR, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pWiperOneTwoL)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoL, wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pBrushOneR)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneR, -wiperOneAngle);
+                                    if (vehComps.Get(vehicle).m_pBrushOneL)
+                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneL, -wiperOneAngle);
                                 }
                                 else {
                                     wiperOneAngle = 0.0f;
