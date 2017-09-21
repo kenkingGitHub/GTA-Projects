@@ -14,21 +14,21 @@ public:
     enum eWiperState { ONE_STATE_LEFT, ONE_STATE_RIGHT, TWO_STATE_LEFT, TWO_STATE_RIGHT };
     
     static eWiperState m_currentWiperOneState, m_currentWiperTwoState;
-    static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle;
+    static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle, cementAngle;
     static CWeather *wather;
 
     class VehicleComponents { // Класс, который представляет наши данные (можно сказать, что эти данные "прикрепляются" к структуре транспорта)
     public:
         RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM;
         RwFrame *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL;
-        RwFrame *m_pDumper;
-        bool wiperState;
+        RwFrame *m_pDumper, *m_pCement;
+        bool wiperState, cementState;
         float dumperAngle;
 
         VehicleComponents(CVehicle *) { // Конструктор этого класса будет вызван при вызове конструктора транспорта (CVehicle::CVehicle)
-            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = nullptr;  // устанавливаем все указатели в 0
+            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement = nullptr;  // устанавливаем все указатели в 0
             m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL = m_pDumper = nullptr;
-            wiperState = false;
+            wiperState = false; cementState = true;
             dumperAngle = 0.0f;
 
         }
@@ -80,13 +80,14 @@ public:
                 vehComps.Get(vehicle).m_pBrushOneR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_or");
                 vehComps.Get(vehicle).m_pBrushOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
                 vehComps.Get(vehicle).m_pDumper       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "dumper");
+                vehComps.Get(vehicle).m_pCement       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "cement");
 
             }
             else {
                 vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR = vehComps.Get(vehicle).m_pWiperOneL = nullptr;
                 vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = nullptr;
                 vehComps.Get(vehicle).m_pWiperOneTwoR = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL = nullptr;
-                vehComps.Get(vehicle).m_pDumper = nullptr;
+                vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = nullptr;
 
             }
         };
@@ -191,6 +192,11 @@ public:
                             }
                         }
                     }
+                    // cement
+                    if (vehComps.Get(vehicle).m_pCement && (vehComps.Get(vehicle).cementState == true) && (vehicle->m_nVehicleFlags & 0x10)) {
+                        cementAngle += 0.05f;
+                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pCement, cementAngle);
+                    }
                     //
 
                 }
@@ -209,7 +215,7 @@ public:
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
                         else 
-                            CMessages::AddMessageJumpQ(L"full open", 1000, 0);
+                            CMessages::AddMessageJumpQ(L"full up", 1000, 0);
                     }
                     if (KeyPressed(0x6E) && KeyPressed(0x62)) {
                         if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) {
@@ -217,12 +223,20 @@ public:
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
                         else
-                            CMessages::AddMessageJumpQ(L"full closed", 1000, 0);
+                            CMessages::AddMessageJumpQ(L"full down", 1000, 0);
                     }
                 }
-                // 
+                // cement 
+                KeyCheck::Update();
+                if (KeyCheck::CheckWithDelay(0x2E, 1000) && vehComps.Get(playerVehicle).m_pCement) {
+                    if (vehComps.Get(playerVehicle).cementState == true)
+                        vehComps.Get(playerVehicle).cementState = false;
+                    else
+                        vehComps.Get(playerVehicle).cementState = true;
+                }
+                //
                 
-                
+
                 //KeyCheck::Update();
                 //if (KeyCheck::CheckWithDelay(0xBE, 500)) {
                 //    if (automobile->m_aDoors[1].IsClosed()) {
@@ -289,3 +303,4 @@ AdditionalComponents::eWiperState AdditionalComponents::m_currentWiperTwoState =
 float AdditionalComponents::wiperOneAngle = 0.0f;
 float AdditionalComponents::wiperTwoLAngle = 0.0f;
 float AdditionalComponents::wiperTwoRAngle = 0.0f;
+float AdditionalComponents::cementAngle = 0.0f;
