@@ -14,22 +14,25 @@ public:
     enum eWiperState { ONE_STATE_LEFT, ONE_STATE_RIGHT, TWO_STATE_LEFT, TWO_STATE_RIGHT };
     
     static eWiperState m_currentWiperOneState, m_currentWiperTwoState;
-    static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle, cementAngle;
+    static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle, cementAngle, manholeAngle;
     static CWeather *wather;
 
     class VehicleComponents { //  ласс, который представл€ет наши данные (можно сказать, что эти данные "прикрепл€ютс€" к структуре транспорта)
     public:
-        RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM;
-        RwFrame *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL;
-        RwFrame *m_pDumper, *m_pCement;
-        bool wiperState, cementState;
-        float dumperAngle;
+        RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM, 
+            *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL, 
+            *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf, 
+            *m_pManhole_cb, *m_pManhole_df, *m_pManhole_db, *m_pManhole_s;
+        bool wiperState, cementState, manholeState;
+        float dumperAngle, manholePos;
 
         VehicleComponents(CVehicle *) { //  онструктор этого класса будет вызван при вызове конструктора транспорта (CVehicle::CVehicle)
-            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement = nullptr;  // устанавливаем все указатели в 0
-            m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL = m_pDumper = nullptr;
-            wiperState = false; cementState = true;
-            dumperAngle = 0.0f;
+            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement 
+                = m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL 
+                = m_pDumper = m_pManhole_af = m_pManhole_ab = m_pManhole_bf = m_pManhole_bb = m_pManhole_cf 
+                = m_pManhole_cb = m_pManhole_df = m_pManhole_db = m_pManhole_s = nullptr;
+            wiperState = false; cementState = true; manholeState = true;
+            dumperAngle = manholePos = 0.0f;
 
         }
     };
@@ -61,6 +64,25 @@ public:
             MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneL, -wiperOneAngle);
     }
 
+    static void ManholeWorks(CVehicle *vehicle, float angle) {
+        if (vehComps.Get(vehicle).m_pManhole_af)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_af, manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_ab)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_ab, -manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_bf)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bf, manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_bb)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bb, -manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_cf)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cf, manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_cb)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_df)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_df, manholeAngle);
+        if (vehComps.Get(vehicle).m_pManhole_db)
+            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_db, -manholeAngle);
+    }
+
     static VehicleExtendedData<VehicleComponents> vehComps; // —оздаем экземпл€р нашего расширени€. vehComps - это переменна€ через которую мы будем обращатьс€ к нашим данным, использу€ метод Get(CVehicle *транспорт) 
 
     AdditionalComponents() {
@@ -81,13 +103,26 @@ public:
                 vehComps.Get(vehicle).m_pBrushOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
                 vehComps.Get(vehicle).m_pDumper       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "dumper");
                 vehComps.Get(vehicle).m_pCement       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "cement");
+                vehComps.Get(vehicle).m_pManhole_af   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_af");
+                vehComps.Get(vehicle).m_pManhole_ab   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_ab");
+                vehComps.Get(vehicle).m_pManhole_bf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_bf");
+                vehComps.Get(vehicle).m_pManhole_bb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_bb");
+                vehComps.Get(vehicle).m_pManhole_cf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_cf");
+                vehComps.Get(vehicle).m_pManhole_cb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_cb");
+                vehComps.Get(vehicle).m_pManhole_df   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_df");
+                vehComps.Get(vehicle).m_pManhole_db   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_db");
+                vehComps.Get(vehicle).m_pManhole_s    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_s");
 
             }
             else {
-                vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR = vehComps.Get(vehicle).m_pWiperOneL = nullptr;
-                vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = nullptr;
-                vehComps.Get(vehicle).m_pWiperOneTwoR = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL = nullptr;
-                vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = nullptr;
+                vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR 
+                    = vehComps.Get(vehicle).m_pWiperOneL = vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM 
+                    = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = vehComps.Get(vehicle).m_pWiperOneTwoR 
+                    = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL 
+                    = vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = vehComps.Get(vehicle).m_pManhole_af 
+                    = vehComps.Get(vehicle).m_pManhole_ab = vehComps.Get(vehicle).m_pManhole_bf = vehComps.Get(vehicle).m_pManhole_bb
+                    = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_df 
+                    = vehComps.Get(vehicle).m_pManhole_db = vehComps.Get(vehicle).m_pManhole_s =  nullptr;
 
             }
         };
@@ -197,6 +232,19 @@ public:
                         cementAngle += 0.05f;
                         MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pCement, cementAngle);
                     }
+                    // manhole
+                    if (vehicle->m_pDriver) {
+                        if (wather->NewWeatherType == 0 && (vehComps.Get(vehicle).manholeState == true)) {
+                            manholeAngle = 0.12f;
+                            ManholeWorks(vehicle, manholeAngle);
+                            vehComps.Get(vehicle).manholeState = false;
+                        }
+                        else if ((wather->NewWeatherType == 2 || wather->NewWeatherType == 3) && (vehComps.Get(vehicle).manholeState == false)) {
+                            manholeAngle = 0.0f;
+                            ManholeWorks(vehicle, manholeAngle);
+                            vehComps.Get(vehicle).manholeState = true;
+                        }
+                    }
                     //
 
                 }
@@ -265,7 +313,6 @@ public:
                 CFont::SetPropOn();
                 CFont::SetWrapx(600.0f);
                 wchar_t text[32];
-                //swprintf(text, L"steer angle %.2f", playerVehicle->m_fSteerAngle);
                 int currentWather = wather->NewWeatherType;
                 switch (currentWather) {
                 case 0:
@@ -283,14 +330,15 @@ public:
                 }
                 //swprintf(text, L"weather %d", wather->NewWeatherType);
                 CFont::PrintString(10.0f, 10.0f, text);
-                //swprintf(text, L"dvig %d", playerVehicle->m_nVehicleFlags);
-                //CFont::PrintString(10.0f, 30.0f, text);
-                //swprintf(text, L"OpenRatio %1f", playerAutomobile->m_aDoors[1].GetAngleOpenRatio());
-                //CFont::PrintString(10.0f, 50.0f, text);
-                //swprintf(text, L"Angle %.2f", playerAutomobile->m_aDoors[1].m_fAngle);
-                //CFont::PrintString(10.0f, 80.0f, text);
-                //swprintf(text, L"PrevAngle %.2f", playerAutomobile->m_aDoors[1].m_fPrevAngle);
-                //CFont::PrintString(10.0f, 110.0f, text);
+                swprintf(text, L"VehicleFlags %d", playerVehicle->m_nVehicleFlags);
+                CFont::PrintString(10.0f, 30.0f, text);
+                //swprintf(text, L"SteerRatio %.2f", playerVehicle->m_fSteerRatio);
+                swprintf(text, L"steer angle %.2f", playerVehicle->m_fSteerAngle);
+                CFont::PrintString(10.0f, 50.0f, text);
+                swprintf(text, L"VehicleFlags %d", playerVehicle->field_1F6);
+                CFont::PrintString(10.0f, 80.0f, text);
+                swprintf(text, L"VehicleFlags %d", playerVehicle->field_1F7);
+                CFont::PrintString(10.0f, 110.0f, text);
             }
         };
 
@@ -304,3 +352,4 @@ float AdditionalComponents::wiperOneAngle = 0.0f;
 float AdditionalComponents::wiperTwoLAngle = 0.0f;
 float AdditionalComponents::wiperTwoRAngle = 0.0f;
 float AdditionalComponents::cementAngle = 0.0f;
+float AdditionalComponents::manholeAngle = 0.0f;
