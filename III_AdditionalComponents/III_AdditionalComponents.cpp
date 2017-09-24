@@ -12,7 +12,9 @@ using namespace plugin;
 class AdditionalComponents {
 public:
     enum eWiperState { ONE_STATE_LEFT, ONE_STATE_RIGHT, TWO_STATE_LEFT, TWO_STATE_RIGHT };
-    
+    enum eOpenManholeState { STATE_OPENING, STATE_CLOSING, STATE_WAITING };
+
+    static eOpenManholeState m_currentManholeState;
     static eWiperState m_currentWiperOneState, m_currentWiperTwoState;
     static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle, cementAngle, manholeAngle;
     static CWeather *wather;
@@ -22,7 +24,7 @@ public:
         RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM, 
             *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL, 
             *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf, 
-            *m_pManhole_cb, *m_pManhole_df, *m_pManhole_db, *m_pManhole_s;
+            *m_pManhole_cb, *m_pManhole_s;
         bool wiperState, cementState, manholeState;
         float dumperAngle, manholePos;
 
@@ -30,7 +32,7 @@ public:
             m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement 
                 = m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL 
                 = m_pDumper = m_pManhole_af = m_pManhole_ab = m_pManhole_bf = m_pManhole_bb = m_pManhole_cf 
-                = m_pManhole_cb = m_pManhole_df = m_pManhole_db = m_pManhole_s = nullptr;
+                = m_pManhole_cb = m_pManhole_s = nullptr;
             wiperState = false; cementState = true; manholeState = true;
             dumperAngle = manholePos = 0.0f;
 
@@ -77,10 +79,6 @@ public:
             MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cf, manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_cb)
             MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
-        if (vehComps.Get(vehicle).m_pManhole_df)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_df, manholeAngle);
-        if (vehComps.Get(vehicle).m_pManhole_db)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_db, -manholeAngle);
     }
 
     static VehicleExtendedData<VehicleComponents> vehComps; // —оздаем экземпл€р нашего расширени€. vehComps - это переменна€ через которую мы будем обращатьс€ к нашим данным, использу€ метод Get(CVehicle *транспорт) 
@@ -103,15 +101,13 @@ public:
                 vehComps.Get(vehicle).m_pBrushOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
                 vehComps.Get(vehicle).m_pDumper       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "dumper");
                 vehComps.Get(vehicle).m_pCement       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "cement");
-                vehComps.Get(vehicle).m_pManhole_af   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_af");
-                vehComps.Get(vehicle).m_pManhole_ab   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_ab");
-                vehComps.Get(vehicle).m_pManhole_bf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_bf");
-                vehComps.Get(vehicle).m_pManhole_bb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_bb");
-                vehComps.Get(vehicle).m_pManhole_cf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_cf");
-                vehComps.Get(vehicle).m_pManhole_cb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_cb");
-                vehComps.Get(vehicle).m_pManhole_df   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_df");
-                vehComps.Get(vehicle).m_pManhole_db   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_db");
-                vehComps.Get(vehicle).m_pManhole_s    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "manhole_s");
+                vehComps.Get(vehicle).m_pManhole_af   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_af_hi");
+                vehComps.Get(vehicle).m_pManhole_ab   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_ab_hi");
+                vehComps.Get(vehicle).m_pManhole_bf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bf_hi");
+                vehComps.Get(vehicle).m_pManhole_bb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bb_hi");
+                vehComps.Get(vehicle).m_pManhole_cf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cf_hi");
+                vehComps.Get(vehicle).m_pManhole_cb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cb_hi");
+                vehComps.Get(vehicle).m_pManhole_s    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_s_hi");
 
             }
             else {
@@ -121,8 +117,7 @@ public:
                     = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL 
                     = vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = vehComps.Get(vehicle).m_pManhole_af 
                     = vehComps.Get(vehicle).m_pManhole_ab = vehComps.Get(vehicle).m_pManhole_bf = vehComps.Get(vehicle).m_pManhole_bb
-                    = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_df 
-                    = vehComps.Get(vehicle).m_pManhole_db = vehComps.Get(vehicle).m_pManhole_s =  nullptr;
+                    = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_s =  nullptr;
 
             }
         };
@@ -245,6 +240,40 @@ public:
                             vehComps.Get(vehicle).manholeState = true;
                         }
                     }
+                    // manhole_sliding
+                    if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pManhole_s) {
+                        CPed *player = FindPlayerPed();
+                        if (player && player != vehicle->m_pDriver) {
+                            switch (m_currentManholeState) {
+                            case STATE_OPENING:
+                                vehComps.Get(vehicle).manholePos -= 0.01f;
+                                if (vehComps.Get(vehicle).manholePos > -0.5f) 
+                                    vehComps.Get(vehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(vehicle).manholePos;
+                                else {
+                                    vehComps.Get(vehicle).manholePos = -0.5f;
+                                    vehComps.Get(vehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(vehicle).manholePos;
+                                    m_currentManholeState = STATE_WAITING;
+                                }
+                                break;
+                            case STATE_CLOSING:
+                                vehComps.Get(vehicle).manholePos += 0.01f;
+                                if (vehComps.Get(vehicle).manholePos < 0.0f) 
+                                    vehComps.Get(vehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(vehicle).manholePos;
+                                else {
+                                    vehComps.Get(vehicle).manholePos = 0.0f;
+                                    vehComps.Get(vehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(vehicle).manholePos;
+                                    m_currentManholeState = STATE_WAITING;
+                                }
+                                break;
+                            case STATE_WAITING:
+                                if (wather->NewWeatherType == 0 && vehComps.Get(vehicle).manholePos == 0.0f)
+                                    m_currentManholeState = STATE_OPENING;
+                                else if ((wather->NewWeatherType == 2 || wather->NewWeatherType == 3) && vehComps.Get(vehicle).manholePos == -0.5f)
+                                    m_currentManholeState = STATE_CLOSING;
+                                break;
+                            }
+                        }
+                    }
                     //
 
                 }
@@ -258,20 +287,24 @@ public:
                 // dumper
                 if (vehComps.Get(playerVehicle).m_pDumper) {
                     if (KeyPressed(0x6E) && KeyPressed(0x68)) {
-                        if (vehComps.Get(playerVehicle).dumperAngle < 0.7f) {
-                            vehComps.Get(playerVehicle).dumperAngle += 0.01f;
+                        vehComps.Get(playerVehicle).dumperAngle += 0.01f;
+                        if (vehComps.Get(playerVehicle).dumperAngle < 0.7f) 
+                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                        else {
+                            CMessages::AddMessageJumpQ(L"full up", 1000, 0);
+                            vehComps.Get(playerVehicle).dumperAngle = 0.7f;
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
-                        else 
-                            CMessages::AddMessageJumpQ(L"full up", 1000, 0);
                     }
                     if (KeyPressed(0x6E) && KeyPressed(0x62)) {
-                        if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) {
-                            vehComps.Get(playerVehicle).dumperAngle -= 0.01f;
+                        vehComps.Get(playerVehicle).dumperAngle -= 0.01f;
+                        if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) 
+                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                        else {
+                            CMessages::AddMessageJumpQ(L"full down", 1000, 0);
+                            vehComps.Get(playerVehicle).dumperAngle = 0.0f;
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
-                        else
-                            CMessages::AddMessageJumpQ(L"full down", 1000, 0);
                     }
                 }
                 // cement 
@@ -282,26 +315,30 @@ public:
                     else
                         vehComps.Get(playerVehicle).cementState = true;
                 }
+                // manhole_sliding
+                if (vehComps.Get(playerVehicle).m_pManhole_s) {
+                    if (KeyPressed(0x6E) && KeyPressed(0x68)) {
+                        vehComps.Get(playerVehicle).manholePos -= 0.01f;
+                        if (vehComps.Get(playerVehicle).manholePos > -0.5f) 
+                            vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
+                        else {
+                            CMessages::AddMessageJumpQ(L"full open", 1000, 0);
+                            vehComps.Get(playerVehicle).manholePos = -0.5f;
+                            vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
+                        }
+                    }
+                    if (KeyPressed(0x6E) && KeyPressed(0x62)) {
+                        vehComps.Get(playerVehicle).manholePos += 0.01f;
+                        if (vehComps.Get(playerVehicle).manholePos < 0.0f) 
+                            vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
+                        else {
+                            CMessages::AddMessageJumpQ(L"full closed", 1000, 0);
+                            vehComps.Get(playerVehicle).manholePos = 0.0f;
+                            vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
+                        }
+                    }
+                }
                 //
-                
-
-                //KeyCheck::Update();
-                //if (KeyCheck::CheckWithDelay(0xBE, 500)) {
-                //    if (automobile->m_aDoors[1].IsClosed()) {
-                //        //vehicle->m_nVehicleFlags &= 0xEF;
-                //        //RwV3d axis = { 1.0f, 0.0f, 0.0f };
-                //        //RwFrameRotate(automobile->m_aCarNodes[CAR_BOOT], &axis, 1.0f, rwCOMBINEPRECONCAT);
-                //        //RwMatrixRotate(&automobile->m_aCarNodes[CAR_BOOT]->modelling, &axis, 1.0f, rwCOMBINEPRECONCAT);
-                //        CMessages::AddMessageJumpQ(L"IsClosed", 2000, 0);
-                //    }
-                //    else {
-                //        //vehicle->m_nVehicleFlags |= 0x10;
-                //        //RwV3d axis = { 1.0f, 0.0f, 0.0f };
-                //        //RwFrameRotate(automobile->m_aCarNodes[CAR_BOOT], &axis, 0.0f, rwCOMBINEPRECONCAT);
-                //        //RwMatrixRotate(&automobile->m_aCarNodes[CAR_BOOT]->modelling, &axis, 0.0f, rwCOMBINEPRECONCAT);
-                //        CMessages::AddMessageJumpQ(L"Open", 2000, 0);
-                //    }
-                //}
 
                 //CPed *player = FindPlayerPed();
                 //if (player) {
@@ -315,27 +352,19 @@ public:
                 wchar_t text[32];
                 int currentWather = wather->NewWeatherType;
                 switch (currentWather) {
-                case 0:
-                    swprintf(text, L"weather %hs", "SUNNY");
-                    break;
-                case 1:
-                    swprintf(text, L"weather %hs", "CLOUDY");
-                    break;
-                case 2:
-                    swprintf(text, L"weather %hs", "RAINY");
-                    break;
-                case 3:
-                    swprintf(text, L"weather %hs", "FOGGY");
-                    break;
+                case 0: swprintf(text, L"weather %hs", "SUNNY");  break;
+                case 1: swprintf(text, L"weather %hs", "CLOUDY"); break;
+                case 2: swprintf(text, L"weather %hs", "RAINY");  break;
+                case 3: swprintf(text, L"weather %hs", "FOGGY");  break;
                 }
-                //swprintf(text, L"weather %d", wather->NewWeatherType);
                 CFont::PrintString(10.0f, 10.0f, text);
                 swprintf(text, L"VehicleFlags %d", playerVehicle->m_nVehicleFlags);
                 CFont::PrintString(10.0f, 30.0f, text);
                 //swprintf(text, L"SteerRatio %.2f", playerVehicle->m_fSteerRatio);
-                swprintf(text, L"steer angle %.2f", playerVehicle->m_fSteerAngle);
+                //swprintf(text, L"steer angle %.2f", playerVehicle->m_fSteerAngle);
+                swprintf(text, L"dumperAngle %.2f", vehComps.Get(playerVehicle).dumperAngle);
                 CFont::PrintString(10.0f, 50.0f, text);
-                swprintf(text, L"VehicleFlags %d", playerVehicle->field_1F6);
+                swprintf(text, L"manholePos %.2f", vehComps.Get(playerVehicle).manholePos);
                 CFont::PrintString(10.0f, 80.0f, text);
                 swprintf(text, L"VehicleFlags %d", playerVehicle->field_1F7);
                 CFont::PrintString(10.0f, 110.0f, text);
@@ -348,6 +377,7 @@ public:
 VehicleExtendedData<AdditionalComponents::VehicleComponents> AdditionalComponents::vehComps;
 AdditionalComponents::eWiperState AdditionalComponents::m_currentWiperOneState = ONE_STATE_LEFT;
 AdditionalComponents::eWiperState AdditionalComponents::m_currentWiperTwoState = TWO_STATE_LEFT;
+AdditionalComponents::eOpenManholeState AdditionalComponents::m_currentManholeState = STATE_WAITING;
 float AdditionalComponents::wiperOneAngle = 0.0f;
 float AdditionalComponents::wiperTwoLAngle = 0.0f;
 float AdditionalComponents::wiperTwoRAngle = 0.0f;
