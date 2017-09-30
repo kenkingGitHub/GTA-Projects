@@ -1,0 +1,29 @@
+#Keys
+#A - key: dumper up_down, manhole open_closed
+#B - key: dumper up,      manhole open
+#C - key: dumper down,    manhole closed
+#D - key: cement on/off 
+#E -  
+#F - 
+#G - 
+#H - 
+
+#A,   B,   C,   D,   E,  F,  G,  H 
+
+keys
+110, 104, 98,  46,
+end
+
+
+#LightsUpDown
+#A - ID model zr350
+#B - angle in radian !
+
+#A,  B
+
+zr350
+92, 0.61
+#92, 0.61
+end
+
+

@@ -59,7 +59,7 @@ void __declspec(naked) MyTaxiModel::Patch_58BE1F() {
         mov CurrentTaxiModel, eax
         popad
         mov eax, CurrentTaxiModel
-        mov ecx, eax
+        mov edi, eax //mov ecx, eax
         mov edx, 0x58BE25
         jmp edx
     }
