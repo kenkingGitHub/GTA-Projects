@@ -4,11 +4,11 @@
 #include "game_III\CWeather.h"
 #include "extensions\KeyCheck.h"
 #include "game_III\CMessages.h"
-
+#include "KeySettings.h"
 #include <vector>
 #include <string>
-#include <sstream>
 #include <fstream>
+//#include <sstream>
 
 using namespace plugin;
 using namespace std;
@@ -25,11 +25,6 @@ public:
         return zr350Infos;
     }
 
-    static vector<unsigned int>& GetKeys() {
-        static vector<unsigned int> key;
-        return key;
-    }
-
     static void ReadSettingsFile() {
         ifstream stream("AdditionalComponents.dat");
         for (string line; getline(stream, line); ) {
@@ -40,19 +35,6 @@ public:
                             Zr350Info entry;
                             if (sscanf(line.c_str(), "%d, %f", &entry.baseModelId, &entry.valueMaxLightsAngle) == 2)
                                 GetZr350Infos().push_back(entry);
-                        }
-                    }
-                }
-                else if (!line.compare("keys")) {
-                    while (getline(stream, line) && line.compare("end")) {
-                        if (line[0] != ';' && line[0] != '#') {
-                            stringstream ss(line);
-                            int i;
-                            while (ss >> i) {
-                                GetKeys().push_back(i);
-                                if (ss.peek() == ',')
-                                    ss.ignore();
-                            }
                         }
                     }
                 }
@@ -138,7 +120,7 @@ public:
             MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
     }
 
-    static VehicleExtendedData<VehicleComponents> vehComps; // —оздаем экземпл€р нашего расширени€. vehComps - это переменна€ через которую мы будем обращатьс€ к нашим данным, использу€ метод Get(CVehicle *транспорт) 
+    static VehicleExtendedData<VehicleComponents> vehComps; 
 
     AdditionalComponents() {
         ReadSettingsFile();
@@ -396,8 +378,7 @@ public:
                 CAutomobile *playerAutomobile = reinterpret_cast<CAutomobile *>(playerVehicle);
                 // dumper
                 if (vehComps.Get(playerVehicle).m_pDumper) {
-                    //if (KeyPressed(0x6E) && KeyPressed(0x68)) {
-                    if (KeyPressed(GetKeys()[0]) && KeyPressed(GetKeys()[1])) {
+                    if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyOpen)) {
                         vehComps.Get(playerVehicle).dumperAngle += 0.01f;
                         if (vehComps.Get(playerVehicle).dumperAngle < 0.7f) 
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
@@ -407,8 +388,7 @@ public:
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
                     }
-                    //if (KeyPressed(0x6E) && KeyPressed(0x62)) {
-                    if (KeyPressed(GetKeys()[0]) && KeyPressed(GetKeys()[2])) {
+                    if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyClose)) {
                         vehComps.Get(playerVehicle).dumperAngle -= 0.01f;
                         if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) 
                             MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
@@ -421,7 +401,7 @@ public:
                 }
                 // cement 
                 KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay(GetKeys()[3], 1000) && vehComps.Get(playerVehicle).m_pCement) {
+                if (KeyCheck::CheckWithDelay(settings.keyOnOff, 1000) && vehComps.Get(playerVehicle).m_pCement) {
                     if (vehComps.Get(playerVehicle).cementState == true)
                         vehComps.Get(playerVehicle).cementState = false;
                     else
@@ -429,8 +409,7 @@ public:
                 }
                 // manhole sliding
                 if (vehComps.Get(playerVehicle).m_pManhole_s) {
-                    //if (KeyPressed(0x6E) && KeyPressed(0x68)) {
-                    if (KeyPressed(GetKeys()[0]) && KeyPressed(GetKeys()[1])) {
+                    if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyOpen)) {
                         vehComps.Get(playerVehicle).manholePos -= 0.01f;
                         if (vehComps.Get(playerVehicle).manholePos > -0.5f) 
                             vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
@@ -440,8 +419,7 @@ public:
                             vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
                         }
                     }
-                    //if (KeyPressed(0x6E) && KeyPressed(0x62)) {
-                    if (KeyPressed(GetKeys()[0]) && KeyPressed(GetKeys()[2])) {
+                    if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyClose)) {
                         vehComps.Get(playerVehicle).manholePos += 0.01f;
                         if (vehComps.Get(playerVehicle).manholePos < 0.0f) 
                             vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;

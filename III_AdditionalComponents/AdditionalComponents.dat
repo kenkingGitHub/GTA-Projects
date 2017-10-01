@@ -1,18 +1,8 @@
-#Keys
-#A - key: dumper up_down, manhole open_closed
-#B - key: dumper up,      manhole open
-#C - key: dumper down,    manhole closed
-#D - key: cement on/off 
-#E -  
-#F - 
-#G - 
-#H - 
+KEY_OPEN_CLOSE  110   ; dumper up_down, manhole open_closed
+KEY_OPEN        104   ; dumper up,      manhole open
+KEY_CLOSE       98    ; dumper down,    manhole closed
+KEY_ON_OFF      46    ; cement on/off 
 
-#A,   B,   C,   D,   E,  F,  G,  H 
-
-keys
-110, 104, 98,  46,
-end
 
 
 #LightsUpDown
