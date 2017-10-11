@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MySettings.h"
 #include "plugin_III.h"
 
