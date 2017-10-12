@@ -4,11 +4,11 @@
 #include "game_III\CWeather.h"
 #include "extensions\KeyCheck.h"
 #include "game_III\CMessages.h"
+#include "game_III\CFont.h"
 #include "KeySettings.h"
 #include <vector>
 #include <string>
 #include <fstream>
-//#include <sstream>
 
 using namespace plugin;
 using namespace std;
@@ -124,6 +124,18 @@ public:
 
     AdditionalComponents() {
         ReadSettingsFile();
+
+        Events::onMenuDrawingEvent += [] {
+            CFont::SetScale(0.5f, 1.0f);
+            CFont::SetColor(CRGBA(238, 173, 53, 255));
+            CFont::SetJustifyOn();
+            CFont::SetFontStyle(0);
+            CFont::SetPropOn();
+            CFont::SetWrapx(600.0f);
+            wchar_t text[64];
+            swprintf(text, L"Additional Components by kenking (12.10.2017)");
+            CFont::PrintString(25.0f, 25.0f, text);
+        };
 
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) { 
             if (vehicle) {
@@ -337,7 +349,8 @@ public:
                         } 
                         // step van doors
                         if (vehComps.Get(vehicle).m_pStepVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LF]) {
-                            vehComps.Get(vehicle).m_pStepVanDoorL->modelling.pos.y = automobile->m_aDoors[2].m_fAngle;
+                            if (automobile->m_aDoors[2].m_fAngle > -0.9f)
+                                vehComps.Get(vehicle).m_pStepVanDoorL->modelling.pos.y = automobile->m_aDoors[2].m_fAngle;
                             if (automobile->m_aCarNodes[CAR_WING_LR]) {
                                 if (automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT) == 3) {
                                     if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_LEFT) != 3)
@@ -348,7 +361,8 @@ public:
                             }
                         }
                         if (vehComps.Get(vehicle).m_pStepVanDoorR && automobile->m_aCarNodes[CAR_DOOR_RF]) {
-                            vehComps.Get(vehicle).m_pStepVanDoorR->modelling.pos.y = automobile->m_aDoors[3].m_fAngle;
+                            if (automobile->m_aDoors[3].m_fAngle < 0.9f)
+                                vehComps.Get(vehicle).m_pStepVanDoorR->modelling.pos.y = -automobile->m_aDoors[3].m_fAngle;
                             if (automobile->m_aCarNodes[CAR_WING_RR]) {
                                 if (automobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT) == 3) {
                                     if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_RIGHT) != 3)

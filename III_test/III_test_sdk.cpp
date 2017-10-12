@@ -3,7 +3,8 @@
 #include "extensions\KeyCheck.h"
 #include "game_III\CMessages.h"
 #include "game_III\CFont.h"
-
+#include "game_III\CSprite2d.h"
+#include "game_III\CTxdStore.h"
 //#include "game_III\CModelInfo.h"
 
 using namespace plugin;
@@ -13,7 +14,46 @@ public:
     MyPlugin() {
         //CModelInfo::AddVehicleModel(4000);
         // 0x546B99;
-        
+        //static CSprite2d sprite;
+
+        //Events::initRwEvent += [] {
+        //    int txd = CTxdStore::AddTxdSlot("mytxd");
+        //    CTxdStore::LoadTxd(txd, "MODELS\\MYTXD.TXD");
+        //    CTxdStore::AddRef(txd);
+        //    CTxdStore::PushCurrentTxd();
+        //    CTxdStore::SetCurrentTxd(txd);
+        //    sprite.SetTexture("up", "upa");
+        //    CTxdStore::PopCurrentTxd();
+        //    //pMyTextureArrow = sprite.m_pTexture;
+        //};
+
+        //Events::onMenuDrawingEvent += [] {
+        //    //if (!sprite.m_pTexture) // load texture only once
+        //        //sprite.m_pTexture = RwD3D9DDSTextureRead(PLUGIN_PATH("image"), 0); 
+        //    //sprite.Draw(CRect(100.0f, 100.0f, 200.0f, 200.0f), CRGBA(255, 255, 255, 150)); 
+        //    sprite.SetRenderState();
+        //    sprite.Draw(20.0, 20.0, 50.0, 50.0, CRGBA(255, 255, 255, 255));
+        //};
+        //
+        //Events::shutdownRwEvent += [] {
+        //    sprite.Delete();
+        //    CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("mytxd"));
+        //};
+
+        //Events::onMenuDrawingEvent += [] {
+        //    // вывод текста
+        //    CFont::SetScale(0.5f, 1.0f);
+        //    CFont::SetColor(CRGBA(238, 173, 53, 255));
+        //    CFont::SetJustifyOn();
+        //    CFont::SetFontStyle(0);
+        //    CFont::SetPropOn();
+        //    CFont::SetWrapx(600.0f);
+        //    wchar_t text[64];
+        //    swprintf(text, L"plugin Additional Components by kenking version %.1f", 0.5f);
+        //    CFont::PrintString(25.0f, 25.0f, text);
+        //};
+
+
         Events::drawingEvent += [] {
             //if (*(bool *)0x8F5AE9) {
             //    // вывод текста
@@ -27,6 +67,9 @@ public:
             //    swprintf(text, L"test %hs", "777");
             //    CFont::PrintString(100.0f, 100.0f, text);
             //}
+
+            //sprite.Draw(CRect(50.0f, 50.0f, 100.0f, 100.0f), CRGBA(255, 255, 255, 150));
+            //sprite.Draw(20.0, 20.0, 50.0, 50.0, CRGBA(255, 255, 255, 255));
 
             CVehicle *playerVehicle = FindPlayerVehicle();
             if (playerVehicle && playerVehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
