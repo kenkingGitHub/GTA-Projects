@@ -5,6 +5,7 @@
 #include "extensions\KeyCheck.h"
 #include "game_III\CMessages.h"
 #include "game_III\CFont.h"
+#include "game_III\CCoronas.h"
 #include "KeySettings.h"
 #include <vector>
 #include <string>
@@ -486,3 +487,94 @@ float AdditionalComponents::wiperTwoLAngle = 0.0f;
 float AdditionalComponents::wiperTwoRAngle = 0.0f;
 float AdditionalComponents::cementAngle = 0.0f;
 float AdditionalComponents::manholeAngle = 0.0f;
+
+
+
+class Turnlights {
+public:
+    enum eLightsStatus { LIGHTS_OFF, LIGHTS_LEFT, LIGHTS_RIGHT, LIGHTS_BOTH };
+
+    class VehicleTurnlightsData {
+    public:
+        eLightsStatus lightsStatus;
+        RwFrame *m_pTurnLF, *m_pTurnLM, *m_pTurnLN, *m_pTurnLB, *m_pTurnRF, *m_pTurnRM, *m_pTurnRN, *m_pTurnRB;
+
+        VehicleTurnlightsData(CVehicle *) {
+            m_pTurnLF = m_pTurnLM = m_pTurnLN = m_pTurnLB = m_pTurnRF = m_pTurnRM = m_pTurnRN = m_pTurnRB = nullptr;
+            lightsStatus = LIGHTS_OFF;
+
+        }
+    };
+
+    Turnlights() {
+        static VehicleExtendedData<VehicleTurnlightsData> turnlightsData;
+
+        Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
+            if (vehicle->m_pRwClump) {
+                turnlightsData.Get(vehicle).m_pTurnLF = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lf");
+                turnlightsData.Get(vehicle).m_pTurnLM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lm");
+                turnlightsData.Get(vehicle).m_pTurnLN = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_ln");
+                turnlightsData.Get(vehicle).m_pTurnLB = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lb");
+                turnlightsData.Get(vehicle).m_pTurnRF = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rf");
+                turnlightsData.Get(vehicle).m_pTurnRM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rm");
+                turnlightsData.Get(vehicle).m_pTurnRN = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rn");
+                turnlightsData.Get(vehicle).m_pTurnRB = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rb");
+
+            }
+            else {
+                turnlightsData.Get(vehicle).m_pTurnLF = turnlightsData.Get(vehicle).m_pTurnLM = turnlightsData.Get(vehicle).m_pTurnLN
+                    = turnlightsData.Get(vehicle).m_pTurnLB = turnlightsData.Get(vehicle).m_pTurnRF = turnlightsData.Get(vehicle).m_pTurnRM
+                    = turnlightsData.Get(vehicle).m_pTurnRN = turnlightsData.Get(vehicle).m_pTurnRB = nullptr;
+
+            }
+        };
+
+        Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_fHealth > 0.1f) {
+                eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
+                if (vehicle->m_pDriver) {
+                    CPed *playa = FindPlayerPed();
+                    if (playa && playa->m_pVehicle == vehicle) {
+                        if (KeyPressed(90)) // Z
+                            lightsStatus = LIGHTS_LEFT;
+                        else if (KeyPressed(88)) // X
+                            lightsStatus = LIGHTS_BOTH;
+                        else if (KeyPressed(67)) // C
+                            lightsStatus = LIGHTS_RIGHT;
+                        else if (KeyPressed(VK_SHIFT))
+                            lightsStatus = LIGHTS_OFF;
+                    }
+                    else 
+                        lightsStatus = LIGHTS_OFF;
+                }
+                if (CTimer::m_snTimeInMilliseconds & 0x200) {
+                        DrawVehicleTurnlights(vehicle, lightsStatus);
+                    
+                }
+            }
+        };
+    }
+
+    static void DrawTurnlight(CVehicle *vehicle, unsigned int dummyId, bool leftSide) {
+        CVector posn =
+            reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_wModelIndex])->m_pVehicleStruct->m_avDummyPos[dummyId];
+        if (posn.x == 0.0f) posn.x = 0.15f;
+        if (leftSide) posn.x *= -1.0f;
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + 17, 128, 128, 0, 255, posn, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
+    }
+
+    static void DrawVehicleTurnlights(CVehicle *vehicle, eLightsStatus lightsStatus) {
+        if (lightsStatus == LIGHTS_BOTH || lightsStatus == LIGHTS_RIGHT) {
+            DrawTurnlight(vehicle, 0, false);
+            DrawTurnlight(vehicle, 1, false);
+        }
+        if (lightsStatus == LIGHTS_BOTH || lightsStatus == LIGHTS_LEFT) {
+            DrawTurnlight(vehicle, 0, true);
+            DrawTurnlight(vehicle, 1, true);
+        }
+    }
+
+    
+} turnlights;
+
+
