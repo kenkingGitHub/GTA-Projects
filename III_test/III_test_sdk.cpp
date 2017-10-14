@@ -79,27 +79,27 @@ public:
             if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
                 CAutomobile *playerAutomobile = reinterpret_cast<CAutomobile *>(veh);
                 //CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex])->m_avDummyPos[9];
-                RwFrame *m_pTest = CClumpModelInfo::GetFrameFromName(veh->m_pRwClump, "indicators_front");
-                if (m_pTest) {
-                    RwMatrix* matr = RwFrameGetLTM(m_pTest);
-                    //CMessages::AddMessageJumpQ(L"yes", 1000, 0);
-                    CVector posnOut, posnOut2;
-                    posnOut.x = matr->pos.x;
-                    posnOut2.x = matr->pos.x + 0.5f;
-                    posnOut.y = posnOut2.y = matr->pos.y;
-                    posnOut.z = posnOut2.z = matr->pos.z;
-                    if (CTimer::m_snTimeInMilliseconds & 0x200) {
-                        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(veh) + 17, 128, 128, 0, 255, posnOut, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
-                        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(veh) + 18, 128, 128, 0, 255, posnOut2, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
-                        CVector two = { 0.0f, 0.0f, 0.0f };
-                        CPointLights::AddLight(0, posnOut, two, 3.0f, 1.0f, 1.0f, 0.5f, 0, 1);
-                        CPointLights::AddLight(0, posnOut2, two, 3.0f, 1.0f, 1.0f, 0.5f, 0, 1);
-                    }
-                    else {
-                        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(veh) + 17, posnOut, 50.0f, 0.0f);
-                        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(veh) + 18, posnOut2, 50.0f, 0.0f);
-                    }
-                }
+                //RwFrame *m_pTest = CClumpModelInfo::GetFrameFromName(veh->m_pRwClump, "indicators_front");
+                //if (m_pTest) {
+                //    RwMatrix* matr = RwFrameGetLTM(m_pTest);
+                //    //CMessages::AddMessageJumpQ(L"yes", 1000, 0);
+                //    CVector posnOut, posnOut2;
+                //    posnOut.x = matr->pos.x;
+                //    posnOut2.x = matr->pos.x + 0.5f;
+                //    posnOut.y = posnOut2.y = matr->pos.y;
+                //    posnOut.z = posnOut2.z = matr->pos.z;
+                //    if (CTimer::m_snTimeInMilliseconds & 0x200) {
+                //        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(veh) + 17, 128, 128, 0, 255, posnOut, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
+                //        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(veh) + 18, 128, 128, 0, 255, posnOut2, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
+                //        CVector two = { 0.0f, 0.0f, 0.0f };
+                //        CPointLights::AddLight(0, posnOut, two, 3.0f, 1.0f, 1.0f, 0.5f, 0, 1);
+                //        CPointLights::AddLight(0, posnOut2, two, 3.0f, 1.0f, 1.0f, 0.5f, 0, 1);
+                //    }
+                //    else {
+                //        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(veh) + 17, posnOut, 50.0f, 0.0f);
+                //        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(veh) + 18, posnOut2, 50.0f, 0.0f);
+                //    }
+                //}
 
                 /*if (veh->IsComponentPresent(15)) {
                     CVector posnOut;
