@@ -4,7 +4,7 @@ class KeySettings {
 public:
     KeySettings();
 
-    int keyOpenClose, keyOpen, keyClose, keyOnOff;
+    int keyOpenClose, keyOpen, keyClose, keyOnOff, keyTurnL, keyTurnR, keyTurnLR, keyTurnOff;
 };
 
 extern KeySettings settings;
