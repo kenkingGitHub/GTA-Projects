@@ -57,8 +57,7 @@ public:
         //    CFont::PrintString(25.0f, 25.0f, text);
         //};
 
-        Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
-        //Events::drawingEvent += [] {
+        //Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
             //if (*(bool *)0x8F5AE9) {
             //    // вывод текста
             //    CFont::SetScale(0.5f, 1.0f);
@@ -75,9 +74,7 @@ public:
             //sprite.Draw(CRect(50.0f, 50.0f, 100.0f, 100.0f), CRGBA(255, 255, 255, 150));
             //sprite.Draw(20.0, 20.0, 50.0, 50.0, CRGBA(255, 255, 255, 255));
 
-            CVehicle *veh = FindPlayerVehicle();
-            if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                CAutomobile *playerAutomobile = reinterpret_cast<CAutomobile *>(veh);
+           
                 //CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex])->m_avDummyPos[9];
                 //RwFrame *m_pTest = CClumpModelInfo::GetFrameFromName(veh->m_pRwClump, "indicators_front");
                 //if (m_pTest) {
@@ -164,13 +161,56 @@ public:
                 //CPed *player = FindPlayerPed();
                 //if (player) 
                 // вывод текста
-                /*CFont::SetScale(0.5f, 1.0f);
-                CFont::SetColor(CRGBA(255, 255, 255, 255));
-                CFont::SetJustifyOn();
-                CFont::SetFontStyle(0);
-                CFont::SetPropOn();
-                CFont::SetWrapx(600.0f);
-                wchar_t text[32];*/
+               
+                Events::drawingEvent += [] {
+                    CVehicle *veh = FindPlayerVehicle();
+                    if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+                        CAutomobile *playerAutomobile = reinterpret_cast<CAutomobile *>(veh);
+                        CFont::SetScale(0.5f, 1.0f);
+                        CFont::SetColor(CRGBA(255, 255, 255, 255));
+                        CFont::SetJustifyOn();
+                        CFont::SetFontStyle(0);
+                        CFont::SetPropOn();
+                        CFont::SetWrapx(600.0f);
+                        wchar_t text[32];
+                        int lf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT);
+                        int lr = playerAutomobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT);
+                        int rf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT);
+                        int rr = playerAutomobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT);
+                        swprintf(text, L"lf %d", lf);
+                        CFont::PrintString(10.0f, 30.0f, text);
+                        swprintf(text, L"lr %d", lr);
+                        CFont::PrintString(10.0f, 50.0f, text);
+                        swprintf(text, L"rf %d", rf);
+                        CFont::PrintString(10.0f, 70.0f, text);
+                        swprintf(text, L"rr %d", rr);
+                        CFont::PrintString(10.0f, 90.0f, text);
+
+                        if (veh->IsComponentPresent(13))
+                            swprintf(text, L"WING_LF yes");
+                        else
+                            swprintf(text, L"WING_LF no");
+                        CFont::PrintString(100.0f, 30.0f, text);
+                        if (veh->IsComponentPresent(14))
+                            swprintf(text, L"WING_LR yes");
+                        else
+                            swprintf(text, L"WING_LR no");
+                        CFont::PrintString(100.0f, 50.0f, text);
+                        if (veh->IsComponentPresent(9))
+                            swprintf(text, L"WING_RF yes");
+                        else
+                            swprintf(text, L"WING_RF no");
+                        CFont::PrintString(100.0f, 70.0f, text);
+                        if (veh->IsComponentPresent(10))
+                            swprintf(text, L"WING_RR yes");
+                        else
+                            swprintf(text, L"WING_RR no");
+                        CFont::PrintString(100.0f, 90.0f, text);
+                            
+                    }
+                };
+                
+                
                 /*int currentWather = wather->NewWeatherType;
                 switch (currentWather) {
                 case 0: swprintf(text, L"weather %hs", "SUNNY");  break;
@@ -181,10 +221,7 @@ public:
                 //CFont::PrintString(10.0f, 10.0f, text);
                 
                 
-                //swprintf(text, L"m_fAngle 2 %.2f", playerAutomobile->m_aDoors[2].m_fAngle);
-                //CFont::PrintString(10.0f, 30.0f, text);
-                //swprintf(text, L"m_fAngle 3 %.2f", playerAutomobile->m_aDoors[3].m_fAngle);
-                //CFont::PrintString(10.0f, 50.0f, text);
+                
                 //swprintf(text, L"steer angle %.2f", veh->m_fSteerAngle);
                 /*swprintf(text, L"dumperAngle %.2f", vehComps.Get(veh).dumperAngle);
                 CFont::PrintString(10.0f, 50.0f, text);
@@ -212,8 +249,7 @@ public:
                 CFont::PrintString(10.0f, 200.0f, text);
                 swprintf(text, L"LightStatus %d", playerAutomobile->m_carDamage.GetLightStatus(LIGHT_REAR_LEFT));
                 CFont::PrintString(10.0f, 230.0f, text);*/
-            }
-        };
+            
 
     }
 } myPlugin;

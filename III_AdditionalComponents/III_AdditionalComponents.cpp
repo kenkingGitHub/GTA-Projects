@@ -134,7 +134,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (15.10.2017)");
+            swprintf(text, L"Additional Components by kenking (17.10.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -494,19 +494,20 @@ class Turnlights {
 public:
     enum eLightsStatus { LIGHTS_OFF, LIGHTS_LEFT, LIGHTS_RIGHT, LIGHTS_BOTH };
     static unsigned int i, j;
-    static const int arrayNumber = 8;
+    static const int arrayNumber = 16;
+    static CWeather *wather;
 
     class VehicleTurnlightsData {
     public:
         eLightsStatus lightsStatus;
-        bool turnIgnore;
-        RwFrame *Turn[arrayNumber];
+        bool turnIgnore, fogEnable;
+        RwFrame *m_pTurn[arrayNumber];
 
         VehicleTurnlightsData(CVehicle *) {
             for (i = 0; i < arrayNumber; i++) {
-                Turn[i] = nullptr;
+                m_pTurn[i] = nullptr;
             }
-            lightsStatus = LIGHTS_OFF; turnIgnore = false;
+            lightsStatus = LIGHTS_OFF; turnIgnore = false; fogEnable = false;
         }
     };
     
@@ -516,25 +517,43 @@ public:
     
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
-                turnlightsData.Get(vehicle).Turn[0] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lf");
-                turnlightsData.Get(vehicle).Turn[1] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lm");
-                turnlightsData.Get(vehicle).Turn[2] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_ln");
-                turnlightsData.Get(vehicle).Turn[3] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lb");
-                turnlightsData.Get(vehicle).Turn[4] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rf");
-                turnlightsData.Get(vehicle).Turn[5] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rm");
-                turnlightsData.Get(vehicle).Turn[6] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rn");
-                turnlightsData.Get(vehicle).Turn[7] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rb");
+                turnlightsData.Get(vehicle).m_pTurn[0]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lf");
+                turnlightsData.Get(vehicle).m_pTurn[1]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lm");
+                turnlightsData.Get(vehicle).m_pTurn[2]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_ln");
+                turnlightsData.Get(vehicle).m_pTurn[3]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lb");
+                turnlightsData.Get(vehicle).m_pTurn[4]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rf");
+                turnlightsData.Get(vehicle).m_pTurn[5]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rm");
+                turnlightsData.Get(vehicle).m_pTurn[6]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rn");
+                turnlightsData.Get(vehicle).m_pTurn[7]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rb");
+                turnlightsData.Get(vehicle).m_pTurn[8]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlf");
+                turnlightsData.Get(vehicle).m_pTurn[9]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlr");
+                turnlightsData.Get(vehicle).m_pTurn[10] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wrf");
+                turnlightsData.Get(vehicle).m_pTurn[11] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wrr");
+                turnlightsData.Get(vehicle).m_pTurn[12] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_dlf");
+                turnlightsData.Get(vehicle).m_pTurn[13] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_drf");
+                turnlightsData.Get(vehicle).m_pTurn[14] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_l");
+                turnlightsData.Get(vehicle).m_pTurn[15] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_r");
                 
+                //CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                /*if (turnlightsData.Get(vehicle).m_pTurn[12] && automobile->m_aCarNodes[CAR_DOOR_LF])
+                    RwFrameAddChild(automobile->m_aCarNodes[CAR_DOOR_LF], turnlightsData.Get(vehicle).m_pTurn[12]);
+                if (turnlightsData.Get(vehicle).m_pTurn[13] && automobile->m_aCarNodes[CAR_DOOR_RF])
+                    RwFrameAddChild(automobile->m_aCarNodes[CAR_DOOR_RF], turnlightsData.Get(vehicle).m_pTurn[13]);*/
             }
             else {
                 for (i = 0; i < arrayNumber; i++) {
-                    turnlightsData.Get(vehicle).Turn[i] = nullptr;
+                    turnlightsData.Get(vehicle).m_pTurn[i] = nullptr;
                 }
             }
         };
 
         Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
-            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_fHealth > 0.1f) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && (vehicle->m_nVehicleFlags & 0x10) && vehicle->m_fHealth > 0.1f) {
+                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                if (turnlightsData.Get(vehicle).m_pTurn[12] && automobile->m_aCarNodes[CAR_DOOR_LF])
+                    RwFrameAddChild(automobile->m_aCarNodes[CAR_DOOR_LF], turnlightsData.Get(vehicle).m_pTurn[12]);
+                if (turnlightsData.Get(vehicle).m_pTurn[13] && automobile->m_aCarNodes[CAR_DOOR_RF])
+                    RwFrameAddChild(automobile->m_aCarNodes[CAR_DOOR_RF], turnlightsData.Get(vehicle).m_pTurn[13]);
                 eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
                 if (vehicle->m_pDriver) {
                     CPed *playa = FindPlayerPed();
@@ -554,21 +573,63 @@ public:
                         }
                     }
                 }
-                else if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == false) 
+                else if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == false)
                     lightsStatus = LIGHTS_BOTH;
                 if (CTimer::m_snTimeInMilliseconds & 0x200)
                     DrawVehicleTurnlights(vehicle, lightsStatus);
                 else
                     UpdateLightStatus(vehicle);
+                // fog
+                if (wather->NewWeatherType == 3 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogEnable == false)
+                    turnlightsData.Get(vehicle).fogEnable = true;
+                else if (wather->NewWeatherType != 3 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogEnable == true) {
+                    turnlightsData.Get(vehicle).fogEnable = false;
+                    if (turnlightsData.Get(vehicle).m_pTurn[14])
+                        UpdateFoglight(vehicle, 15, turnlightsData.Get(vehicle).m_pTurn[14]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[15])
+                        UpdateFoglight(vehicle, 16, turnlightsData.Get(vehicle).m_pTurn[15]);
+                }
+                if (turnlightsData.Get(vehicle).fogEnable == true) {
+                    if (turnlightsData.Get(vehicle).m_pTurn[14])
+                        DrawFoglight(vehicle, 15, turnlightsData.Get(vehicle).m_pTurn[14]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[15])
+                        DrawFoglight(vehicle, 16, turnlightsData.Get(vehicle).m_pTurn[15]);
+                }
             }
         };
     }
 
+    static void DrawFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 0, 128, 255, 255, GetFramePosn(turn), 0.5f, 150.0f, 1, 0, 1, 0, 0, 0.0f);
+    }
+
+    static void UpdateFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
+        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 150.0f, 0.0f);
+    }
+
     static void UpdateLightStatus(CVehicle *vehicle) {
         for (i = 0, j = 1; i < 8; i++, j++) {
-            if (turnlightsData.Get(vehicle).Turn[i]) 
-                UpdateTurnlight(vehicle, j, turnlightsData.Get(vehicle).Turn[i]);
+            if (turnlightsData.Get(vehicle).m_pTurn[i]) 
+                UpdateTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
         }
+        // turn_wlf
+        if (turnlightsData.Get(vehicle).m_pTurn[8] && vehicle->IsComponentPresent(13))
+            UpdateTurnlight(vehicle, 9, turnlightsData.Get(vehicle).m_pTurn[8]);
+        // turn_wlr
+        if (turnlightsData.Get(vehicle).m_pTurn[9] && vehicle->IsComponentPresent(14))
+            UpdateTurnlight(vehicle, 10, turnlightsData.Get(vehicle).m_pTurn[9]);
+        // turn_wrf
+        if (turnlightsData.Get(vehicle).m_pTurn[10] && vehicle->IsComponentPresent(9))
+            UpdateTurnlight(vehicle, 11, turnlightsData.Get(vehicle).m_pTurn[10]);
+        // turn_wrr
+        if (turnlightsData.Get(vehicle).m_pTurn[11] && vehicle->IsComponentPresent(10))
+            UpdateTurnlight(vehicle, 12, turnlightsData.Get(vehicle).m_pTurn[11]);
+        // turn_dlf
+        if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(15))
+            UpdateTurnlight(vehicle, 13, turnlightsData.Get(vehicle).m_pTurn[12]);
+        // turn_drf
+        if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(11))
+            UpdateTurnlight(vehicle, 14, turnlightsData.Get(vehicle).m_pTurn[13]);
     }
 
     static CVector GetFramePosn(RwFrame *turn) {
@@ -589,17 +650,36 @@ public:
     }
 
     static void DrawVehicleTurnlights(CVehicle *vehicle, eLightsStatus lightsStatus) {
+        CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
         if (lightsStatus == LIGHTS_BOTH || lightsStatus == LIGHTS_LEFT) {
             for (i = 0, j = 1; i < 4; i++, j++) {
-                if (turnlightsData.Get(vehicle).Turn[i])
-                    DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).Turn[i]);
+                if (turnlightsData.Get(vehicle).m_pTurn[i])
+                    DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
             }
+            // turn_wlf
+            if (turnlightsData.Get(vehicle).m_pTurn[8] && vehicle->IsComponentPresent(13) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT)))
+                DrawTurnlight(vehicle, 9, turnlightsData.Get(vehicle).m_pTurn[8]);
+            // turn_wlr
+            if (turnlightsData.Get(vehicle).m_pTurn[9] && vehicle->IsComponentPresent(14) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT)))
+                DrawTurnlight(vehicle, 10, turnlightsData.Get(vehicle).m_pTurn[9]);
+            // turn_dlf
+            if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(15) && (3 > automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_LEFT)))
+                DrawTurnlight(vehicle, 13, turnlightsData.Get(vehicle).m_pTurn[12]);
         }
         if (lightsStatus == LIGHTS_BOTH || lightsStatus == LIGHTS_RIGHT) {
             for (i = 4, j = 5; i < 8; i++, j++) {
-                if (turnlightsData.Get(vehicle).Turn[i])
-                    DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).Turn[i]);
+                if (turnlightsData.Get(vehicle).m_pTurn[i])
+                    DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
             }
+            // turn_wrf
+            if (turnlightsData.Get(vehicle).m_pTurn[10] && vehicle->IsComponentPresent(9) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT)))
+                DrawTurnlight(vehicle, 11, turnlightsData.Get(vehicle).m_pTurn[10]);
+            // turn_wrr
+            if (turnlightsData.Get(vehicle).m_pTurn[11] && vehicle->IsComponentPresent(10) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT)))
+                DrawTurnlight(vehicle, 12, turnlightsData.Get(vehicle).m_pTurn[11]);
+            // turn_drf
+            if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(11) && (3 > automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_RIGHT)))
+                DrawTurnlight(vehicle, 14, turnlightsData.Get(vehicle).m_pTurn[13]);
         }
     }
 
