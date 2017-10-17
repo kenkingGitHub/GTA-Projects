@@ -572,20 +572,13 @@ public:
                     DrawVehicleTurnlights(vehicle, lightsStatus);
                 else
                     UpdateLightStatus(vehicle);
+                
                 // fog
                 if (wather->NewWeatherType == 3 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogEnable == false)
                     turnlightsData.Get(vehicle).fogEnable = true;
-                else if (wather->NewWeatherType != 3 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogEnable == true) {
+                else if (wather->NewWeatherType != 3 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogEnable == true) 
                     turnlightsData.Get(vehicle).fogEnable = false;
-                    if (turnlightsData.Get(vehicle).m_pTurn[14])
-                        UpdateFoglight(vehicle, 114, turnlightsData.Get(vehicle).m_pTurn[14]);
-                    if (turnlightsData.Get(vehicle).m_pTurn[15])
-                        UpdateFoglight(vehicle, 115, turnlightsData.Get(vehicle).m_pTurn[15]);
-                    if (turnlightsData.Get(vehicle).m_pTurn[16])
-                        UpdateFoglight(vehicle, 116, turnlightsData.Get(vehicle).m_pTurn[16]);
-                    if (turnlightsData.Get(vehicle).m_pTurn[17])
-                        UpdateFoglight(vehicle, 117, turnlightsData.Get(vehicle).m_pTurn[17]);
-                }
+                
                 if (turnlightsData.Get(vehicle).fogEnable == true) {
                     if (turnlightsData.Get(vehicle).m_pTurn[14])
                         DrawFoglight(vehicle, 114, turnlightsData.Get(vehicle).m_pTurn[14]);
@@ -600,6 +593,12 @@ public:
                             UpdateFoglight(vehicle, 116, turnlightsData.Get(vehicle).m_pTurn[16]);
                             UpdateFoglight(vehicle, 117, turnlightsData.Get(vehicle).m_pTurn[17]);
                         }
+                    }
+                }
+                else {
+                    for (i = 14, j = 114; i < 18; i++, j++) {
+                        if (turnlightsData.Get(vehicle).m_pTurn[i])
+                            UpdateFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
                 }
             }
@@ -632,10 +631,10 @@ public:
         if (turnlightsData.Get(vehicle).m_pTurn[11] && vehicle->IsComponentPresent(10))
             UpdateTurnlight(vehicle, 111, turnlightsData.Get(vehicle).m_pTurn[11]);
         // turn_wlm
-        if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(15))
+        if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(13))
             UpdateTurnlight(vehicle, 112, turnlightsData.Get(vehicle).m_pTurn[12]);
         // turn_wrm
-        if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(11))
+        if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(9))
             UpdateTurnlight(vehicle, 113, turnlightsData.Get(vehicle).m_pTurn[13]);
     }
 
