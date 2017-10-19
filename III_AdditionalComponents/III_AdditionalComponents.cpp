@@ -134,7 +134,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (17.10.2017)");
+            swprintf(text, L"Additional Components by kenking (19.10.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -606,7 +606,7 @@ public:
     }
 
     static void DrawFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 0, 128, 255, 255, GetFramePosn(turn), 0.5f, 150.0f, 1, 0, 1, 0, 0, 0.0f);
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 0, 170, 180, 255, GetFramePosn(turn), 0.5f, 150.0f, 1, 0, 1, 0, 0, 0.0f);
     }
 
     static void UpdateFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {

@@ -2,8 +2,10 @@ KEY_OPEN_CLOSE  110   ; dumper up_down, manhole open_closed
 KEY_OPEN        104   ; dumper up,      manhole open
 KEY_CLOSE       98    ; dumper down,    manhole closed
 KEY_ON_OFF      46    ; cement on/off 
-
-
+KEY_TURN_L      90    ; enable left turnlight
+KEY_TURN_R      67    ; enable right turnlight
+KEY_TURN_LR     88    ; enable both left and right turnlights
+KEY_TURN_OFF    16    ; disable enabled turnlights
 
 #LightsUpDown
 #A - ID model zr350
