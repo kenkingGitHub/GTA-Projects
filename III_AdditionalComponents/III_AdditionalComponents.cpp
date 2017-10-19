@@ -606,11 +606,11 @@ public:
     }
 
     static void DrawFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 0, 170, 180, 255, GetFramePosn(turn), 0.5f, 150.0f, 1, 0, 1, 0, 0, 0.0f);
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 186, 0, 200, GetFramePosn(turn), 0.4f, 100.0f, 1, 0, 1, 0, 0, 0.0f);
     }
 
     static void UpdateFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 150.0f, 0.0f);
+        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 100.0f, 0.0f);
     }
 
     static void UpdateLightStatus(CVehicle *vehicle) {
@@ -648,11 +648,11 @@ public:
     }
 
     static void DrawTurnlight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-            CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 128, 0, 255, GetFramePosn(turn), 0.3f, 150.0f, 1, 0, 1, 0, 0, 0.0f);
+            CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 128, 0, 255, GetFramePosn(turn), 0.3f, 100.0f, 1, 0, 1, 0, 0, 0.0f);
     }
 
     static void UpdateTurnlight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 150.0f, 0.0f);
+        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 100.0f, 0.0f);
     }
 
     static void DrawVehicleTurnlights(CVehicle *vehicle, eLightsStatus lightsStatus) {
