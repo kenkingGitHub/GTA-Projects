@@ -134,7 +134,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (19.10.2017)");
+            swprintf(text, L"Additional Components by kenking (20.10.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -494,7 +494,7 @@ class Turnlights {
 public:
     enum eLightsStatus { LIGHTS_OFF, LIGHTS_LEFT, LIGHTS_RIGHT, LIGHTS_BOTH };
     static unsigned int i, j;
-    static const int arrayNumber = 18;
+    static const int arrayNumber = 22;
     static CWeather *wather;
 
     class VehicleTurnlightsData {
@@ -535,7 +535,10 @@ public:
                 turnlightsData.Get(vehicle).m_pTurn[15] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_r");
                 turnlightsData.Get(vehicle).m_pTurn[16] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_lb");
                 turnlightsData.Get(vehicle).m_pTurn[17] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_rb");
-                
+                turnlightsData.Get(vehicle).m_pTurn[18] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogw_l");
+                turnlightsData.Get(vehicle).m_pTurn[19] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogw_r");
+                turnlightsData.Get(vehicle).m_pTurn[20] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogw_lb");
+                turnlightsData.Get(vehicle).m_pTurn[21] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogw_rb");
             }
             else {
                 for (i = 0; i < arrayNumber; i++) {
@@ -580,23 +583,39 @@ public:
                     turnlightsData.Get(vehicle).fogEnable = false;
                 
                 if (turnlightsData.Get(vehicle).fogEnable == true) {
+                    // yellow
                     if (turnlightsData.Get(vehicle).m_pTurn[14])
-                        DrawFoglight(vehicle, 114, turnlightsData.Get(vehicle).m_pTurn[14]);
+                        DrawFoglightYellow(vehicle, 114, turnlightsData.Get(vehicle).m_pTurn[14]);
                     if (turnlightsData.Get(vehicle).m_pTurn[15])
-                        DrawFoglight(vehicle, 115, turnlightsData.Get(vehicle).m_pTurn[15]);
+                        DrawFoglightYellow(vehicle, 115, turnlightsData.Get(vehicle).m_pTurn[15]);
                     if (turnlightsData.Get(vehicle).m_pTurn[16] && turnlightsData.Get(vehicle).m_pTurn[17] && vehicle->IsComponentPresent(7)) {
                         if (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)) {
-                            DrawFoglight(vehicle, 116, turnlightsData.Get(vehicle).m_pTurn[16]);
-                            DrawFoglight(vehicle, 117, turnlightsData.Get(vehicle).m_pTurn[17]);
+                            DrawFoglightYellow(vehicle, 116, turnlightsData.Get(vehicle).m_pTurn[16]);
+                            DrawFoglightYellow(vehicle, 117, turnlightsData.Get(vehicle).m_pTurn[17]);
                         }
                         else {
                             UpdateFoglight(vehicle, 116, turnlightsData.Get(vehicle).m_pTurn[16]);
                             UpdateFoglight(vehicle, 117, turnlightsData.Get(vehicle).m_pTurn[17]);
                         }
                     }
+                    // white
+                    if (turnlightsData.Get(vehicle).m_pTurn[18])
+                        DrawFoglightWhite(vehicle, 118, turnlightsData.Get(vehicle).m_pTurn[18]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[19])
+                        DrawFoglightWhite(vehicle, 119, turnlightsData.Get(vehicle).m_pTurn[19]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[20] && turnlightsData.Get(vehicle).m_pTurn[21] && vehicle->IsComponentPresent(7)) {
+                        if (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)) {
+                            DrawFoglightWhite(vehicle, 120, turnlightsData.Get(vehicle).m_pTurn[20]);
+                            DrawFoglightWhite(vehicle, 121, turnlightsData.Get(vehicle).m_pTurn[21]);
+                        }
+                        else {
+                            UpdateFoglight(vehicle, 120, turnlightsData.Get(vehicle).m_pTurn[20]);
+                            UpdateFoglight(vehicle, 121, turnlightsData.Get(vehicle).m_pTurn[21]);
+                        }
+                    }
                 }
                 else {
-                    for (i = 14, j = 114; i < 18; i++, j++) {
+                    for (i = 14, j = 114; i < 22; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i])
                             UpdateFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
@@ -605,8 +624,12 @@ public:
         };
     }
 
-    static void DrawFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
+    static void DrawFoglightYellow(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
         CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 186, 0, 200, GetFramePosn(turn), 0.4f, 100.0f, 1, 0, 1, 0, 0, 0.0f);
+    }
+
+    static void DrawFoglightWhite(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 255, 255, 200, GetFramePosn(turn), 0.4f, 100.0f, 1, 0, 1, 0, 0, 0.0f);
     }
 
     static void UpdateFoglight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
