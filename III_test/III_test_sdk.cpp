@@ -173,7 +173,12 @@ public:
                         CFont::SetPropOn();
                         CFont::SetWrapx(600.0f);
                         wchar_t text[32];
-                        int lf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT);
+                        swprintf(text, L"Extra 0 %d", veh->m_nExtra[0]);
+                        CFont::PrintString(10.0f, 10.0f, text);
+                        swprintf(text, L"Extra 1 %d", veh->m_nExtra[1]);
+                        CFont::PrintString(10.0f, 30.0f, text);
+
+                        /*int lf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT);
                         int lr = playerAutomobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT);
                         int rf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT);
                         int rr = playerAutomobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT);
@@ -205,7 +210,7 @@ public:
                             swprintf(text, L"WING_RR yes");
                         else
                             swprintf(text, L"WING_RR no");
-                        CFont::PrintString(100.0f, 90.0f, text);
+                        CFont::PrintString(100.0f, 90.0f, text);*/
                             
                     }
                 };
@@ -298,3 +303,39 @@ public:
 //        };
 //    }
 //} example;
+
+
+//if (car->vehicle.m_nSirenOrAlarm)
+//{
+//    v429.x = 1053609165;
+//    v429.y = 1058642330;
+//    v429.z = 1050253722;
+//    operator*((int)&v428, (int)&car->vehicle.physical.entity.m_placement.matrix, (int)&v429);
+//    CVector::Copy(&v261, &v428);
+//    if (CTimer::m_snTimeInMilliseconds & 0x100
+//        && (v154 = *(float *)&car->vehicle.physical.entity.m_placement.matrix.matrix.pos.z - *(float *)&fCamPosX.z,
+//            v155 = *(float *)&car->vehicle.physical.entity.m_placement.matrix.matrix.pos.y - *(float *)&fCamPosX.y,
+//            v156 = *(float *)&car->vehicle.physical.entity.m_placement.matrix.matrix.pos.x - *(float *)&fCamPosX.x,
+//            CVector::Set(&v430, v156, v155, v154),  
+//              
+//            *(float *)(v243 + 4) * *(float *)&v430.y 
+//            + *(float *)v243 * *(float *)&v430.x
+//            + *(float *)(v243 + 8) * *(float *)&v430.z >= flt_6004F8))
+//    {
+//        CCoronas::RegisterCorona(
+//            (int)&car->vehicle.physical.entity.m_placement.matrix.matrix.top.x + 1,
+//            0,
+//            0,
+//            -1,
+//            -1,
+//            (int)&v261,
+//            flt_600520,
+//            flt_6005B4,
+//            0,
+//            0,
+//            0,
+//            0,
+//            0,
+//            flt_6004F8);
+//    }
+//}
