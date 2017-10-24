@@ -178,6 +178,10 @@ public:
                         swprintf(text, L"Extra 1 %d", veh->m_nExtra[1]);
                         CFont::PrintString(10.0f, 30.0f, text);
 
+                        //CVector offset = { 0.0f, 5.0f, 0.0f };
+                        //CVector result = veh->m_matrix * offset;
+                        //CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(veh) + 19, 128, 128, 0, 255, result, 0.3f, 50.0f, 1, 0, 1, 0, 0, 0.0f);
+
                         /*int lf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT);
                         int lr = playerAutomobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT);
                         int rf = playerAutomobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT);

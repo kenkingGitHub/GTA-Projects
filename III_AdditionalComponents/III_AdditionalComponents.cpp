@@ -569,6 +569,20 @@ public:
                             UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
                         }
                     }
+
+                    //---test---- 
+                    else {
+                        UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
+
+                        if (lightsStatus == LIGHTS_OFF) {
+                            if (vehicle->m_autoPilot.m_nCurrentLane == 0 && vehicle->m_autoPilot.m_nNextLane == 1)
+                                lightsStatus = LIGHTS_RIGHT;
+                            else if (vehicle->m_autoPilot.m_nCurrentLane == 1 && vehicle->m_autoPilot.m_nNextLane == 0)
+                                lightsStatus = LIGHTS_LEFT;
+                        }
+                    }
+                    //---test----
+
                 }
                 else if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == false)
                     lightsStatus = LIGHTS_BOTH;
@@ -629,6 +643,7 @@ public:
             }
         };
     }
+
 
     static void DrawFoglightYellow(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
         CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 186, 0, 200, GetFramePosn(turn), 0.3f, 100.0f, 0, 0, 0, 0, 0, 0.0f);
