@@ -165,7 +165,7 @@ public:
                 Events::drawingEvent += [] {
                     CVehicle *veh = FindPlayerVehicle();
                     if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                        CAutomobile *playerAutomobile = reinterpret_cast<CAutomobile *>(veh);
+                        CAutomobile *automobile = reinterpret_cast<CAutomobile *>(veh);
                         CFont::SetScale(0.5f, 1.0f);
                         CFont::SetColor(CRGBA(255, 255, 255, 255));
                         CFont::SetJustifyOn();
@@ -173,9 +173,9 @@ public:
                         CFont::SetPropOn();
                         CFont::SetWrapx(600.0f);
                         wchar_t text[32];
-                        swprintf(text, L"Extra 0 %d", veh->m_nExtra[0]);
+                        swprintf(text, L"m_fAngle 4 %.2f", automobile->m_aDoors[4].m_fAngle);
                         CFont::PrintString(10.0f, 10.0f, text);
-                        swprintf(text, L"Extra 1 %d", veh->m_nExtra[1]);
+                        swprintf(text, L"m_fAngle 5 %.2f", automobile->m_aDoors[5].m_fAngle);
                         CFont::PrintString(10.0f, 30.0f, text);
 
                         //CVector offset = { 0.0f, 5.0f, 0.0f };

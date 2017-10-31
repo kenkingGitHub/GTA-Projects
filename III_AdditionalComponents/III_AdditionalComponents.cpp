@@ -64,7 +64,8 @@ public:
         RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM, 
             *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL, 
             *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf, 
-            *m_pManhole_cb, *m_pManhole_s, *m_pLightsUp, *m_pStepVanDoorL, *m_pStepVanDoorR;
+            *m_pManhole_cb, *m_pManhole_s, *m_pLightsUp, *m_pStepVanDoorL, *m_pStepVanDoorR, *m_pMiniVanDoorL, 
+            *m_pMiniVanDoorR, *m_pBootLeft, *m_pBootRight, *m_pBootBottom;
         bool wiperState, cementState, manholeState, lightsUpDown;
         float dumperAngle, manholePos, currentLightsAngle, maxLightsAngle;
 
@@ -134,7 +135,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (22.10.2017)");
+            swprintf(text, L"Additional Components by kenking (31.10.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -174,6 +175,11 @@ public:
                 vehComps.Get(vehicle).m_pLightsUp     = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "lights_up");
                 vehComps.Get(vehicle).m_pStepVanDoorL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_slf");
                 vehComps.Get(vehicle).m_pStepVanDoorR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_srf");
+                vehComps.Get(vehicle).m_pMiniVanDoorL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_mlr");
+                vehComps.Get(vehicle).m_pMiniVanDoorR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_mrr");
+                vehComps.Get(vehicle).m_pBootLeft     = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_l");
+                vehComps.Get(vehicle).m_pBootRight    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_r");
+                vehComps.Get(vehicle).m_pBootBottom   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_b");
 
             }
             else {
@@ -184,7 +190,9 @@ public:
                     = vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = vehComps.Get(vehicle).m_pManhole_af 
                     = vehComps.Get(vehicle).m_pManhole_ab = vehComps.Get(vehicle).m_pManhole_bf = vehComps.Get(vehicle).m_pManhole_bb
                     = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_s
-                    = vehComps.Get(vehicle).m_pLightsUp = vehComps.Get(vehicle).m_pStepVanDoorL = vehComps.Get(vehicle).m_pStepVanDoorR = nullptr;
+                    = vehComps.Get(vehicle).m_pLightsUp = vehComps.Get(vehicle).m_pStepVanDoorL = vehComps.Get(vehicle).m_pStepVanDoorR 
+                    = vehComps.Get(vehicle).m_pMiniVanDoorL = vehComps.Get(vehicle).m_pMiniVanDoorR = vehComps.Get(vehicle).m_pBootLeft
+                    = vehComps.Get(vehicle).m_pBootRight = vehComps.Get(vehicle).m_pBootBottom = nullptr;
 
             }
         };
@@ -373,6 +381,39 @@ public:
                                     automobile->m_carDamage.SetDoorStatus(DOOR_FRONT_RIGHT, 0);
                             }
                         }
+                        // mini van doors
+                        if (vehComps.Get(vehicle).m_pMiniVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LR]) {
+                            vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.y = automobile->m_aDoors[4].m_fAngle;
+                            if (automobile->m_aDoors[4].m_fAngle != 0.0f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.x = -0.15f;
+                            else
+                                vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.x = 0.0f;
+                            if (automobile->m_aCarNodes[CAR_WING_LF]) {
+                                if (automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_LEFT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_REAR_LEFT, 3);
+                                }
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_LEFT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_REAR_LEFT, 0);
+                            }
+                        }
+                        if (vehComps.Get(vehicle).m_pMiniVanDoorR && automobile->m_aCarNodes[CAR_DOOR_RR]) {
+                            vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.y = -automobile->m_aDoors[5].m_fAngle;
+                            if (automobile->m_aDoors[5].m_fAngle != 0.0f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.x = 0.15f;
+                            else
+                                vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.x = 0.0f;
+                            if (automobile->m_aCarNodes[CAR_WING_RF]) {
+                                if (automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_RIGHT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_REAR_RIGHT, 3);
+                                }
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_RIGHT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_REAR_RIGHT, 0);
+                            }
+                        }
+                        // dual trunk 
+
                         //
 
                     } // vehicle->GetIsOnScreen
@@ -553,6 +594,11 @@ public:
                 eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
                 
                 if (vehicle->m_pDriver) {
+                    /*if (vehicle->field_1F6 & 0x20)
+                        ;
+                    else 
+                        vehicle->field_1F6 |= 0x20;*/
+                        
                     CPed *playa = FindPlayerPed();
                     if (playa && playa->m_pVehicle == vehicle) {
                         turnlightsData.Get(vehicle).turnIgnore = true;
@@ -575,6 +621,11 @@ public:
                         UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
 
                         if (lightsStatus == LIGHTS_OFF) {
+                            /*if (vehicle->m_fSteerAngle < -0.2f)
+                                lightsStatus = LIGHTS_RIGHT;
+                            else if (vehicle->m_fSteerAngle > 0.2f)
+                                lightsStatus = LIGHTS_LEFT;*/
+
                             if (vehicle->m_autoPilot.m_nCurrentLane == 0 && vehicle->m_autoPilot.m_nNextLane == 1)
                                 lightsStatus = LIGHTS_RIGHT;
                             else if (vehicle->m_autoPilot.m_nCurrentLane == 1 && vehicle->m_autoPilot.m_nNextLane == 0)
