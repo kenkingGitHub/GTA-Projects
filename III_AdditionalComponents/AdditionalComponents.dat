@@ -6,6 +6,8 @@ KEY_TURN_L      90    ; enable left turnlight
 KEY_TURN_R      67    ; enable right turnlight
 KEY_TURN_LR     88    ; enable both left and right turnlights
 KEY_TURN_OFF    16    ; disable enabled turnlights
+KEY_BOOT_CLOSE  80    ; boot close
+
 
 #LightsUpDown
 #A - ID model zr350

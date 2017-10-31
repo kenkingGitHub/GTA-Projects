@@ -175,7 +175,7 @@ public:
                         wchar_t text[32];
                         swprintf(text, L"m_fAngle 4 %.2f", automobile->m_aDoors[4].m_fAngle);
                         CFont::PrintString(10.0f, 10.0f, text);
-                        swprintf(text, L"m_fAngle 5 %.2f", automobile->m_aDoors[5].m_fAngle);
+                        swprintf(text, L"m_fAngle 1 %.2f", automobile->m_aDoors[1].m_fAngle);
                         CFont::PrintString(10.0f, 30.0f, text);
 
                         //CVector offset = { 0.0f, 5.0f, 0.0f };

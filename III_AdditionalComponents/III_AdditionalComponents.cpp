@@ -92,6 +92,12 @@ public:
         matrix.UpdateRW();
     }
 
+    static void MatrixSetRotateZOnly(RwFrame *component, float angle) {
+        CMatrix matrix(&component->modelling, false);
+        matrix.SetRotateZOnly(angle);
+        matrix.UpdateRW();
+    }
+
     static void WiperWorks(CVehicle *vehicle, float angle) {
         MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperOneAngle);
         MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperOneAngle);
@@ -383,7 +389,8 @@ public:
                         }
                         // mini van doors
                         if (vehComps.Get(vehicle).m_pMiniVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LR]) {
-                            vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.y = automobile->m_aDoors[4].m_fAngle;
+                            if (automobile->m_aDoors[4].m_fAngle > -1.1f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.y = automobile->m_aDoors[4].m_fAngle;
                             if (automobile->m_aDoors[4].m_fAngle != 0.0f)
                                 vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.x = -0.15f;
                             else
@@ -398,7 +405,8 @@ public:
                             }
                         }
                         if (vehComps.Get(vehicle).m_pMiniVanDoorR && automobile->m_aCarNodes[CAR_DOOR_RR]) {
-                            vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.y = -automobile->m_aDoors[5].m_fAngle;
+                            if (automobile->m_aDoors[5].m_fAngle < 1.1f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.y = -automobile->m_aDoors[5].m_fAngle;
                             if (automobile->m_aDoors[5].m_fAngle != 0.0f)
                                 vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.x = 0.15f;
                             else
@@ -413,7 +421,15 @@ public:
                             }
                         }
                         // dual trunk 
-
+                        if (vehComps.Get(vehicle).m_pBootRight && automobile->m_aCarNodes[CAR_BOOT]) {
+                            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootRight, 0.3f * automobile->m_aDoors[1].m_fAngle);
+                        }
+                        if (vehComps.Get(vehicle).m_pBootLeft && automobile->m_aCarNodes[CAR_BOOT]) {
+                            MatrixSetRotateZOnly(vehComps.Get(vehicle).m_pBootLeft, 1.3f * automobile->m_aDoors[1].m_fAngle);
+                        }
+                        if (vehComps.Get(vehicle).m_pBootBottom && automobile->m_aCarNodes[CAR_BOOT]) {
+                            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->m_aDoors[1].m_fAngle);
+                        }
                         //
 
                     } // vehicle->GetIsOnScreen
@@ -511,6 +527,9 @@ public:
                         }
                     }
                 }
+                // boot close
+                if (KeyCheck::CheckWithDelay(settings.keyBootClose, 1000) && playerAutomobile->m_aCarNodes[CAR_BOOT])
+                    playerAutomobile->OpenDoor(18, BOOT, 0.0f);
                 //
 
             }
