@@ -16,4 +16,5 @@ KeySettings::KeySettings() {
     keyTurnLR    = conf["KEY_TURN_LR"].asInt(88);
     keyTurnOff   = conf["KEY_TURN_OFF"].asInt(16);
     keyBootClose = conf["KEY_BOOT_CLOSE"].asInt(80);
+    keyBlink     = conf["KEY_BLINK"].asInt(79);
 }

@@ -553,13 +553,15 @@ float AdditionalComponents::manholeAngle = 0.0f;
 class Turnlights {
 public:
     enum eLightsStatus { LIGHTS_OFF, LIGHTS_LEFT, LIGHTS_RIGHT, LIGHTS_BOTH };
+    enum eBlinksStatus { BLINKS_ENABLE, BLINKS_DISABLE, BLINKS_IGNORE };
     static unsigned int i, j;
-    static const int arrayNumber = 22;
+    static const int arrayNumber = 26;
     static CWeather *wather;
 
     class VehicleTurnlightsData {
     public:
-        eLightsStatus lightsStatus;
+        eLightsStatus lightsStatus; 
+        eBlinksStatus blinksStatus;
         bool turnIgnore, fogEnable, fogExtraEnable;
         RwFrame *m_pTurn[arrayNumber];
 
@@ -567,7 +569,8 @@ public:
             for (i = 0; i < arrayNumber; i++) {
                 m_pTurn[i] = nullptr;
             }
-            lightsStatus = LIGHTS_OFF; turnIgnore = false; fogEnable = false; fogExtraEnable = false;
+            lightsStatus = LIGHTS_OFF; blinksStatus = BLINKS_DISABLE;
+            turnIgnore = false; fogEnable = false; fogExtraEnable = false;
         }
     };
     
@@ -599,6 +602,10 @@ public:
                 turnlightsData.Get(vehicle).m_pTurn[19] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_r");
                 turnlightsData.Get(vehicle).m_pTurn[20] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_lm");
                 turnlightsData.Get(vehicle).m_pTurn[21] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_rm");
+                turnlightsData.Get(vehicle).m_pTurn[22] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_l");
+                turnlightsData.Get(vehicle).m_pTurn[23] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_r");
+                turnlightsData.Get(vehicle).m_pTurn[24] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_lm");
+                turnlightsData.Get(vehicle).m_pTurn[25] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_rm");
             }
             else {
                 for (i = 0; i < arrayNumber; i++) {
@@ -611,13 +618,9 @@ public:
             if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && (vehicle->m_nVehicleFlags & 0x10) && vehicle->m_fHealth > 0.1f) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
                 eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
-                
+                eBlinksStatus &blinksStatus = turnlightsData.Get(vehicle).blinksStatus;
+
                 if (vehicle->m_pDriver) {
-                    /*if (vehicle->field_1F6 & 0x20)
-                        ;
-                    else 
-                        vehicle->field_1F6 |= 0x20;*/
-                        
                     CPed *playa = FindPlayerPed();
                     if (playa && playa->m_pVehicle == vehicle) {
                         turnlightsData.Get(vehicle).turnIgnore = true;
@@ -633,10 +636,25 @@ public:
                         else if (KeyPressed(settings.keyTurnOff)) {
                             UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
                         }
+                        // blink
+                        KeyCheck::Update();
+                        if (KeyCheck::CheckWithDelay(settings.keyBlink, 1000)) {
+                            if (blinksStatus == BLINKS_DISABLE)
+                                blinksStatus = BLINKS_ENABLE;
+                            else
+                                blinksStatus = BLINKS_DISABLE;
+                        }
                     }
 
                     //---test---- 
                     else {
+                        // blink
+                        if (blinksStatus == BLINKS_DISABLE && (rand() % 3 == 1))
+                            blinksStatus = BLINKS_ENABLE;
+                        else
+                            blinksStatus = BLINKS_IGNORE;
+
+                        // turn
                         UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
 
                         if (lightsStatus == LIGHTS_OFF) {
@@ -705,6 +723,40 @@ public:
                 }
                 else {
                     for (i = 18, j = 118; i < 22; i++, j++) {
+                        if (turnlightsData.Get(vehicle).m_pTurn[i])
+                            UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
+                    }
+                }
+
+                // blink
+                if (blinksStatus == BLINKS_ENABLE) {
+                    if (CTimer::m_snTimeInMilliseconds & 0x200) {
+                        for (i = 22, j = 122; i < 24; i++, j++) {
+                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                                DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
+                        }
+                    }
+                    else {
+                        for (i = 22, j = 122; i < 24; i++, j++) {
+                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                                UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
+                        }
+                    }
+                    if (CTimer::m_snTimeInMilliseconds & 0x400) {
+                        for (i = 24, j = 124; i < 26; i++, j++) {
+                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                                DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
+                        }
+                    }
+                    else {
+                        for (i = 24, j = 124; i < 26; i++, j++) {
+                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                                UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
+                        }
+                    }
+                }
+                else {
+                    for (i = 22, j = 122; i < 26; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i])
                             UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
