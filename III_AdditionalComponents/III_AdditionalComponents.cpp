@@ -639,7 +639,7 @@ public:
                         // blink
                         KeyCheck::Update();
                         if (KeyCheck::CheckWithDelay(settings.keyBlink, 1000)) {
-                            if (blinksStatus == BLINKS_DISABLE)
+                            if (blinksStatus == BLINKS_DISABLE || blinksStatus == BLINKS_IGNORE)
                                 blinksStatus = BLINKS_ENABLE;
                             else
                                 blinksStatus = BLINKS_DISABLE;
@@ -649,11 +649,12 @@ public:
                     //---test---- 
                     else {
                         // blink
-                        if (blinksStatus == BLINKS_DISABLE && (rand() % 3 == 1))
-                            blinksStatus = BLINKS_ENABLE;
-                        else
-                            blinksStatus = BLINKS_IGNORE;
-
+                        if (blinksStatus == BLINKS_DISABLE) {
+                            if (rand() % 3 == 1)
+                                blinksStatus = BLINKS_IGNORE;
+                            else
+                                blinksStatus = BLINKS_ENABLE;
+                        }
                         // turn
                         UpdateLightStatus(vehicle); lightsStatus = LIGHTS_OFF;
 
@@ -715,42 +716,30 @@ public:
                 else if (wather->NewWeatherType != 3 && wather->NewWeatherType != 2 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogExtraEnable == true)
                     turnlightsData.Get(vehicle).fogExtraEnable = false;
 
-                if (turnlightsData.Get(vehicle).fogExtraEnable == true) {
-                    for (i = 18, j = 118; i < 22; i++, j++) {
-                        if (turnlightsData.Get(vehicle).m_pTurn[i])
+                for (i = 18, j = 118; i < 22; i++, j++) {
+                    if (turnlightsData.Get(vehicle).m_pTurn[i]) {
+                        if (turnlightsData.Get(vehicle).fogExtraEnable == true)
                             DrawFoglightWhite(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
-                    }
-                }
-                else {
-                    for (i = 18, j = 118; i < 22; i++, j++) {
-                        if (turnlightsData.Get(vehicle).m_pTurn[i])
+                        else
                             UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
                 }
 
                 // blink
                 if (blinksStatus == BLINKS_ENABLE) {
-                    if (CTimer::m_snTimeInMilliseconds & 0x200) {
-                        for (i = 22, j = 122; i < 24; i++, j++) {
-                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                    for (i = 22, j = 122; i < 24; i++, j++) {
+                        if (turnlightsData.Get(vehicle).m_pTurn[i]) {
+                            if (CTimer::m_snTimeInMilliseconds & 0x100)
                                 DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
-                        }
-                    }
-                    else {
-                        for (i = 22, j = 122; i < 24; i++, j++) {
-                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                            else
                                 UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                         }
                     }
-                    if (CTimer::m_snTimeInMilliseconds & 0x400) {
-                        for (i = 24, j = 124; i < 26; i++, j++) {
-                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                    for (i = 24, j = 124; i < 26; i++, j++) {
+                        if (turnlightsData.Get(vehicle).m_pTurn[i]) {
+                            if (CTimer::m_snTimeInMilliseconds & 0x200)
                                 DrawTurnlight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
-                        }
-                    }
-                    else {
-                        for (i = 24, j = 124; i < 26; i++, j++) {
-                            if (turnlightsData.Get(vehicle).m_pTurn[i])
+                            else
                                 UpdateTurnFoglight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                         }
                     }
