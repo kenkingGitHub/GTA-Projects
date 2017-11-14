@@ -141,7 +141,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (31.10.2017)");
+            swprintf(text, L"Additional Components by kenking (14.11.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -225,12 +225,10 @@ public:
                             if ((automobile->m_aDoors[1].m_fAngle < 0.0f) && (vehicle->m_nVehicleFlags & 0x20))
                                 MatrixSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->m_aDoors[1].m_fAngle);
                             MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->m_aDoors[1].m_fAngle);
-                            RwV3d scaleBootMirage;
-                            if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3)
-                                scaleBootMirage = { 0.0f, 0.0f, 0.0f };
-                            else
-                                scaleBootMirage = { 1.0f, 1.0f, 1.0f };
-                            RwFrameScale(vehComps.Get(vehicle).m_pBootMirage, &scaleBootMirage, rwCOMBINEPRECONCAT);
+                            if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3) {
+                                if (vehComps.Get(vehicle).m_pWiperOneM)
+                                    automobile->SetComponentVisibility(vehComps.Get(vehicle).m_pWiperOneM, 1);
+                            }
                         }
                         // steering wheel
                         if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pSteerWheel) {
@@ -757,11 +755,11 @@ public:
 
 
     static void DrawFoglightYellow(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 186, 0, 200, GetFramePosn(turn), 0.3f, 100.0f, 0, 0, 0, 0, 0, 0.0f);
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 186, 0, 200, GetFramePosn(turn), 0.3f, 100.0f, static_cast<unsigned char>(0), 0, 0, 0, 0, 0.0f);
     }
 
     static void DrawFoglightWhite(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 255, 255, 200, GetFramePosn(turn), 0.3f, 100.0f, 0, 0, 0, 0, 0, 0.0f);
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, 255, 255, 255, 200, GetFramePosn(turn), 0.3f, 100.0f, static_cast<unsigned char>(0), 0, 0, 0, 0, 0.0f);
     }
 
     static void UpdateLightStatus(CVehicle *vehicle) {
