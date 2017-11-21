@@ -45,6 +45,10 @@
 #include "game_vc\CFont.h"
 
 #include "game_vc\common.h"
+#include "game_vc\CCarCtrl.h"
+#include "game_vc\CStreaming.h"
+#include "game_vc\eVehicleModel.h"
+#include "game_vc\ePedModel.h"
 
 using namespace plugin;
 
@@ -79,12 +83,19 @@ public:
             CVehicle *veh = FindPlayerVehicle();
             if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(veh);
-                if (KeyCheck::CheckWithDelay(53, 1000)) {
+                if (KeyCheck::CheckWithDelay(53, 1000)) 
                     automobile->SetModelIndex(automobile->m_nModelIndex);
-                }
-            }
-            
 
+                if (KeyCheck::CheckWithDelay(52, 1000)) {
+                    //CVector offset = { 0.0f, 8.0f, 0.0f };
+                    //CVector posn = automobile->m_placement.pos;
+                    
+                    //CStreaming::RequestModel(137, 4);
+                    //CStreaming::RequestModel(6, 1);
+                    //CCarCtrl::GenerateOneEmergencyServicesCar(137, posn);
+                }
+                
+            }
         };
     }
 } myPlugin;

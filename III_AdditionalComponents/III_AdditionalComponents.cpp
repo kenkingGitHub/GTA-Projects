@@ -6,6 +6,7 @@
 #include "game_III\CMessages.h"
 #include "game_III\CFont.h"
 #include "game_III\CCoronas.h"
+#include "game_III\CGeneral.h"
 #include "KeySettings.h"
 #include <vector>
 #include <string>
@@ -65,7 +66,8 @@ public:
             *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL, 
             *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf, 
             *m_pManhole_cb, *m_pManhole_s, *m_pLightsUp, *m_pStepVanDoorL, *m_pStepVanDoorR, *m_pMiniVanDoorL, 
-            *m_pMiniVanDoorR, *m_pBootLeft, *m_pBootRight, *m_pBootBottom;
+            *m_pMiniVanDoorR, *m_pBootLeft, *m_pBootRight, *m_pBootBottom, *m_pHubLF, *m_pHubRF, *m_pHubLM, *m_pHubRM,
+            *m_pHubLB, *m_pHubRB;
         bool wiperState, cementState, manholeState, lightsUpDown;
         float dumperAngle, manholePos, currentLightsAngle, maxLightsAngle;
 
@@ -73,59 +75,69 @@ public:
             m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement 
                 = m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL 
                 = m_pDumper = m_pManhole_af = m_pManhole_ab = m_pManhole_bf = m_pManhole_bb = m_pManhole_cf 
-                = m_pManhole_cb = m_pManhole_s = m_pLightsUp = m_pStepVanDoorL = m_pStepVanDoorR = nullptr;
+                = m_pManhole_cb = m_pManhole_s = m_pLightsUp = m_pStepVanDoorL = m_pStepVanDoorR = m_pHubLF = m_pHubRF
+                = m_pHubLM = m_pHubRM = m_pHubLB = m_pHubRB = nullptr;
             wiperState = false; cementState = true; manholeState = true; lightsUpDown = false;
             dumperAngle = manholePos = currentLightsAngle = 0.0f;
 
         }
     };
 
-    static void MatrixSetRotateXOnly(RwFrame *component, float angle) {
+    static void FrameSetRotateXOnly(RwFrame *component, float angle) {
         CMatrix matrix(&component->modelling, false);
         matrix.SetRotateXOnly(angle);
         matrix.UpdateRW();
     }
 
-    static void MatrixSetRotateYOnly(RwFrame *component, float angle) {
+    static void FrameSetRotateYOnly(RwFrame *component, float angle) {
         CMatrix matrix(&component->modelling, false);
         matrix.SetRotateYOnly(angle);
         matrix.UpdateRW();
     }
 
-    static void MatrixSetRotateZOnly(RwFrame *component, float angle) {
+    static void FrameSetRotateZOnly(RwFrame *component, float angle) {
         CMatrix matrix(&component->modelling, false);
         matrix.SetRotateZOnly(angle);
         matrix.UpdateRW();
     }
 
+    static void FrameSetRotateAndPositionZ(RwFrame *hub, RwFrame *wheel, float sing) {
+        float angleZ = CGeneral::GetATanOfXY(sing * wheel->modelling.right.x, sing * wheel->modelling.right.y) - 3.141593f;
+        CMatrix matrix(&hub->modelling, false);
+        matrix.SetRotateZOnly(angleZ);
+        matrix.UpdateRW();
+        matrix.pos.z = wheel->modelling.pos.z;
+        matrix.UpdateRW();
+    }
+
     static void WiperWorks(CVehicle *vehicle, float angle) {
-        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperOneAngle);
-        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperOneAngle);
+        FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneR, wiperOneAngle);
+        FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneL, wiperOneAngle);
         if (vehComps.Get(vehicle).m_pWiperOneM)
-            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperOneAngle);
+            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneM, wiperOneAngle);
         if (vehComps.Get(vehicle).m_pWiperOneTwoR)
-            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoR, wiperOneAngle);
+            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoR, wiperOneAngle);
         if (vehComps.Get(vehicle).m_pWiperOneTwoL)
-            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoL, wiperOneAngle);
+            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperOneTwoL, wiperOneAngle);
         if (vehComps.Get(vehicle).m_pBrushOneR)
-            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneR, -wiperOneAngle);
+            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneR, -wiperOneAngle);
         if (vehComps.Get(vehicle).m_pBrushOneL)
-            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneL, -wiperOneAngle);
+            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pBrushOneL, -wiperOneAngle);
     }
 
     static void ManholeWorks(CVehicle *vehicle, float angle) {
         if (vehComps.Get(vehicle).m_pManhole_af)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_af, manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_af, manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_ab)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_ab, -manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_ab, -manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_bf)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bf, manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bf, manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_bb)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bb, -manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_bb, -manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_cf)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cf, manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cf, manholeAngle);
         if (vehComps.Get(vehicle).m_pManhole_cb)
-            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
+            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
     }
 
     static VehicleExtendedData<VehicleComponents> vehComps; 
@@ -141,7 +153,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (14.11.2017)");
+            swprintf(text, L"Additional Components by kenking (21.11.2017)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -186,6 +198,12 @@ public:
                 vehComps.Get(vehicle).m_pBootLeft     = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_l");
                 vehComps.Get(vehicle).m_pBootRight    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_r");
                 vehComps.Get(vehicle).m_pBootBottom   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_b");
+                vehComps.Get(vehicle).m_pHubLF        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lf");
+                vehComps.Get(vehicle).m_pHubRF        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rf");
+                vehComps.Get(vehicle).m_pHubLM        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lm");
+                vehComps.Get(vehicle).m_pHubRM        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rm");
+                vehComps.Get(vehicle).m_pHubLB        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lb");
+                vehComps.Get(vehicle).m_pHubRB        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rb");
 
             }
             else {
@@ -198,7 +216,9 @@ public:
                     = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_s
                     = vehComps.Get(vehicle).m_pLightsUp = vehComps.Get(vehicle).m_pStepVanDoorL = vehComps.Get(vehicle).m_pStepVanDoorR 
                     = vehComps.Get(vehicle).m_pMiniVanDoorL = vehComps.Get(vehicle).m_pMiniVanDoorR = vehComps.Get(vehicle).m_pBootLeft
-                    = vehComps.Get(vehicle).m_pBootRight = vehComps.Get(vehicle).m_pBootBottom = nullptr;
+                    = vehComps.Get(vehicle).m_pBootRight = vehComps.Get(vehicle).m_pBootBottom = vehComps.Get(vehicle).m_pHubLF 
+                    = vehComps.Get(vehicle).m_pHubRF = vehComps.Get(vehicle).m_pHubLM = vehComps.Get(vehicle).m_pHubRM 
+                    = vehComps.Get(vehicle).m_pHubLB = vehComps.Get(vehicle).m_pHubRB = nullptr;
 
             }
         };
@@ -223,8 +243,8 @@ public:
                         // trunk with wipers
                         if (vehComps.Get(vehicle).m_pBootMirage && automobile->m_aCarNodes[CAR_BOOT]) {
                             if ((automobile->m_aDoors[1].m_fAngle < 0.0f) && (vehicle->m_nVehicleFlags & 0x20))
-                                MatrixSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->m_aDoors[1].m_fAngle);
-                            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->m_aDoors[1].m_fAngle);
+                                FrameSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->m_aDoors[1].m_fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->m_aDoors[1].m_fAngle);
                             if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3) {
                                 if (vehComps.Get(vehicle).m_pWiperOneM)
                                     automobile->SetComponentVisibility(vehComps.Get(vehicle).m_pWiperOneM, 1);
@@ -232,7 +252,7 @@ public:
                         }
                         // steering wheel
                         if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pSteerWheel) {
-                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pSteerWheel, (vehicle->m_fSteerAngle * (-7.0f)));
+                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pSteerWheel, (vehicle->m_fSteerAngle * (-7.0f)));
                         }
                         // wipers type one
                         if (vehComps.Get(vehicle).m_pWiperOneR && vehComps.Get(vehicle).m_pWiperOneL) {
@@ -273,15 +293,15 @@ public:
                                 if (m_currentWiperTwoState == TWO_STATE_LEFT) {
                                     wiperTwoLAngle -= 0.05f;
                                     if (wiperTwoLAngle > -1.1f)
-                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
+                                        FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
                                     if (wiperTwoLAngle < -0.25f) {
                                         wiperTwoRAngle -= 0.05f;
                                         if (wiperTwoRAngle > -1.1f)
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
                                         else {
                                             wiperTwoLAngle = wiperTwoRAngle = -1.1f;
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
                                             m_currentWiperTwoState = TWO_STATE_RIGHT;
                                         }
                                     }
@@ -289,15 +309,15 @@ public:
                                 else {
                                     wiperTwoRAngle += 0.05f;
                                     if (wiperTwoRAngle < 0.0f)
-                                        MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
+                                        FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
                                     if (wiperTwoRAngle > -0.85f) {
                                         wiperTwoLAngle += 0.05f;
                                         if (wiperTwoLAngle < 0.0f)
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
                                         else {
                                             wiperTwoLAngle = wiperTwoRAngle = 0.0f;
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
-                                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoL, wiperTwoLAngle);
+                                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pWiperTwoR, wiperTwoRAngle);
                                             if (!vehicle->m_pDriver)
                                                 vehComps.Get(vehicle).wiperState = true;
                                             else
@@ -311,7 +331,7 @@ public:
                         // cement
                         if (vehComps.Get(vehicle).m_pCement && (vehComps.Get(vehicle).cementState == true) && (vehicle->m_nVehicleFlags & 0x10)) {
                             cementAngle += 0.05f;
-                            MatrixSetRotateYOnly(vehComps.Get(vehicle).m_pCement, cementAngle);
+                            FrameSetRotateYOnly(vehComps.Get(vehicle).m_pCement, cementAngle);
                         }
                         // manhole
                         if (vehicle->m_pDriver) {
@@ -420,13 +440,28 @@ public:
                         }
                         // dual trunk 
                         if (vehComps.Get(vehicle).m_pBootRight && automobile->m_aCarNodes[CAR_BOOT]) {
-                            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootRight, 0.3f * automobile->m_aDoors[1].m_fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootRight, 0.3f * automobile->m_aDoors[1].m_fAngle);
                         }
                         if (vehComps.Get(vehicle).m_pBootLeft && automobile->m_aCarNodes[CAR_BOOT]) {
-                            MatrixSetRotateZOnly(vehComps.Get(vehicle).m_pBootLeft, 1.3f * automobile->m_aDoors[1].m_fAngle);
+                            FrameSetRotateZOnly(vehComps.Get(vehicle).m_pBootLeft, 1.3f * automobile->m_aDoors[1].m_fAngle);
                         }
                         if (vehComps.Get(vehicle).m_pBootBottom && automobile->m_aCarNodes[CAR_BOOT]) {
-                            MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->m_aDoors[1].m_fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->m_aDoors[1].m_fAngle);
+                        }
+                        // hub
+                        if (vehComps.Get(vehicle).m_pHubLF && automobile->m_aCarNodes[CAR_WHEEL_LF]) 
+                            FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubLF, automobile->m_aCarNodes[CAR_WHEEL_LF], 1.0f);
+                        if (vehComps.Get(vehicle).m_pHubLB && automobile->m_aCarNodes[CAR_WHEEL_LB]) {
+                            FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubLB, automobile->m_aCarNodes[CAR_WHEEL_LB], 1.0f);
+                            if (vehComps.Get(vehicle).m_pHubLM && automobile->m_aCarNodes[CAR_WHEEL_LM])
+                                FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubLM, automobile->m_aCarNodes[CAR_WHEEL_LM], 1.0f);
+                        }
+                        if (vehComps.Get(vehicle).m_pHubRF && automobile->m_aCarNodes[CAR_WHEEL_RF])
+                            FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubRF, automobile->m_aCarNodes[CAR_WHEEL_RF], -1.0f);
+                        if (vehComps.Get(vehicle).m_pHubRB && automobile->m_aCarNodes[CAR_WHEEL_RB]) {
+                            FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubRB, automobile->m_aCarNodes[CAR_WHEEL_RB], -1.0f);
+                            if (vehComps.Get(vehicle).m_pHubRM && automobile->m_aCarNodes[CAR_WHEEL_RM])
+                                FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubRM, automobile->m_aCarNodes[CAR_WHEEL_RM], -1.0f);
                         }
                         //
 
@@ -438,10 +473,10 @@ public:
                             if (vehComps.Get(vehicle).lightsUpDown == false) {
                                 vehComps.Get(vehicle).currentLightsAngle += 0.1f;
                                 if (vehComps.Get(vehicle).currentLightsAngle < vehComps.Get(vehicle).maxLightsAngle)
-                                    MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
+                                    FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
                                 else {
                                     vehComps.Get(vehicle).currentLightsAngle = vehComps.Get(vehicle).maxLightsAngle;
-                                    MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
+                                    FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
                                     automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 0);
                                     automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 0);
                                     vehComps.Get(vehicle).lightsUpDown = true;
@@ -453,10 +488,10 @@ public:
                             automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
                             vehComps.Get(vehicle).currentLightsAngle -= 0.1f;
                             if (vehComps.Get(vehicle).currentLightsAngle > 0.0f)
-                                MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
+                                FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
                             else {
                                 vehComps.Get(vehicle).currentLightsAngle = 0.0f;
-                                MatrixSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
+                                FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
                                 vehComps.Get(vehicle).lightsUpDown = false;
                             }
                         }
@@ -476,21 +511,21 @@ public:
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyOpen)) {
                         vehComps.Get(playerVehicle).dumperAngle += 0.01f;
                         if (vehComps.Get(playerVehicle).dumperAngle < 0.7f) 
-                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                            FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         else {
                             CMessages::AddMessageJumpQ(L"full up", 1000, 0);
                             vehComps.Get(playerVehicle).dumperAngle = 0.7f;
-                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                            FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
                     }
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyClose)) {
                         vehComps.Get(playerVehicle).dumperAngle -= 0.01f;
                         if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) 
-                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                            FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         else {
                             CMessages::AddMessageJumpQ(L"full down", 1000, 0);
                             vehComps.Get(playerVehicle).dumperAngle = 0.0f;
-                            MatrixSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
+                            FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         }
                     }
                 }
