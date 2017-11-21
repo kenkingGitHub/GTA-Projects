@@ -101,8 +101,8 @@ public:
         matrix.UpdateRW();
     }
 
-    static void FrameSetRotateAndPositionZ(RwFrame *hub, RwFrame *wheel, float sing) {
-        float angleZ = CGeneral::GetATanOfXY(sing * wheel->modelling.right.x, sing * wheel->modelling.right.y) - 3.141593f;
+    static void FrameSetRotateAndPositionZ(RwFrame *hub, RwFrame *wheel, float sign) {
+        float angleZ = CGeneral::GetATanOfXY(sign * wheel->modelling.right.x, sign * wheel->modelling.right.y) - 3.141593f;
         CMatrix matrix(&hub->modelling, false);
         matrix.SetRotateZOnly(angleZ);
         matrix.UpdateRW();
