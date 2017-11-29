@@ -1,7 +1,43 @@
+//#include "plugin_III.h"
+//#include "extensions\ScriptCommands.h"
+//#include "game_III\common.h"
+//#include "game_III\CMessages.h"
+//
+//using namespace plugin;
+//using namespace plugin::test;
+//
+//class Gta3CarAngle {
+//public:
+//    Gta3CarAngle() {
+//        Events::gameProcessEvent += [] {
+//            CVehicle *vehicle = FindPlayerVehicle();
+//
+//            if (!vehicle)
+//                return;
+//
+//            float angle = atan2(-vehicle->m_matrix.up.x, vehicle->m_matrix.up.y) * 57.295776f;
+//            if (angle < 0.0f)
+//                angle += 360.0f;
+//            if (angle > 360.0f)
+//                angle -= 360.0f;
+//
+//            float angleCommand = 0.0f;
+//            ScriptCommand<GET_CAR_HEADING>(CPools::GetVehicleRef(vehicle), &angleCommand);
+//
+//            static char message[256];
+//            snprintf(message, 256, "Angle: %g Angle (command): %g", angle, angleCommand);
+//
+//            CMessages::AddMessageJumpQ(message, 200, false);
+//        };
+//    }
+//} gta3CarAngle;
+
+
 #include "plugin_III.h"
 #include "game_III\common.h"
 #include "game_III\CFont.h"
 #include "extensions\KeyCheck.h"
+#include "game_III\CGeneral.h"
 
 using namespace plugin;
 
@@ -13,14 +49,6 @@ public:
         Events::drawingEvent += [] {
             CVehicle *vehicle = FindPlayerVehicle();
             if (vehicle) {
-                float angle = atan2(vehicle->m_matrix.up.y, -vehicle->m_matrix.up.x);
-                float angleZ = 180.0f * angle * 0.31830987f;
-                angleZ -= 270.0f;
-                if (angleZ >= 0.0f)
-                    angleZ = angleZ + 360.0f;
-                if (angleZ > 360.0f)
-                    angleZ = angleZ - 360.0f;
-
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
 
                 CFont::SetScale(0.5f, 1.0f);
@@ -32,6 +60,22 @@ public:
                 wchar_t text[32];
                 swprintf(text, L"SteerAngle %.2f", vehicle->m_fSteerAngle);
                 CFont::PrintString(10.0f, 10.0f, text);
+                swprintf(text, L"BreakPedal %.2f", vehicle->m_fBreakPedal);
+                CFont::PrintString(10.0f, 30.0f, text);
+
+                /*float angLF = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.y) - 3.141593f;
+                float angLB = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.y) - 3.141593f;
+                float angRF = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.y) - 3.141593f;
+                float angRB = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.y) - 3.141593f;
+
+                swprintf(text, L"LF %.2f", angLF);
+                CFont::PrintString(10.0f, 30.0f, text);
+                swprintf(text, L"LB %.2f", angLB);
+                CFont::PrintString(10.0f, 50.0f, text);
+                swprintf(text, L"RF %.2f", angRF);
+                CFont::PrintString(10.0f, 70.0f, text);
+                swprintf(text, L"RB %.2f", angRB);
+                CFont::PrintString(10.0f, 90.0f, text);*/
 
                 KeyCheck::Update();
                 if (KeyCheck::CheckWithDelay(48, 1000))
@@ -42,6 +86,26 @@ public:
                     vehicle->BurstTyre(2);
                 if (KeyCheck::CheckWithDelay(51, 1000))
                     vehicle->BurstTyre(3);
+
+                //if (KeyCheck::CheckWithDelay(52, 1000)) {
+                //    CVehicle *car = nullptr;
+                //    car = new CAutomobile(vehicle->m_nModelIndex, 0);
+                //    if (car) {
+                //        CMessages::AddMessageJumpQ(L"yes", 1000, 0);
+                //        CVector offset = { 0.0f, 8.0f, 0.0f };
+                //        CVector posn = automobile->m_matrix * offset;
+                //        //float Z = CWorld::FindGroundZForCoord(posn.x, posn.y);
+                //        car->m_matrix.pos = posn;
+                //        //car->m_matrix.pos.y = posn.y;
+                //        //car->m_matrix.pos.z = Z;
+                //        //player->GetPosition();
+                //        //vehicle->SetHeading(angleZ);
+                //        //vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
+                //        CWorld::Add(car);
+                //        //CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
+                //        reinterpret_cast<CAutomobile *>(car)->PlaceOnRoadProperly();
+                //    }
+                //}
             }
         };
     }
@@ -86,15 +150,7 @@ public:
 //                if (ang2 > 360.0f)
 //                    ang2 = ang2 - 360.0f;
 //
-//
-//                /*ang2 = 0.0f;
-//                ang = atan2(*(float *)&vehicle->m_matrix.up.y, -*(float *)&vehicle->m_matrix.up.x);
-//                *(float *)&ang2 = 180.0f * ang * 0.31830987f;
-//                if (*(float *)&ang2 >= 0.0f)
-//                    *(float *)&ang2 = *(float *)&ang2 + 360.0f;
-//                if (*(float *)&ang2 > 360.0f)
-//                    *(float *)&ang2 = *(float *)&ang2 - 360.0f;*/
-//
+////                
 //                CFont::SetScale(0.5f, 1.0f);
 //                CFont::SetColor(CRGBA(255, 255, 255, 255));
 //                CFont::SetJustifyOn();
