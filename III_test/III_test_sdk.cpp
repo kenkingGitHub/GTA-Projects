@@ -1,3 +1,43 @@
+#include "plugin_III.h"
+#include "game_III\common.h"
+#include "extensions\KeyCheck.h"
+#include "game_III\CMessages.h"
+#include "game_III\CVector.h"
+#include "game_III\CTheScripts.h"
+
+using namespace plugin;
+
+class MyPlugin {
+public:
+    MyPlugin() {
+        static float dist;
+        static float speed;
+        static CVector start;
+        static CVector finish;
+        static bool enable = false;
+
+        Events::drawingEvent += [] {
+            CVehicle *vehicle = FindPlayerVehicle();
+            if (vehicle) {
+                if ((vehicle->m_fBreakPedal > 0.0f) && (enable == false)) {
+                    start = vehicle->m_matrix.pos;
+                    speed = vehicle->m_vecMoveSpeed.Magnitude() * 50.0f;
+                    enable = true;
+                }
+                if (CTheScripts::IsVehicleStopped(vehicle) && enable) {
+                    enable = false;
+                    finish = vehicle->m_matrix.pos;
+                    dist = sqrt( ((start.x - finish.x)*(start.x - finish.x)) + ((start.y - finish.y)*(start.y - finish.y)) );
+                    static char message[256];
+                    snprintf(message, 256, "speed = %.2f; dist = %.2f", speed, dist);
+                    CMessages::AddMessageJumpQ(message, 5000, false);
+                }
+            }
+        };
+    }
+} myPlugin;
+
+
 //#include "plugin_III.h"
 //#include "extensions\ScriptCommands.h"
 //#include "game_III\common.h"
@@ -33,83 +73,160 @@
 //} gta3CarAngle;
 
 
-#include "plugin_III.h"
-#include "game_III\common.h"
-#include "game_III\CFont.h"
-#include "extensions\KeyCheck.h"
-#include "game_III\CGeneral.h"
-
-using namespace plugin;
-
-class MyPlugin {
-public:
-
-    MyPlugin() {
-
-        Events::drawingEvent += [] {
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle) {
-                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-
-                CFont::SetScale(0.5f, 1.0f);
-                CFont::SetColor(CRGBA(255, 255, 255, 255));
-                CFont::SetJustifyOn();
-                CFont::SetFontStyle(0);
-                CFont::SetPropOn();
-                CFont::SetWrapx(600.0f);
-                wchar_t text[32];
-                swprintf(text, L"SteerAngle %.2f", vehicle->m_fSteerAngle);
-                CFont::PrintString(10.0f, 10.0f, text);
-                swprintf(text, L"BreakPedal %.2f", vehicle->m_fBreakPedal);
-                CFont::PrintString(10.0f, 30.0f, text);
-
-                /*float angLF = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.y) - 3.141593f;
-                float angLB = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.y) - 3.141593f;
-                float angRF = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.y) - 3.141593f;
-                float angRB = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.y) - 3.141593f;
-
-                swprintf(text, L"LF %.2f", angLF);
-                CFont::PrintString(10.0f, 30.0f, text);
-                swprintf(text, L"LB %.2f", angLB);
-                CFont::PrintString(10.0f, 50.0f, text);
-                swprintf(text, L"RF %.2f", angRF);
-                CFont::PrintString(10.0f, 70.0f, text);
-                swprintf(text, L"RB %.2f", angRB);
-                CFont::PrintString(10.0f, 90.0f, text);*/
-
-                KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay(48, 1000))
-                    vehicle->BurstTyre(0);
-                if (KeyCheck::CheckWithDelay(49, 1000))
-                    vehicle->BurstTyre(1);
-                if (KeyCheck::CheckWithDelay(50, 1000))
-                    vehicle->BurstTyre(2);
-                if (KeyCheck::CheckWithDelay(51, 1000))
-                    vehicle->BurstTyre(3);
-
-                //if (KeyCheck::CheckWithDelay(52, 1000)) {
-                //    CVehicle *car = nullptr;
-                //    car = new CAutomobile(vehicle->m_nModelIndex, 0);
-                //    if (car) {
-                //        CMessages::AddMessageJumpQ(L"yes", 1000, 0);
-                //        CVector offset = { 0.0f, 8.0f, 0.0f };
-                //        CVector posn = automobile->m_matrix * offset;
-                //        //float Z = CWorld::FindGroundZForCoord(posn.x, posn.y);
-                //        car->m_matrix.pos = posn;
-                //        //car->m_matrix.pos.y = posn.y;
-                //        //car->m_matrix.pos.z = Z;
-                //        //player->GetPosition();
-                //        //vehicle->SetHeading(angleZ);
-                //        //vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
-                //        CWorld::Add(car);
-                //        //CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
-                //        reinterpret_cast<CAutomobile *>(car)->PlaceOnRoadProperly();
-                //    }
-                //}
-            }
-        };
-    }
-} myPlugin;
+//#include "plugin_III.h"
+//#include "game_III\common.h"
+//#include "game_III\CFont.h"
+//#include "extensions\KeyCheck.h"
+//#include "game_III\CGeneral.h"
+//#include "game_III\CModelInfo.h"
+//#include "game_III\CMessages.h"
+//#include "game_III\CTheScripts.h"
+//#include "game_III\CTrafficLights.h"
+//
+//using namespace plugin;
+//
+//class MyPlugin {
+//public:
+//
+//    MyPlugin() {
+//
+//        Events::drawingEvent += [] {
+//            //CVector &fCamPosX = *(CVector *)0x6FAD2C;
+//            static unsigned int randomInt = 1;
+//            static unsigned int randomInt2 = 1;
+//            static float randomFloat;
+//            
+//            CVehicle *vehicle = FindPlayerVehicle();
+//            if (vehicle) {
+//                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+//
+//                CFont::SetScale(0.5f, 1.0f);
+//                CFont::SetColor(CRGBA(255, 255, 255, 255));
+//                CFont::SetJustifyOn();
+//                CFont::SetFontStyle(0);
+//                CFont::SetPropOn();
+//                CFont::SetWrapx(600.0f);
+//                wchar_t text[32];
+//                swprintf(text, L"MisFlag %d", *&CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag]);
+//                CFont::PrintString(10.0f, 10.0f, text);
+//                swprintf(text, L"randomInt2 %d", randomInt2);
+//                CFont::PrintString(10.0f, 30.0f, text);
+//                
+//                swprintf(text, L"car %d", CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]->m_nType);
+//                CFont::PrintString(10.0f, 50.0f, text);
+//                swprintf(text, L"randomInt %d", randomInt);
+//                CFont::PrintString(10.0f, 70.0f, text);
+//                
+//                swprintf(text, L"stopBridge %d", CTrafficLights::ShouldCarStopForBridge(vehicle));
+//                CFont::PrintString(10.0f, 90.0f, text);
+//                swprintf(text, L"svetCar1 %d", CTrafficLights::LightForCars1());
+//                CFont::PrintString(10.0f, 110.0f, text);
+//                swprintf(text, L"svetCar2 %d", CTrafficLights::LightForCars2());
+//                CFont::PrintString(10.0f, 130.0f, text);
+//                swprintf(text, L"svetofor %d", CTrafficLights::FindTrafficLightType(vehicle));
+//                CFont::PrintString(10.0f, 150.0f, text);
+//
+//                swprintf(text, L"stopForL %d", CTrafficLights::ShouldCarStopForLight(vehicle, false));
+//                CFont::PrintString(10.0f, 170.0f, text);
+//                swprintf(text, L"Flags %d", automobile->m_nAutomobileFlags);
+//                CFont::PrintString(10.0f, 190.0f, text);
+//
+//                swprintf(text, L"vehFlag %d", vehicle->m_nVehicleFlags);
+//                CFont::PrintString(10.0f, 210.0f, text);
+//
+//                swprintf(text, L"field_4DB %d", automobile->field_4DB);
+//                CFont::PrintString(10.0f, 230.0f, text);
+//
+//                // inline ModelInfo
+//                //static inline bool IsCarModel(int index) {
+//                //    return (ms_modelInfoPtrs[index] && ms_modelInfoPtrs[index]->m_nType == 5 && reinterpret_cast<CVehicleModelInfo *>(ms_modelInfoPtrs[index])->m_nVehicleType == 0);
+//                //}
+//
+//                //// return -1 if model is not a vehicle model otherwise returns vehicle model type
+//                //// 0 - car, 1 - boat, 2 - train, 3 - heli, 4 - plane
+//                //static inline int IsVehicleModelType(int index) {
+//                //    int result;
+//                //    if (index < 5500 && ms_modelInfoPtrs[index]) {
+//                //        if (ms_modelInfoPtrs[index]->m_nType == 5)
+//                //            result = reinterpret_cast<CVehicleModelInfo *>(ms_modelInfoPtrs[index])->m_nVehicleType;
+//                //        else
+//                //            result = -1;
+//                //    }
+//                //    else
+//                //        result = -1;
+//                //    return result;
+//                //}
+//
+//
+//                /*swprintf(text, L"x %.2f", fCamPosX.x);
+//                CFont::PrintString(10.0f, 50.0f, text);
+//                swprintf(text, L"y %.2f", fCamPosX.y);
+//                CFont::PrintString(10.0f, 70.0f, text);
+//                swprintf(text, L"z %.2f", fCamPosX.z);
+//                CFont::PrintString(10.0f, 90.0f, text);*/
+//
+//                /*float angLF = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LF]->modelling.right.y) - 3.141593f;
+//                float angLB = CGeneral::GetATanOfXY(automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.x, automobile->m_aCarNodes[CAR_WHEEL_LB]->modelling.right.y) - 3.141593f;
+//                float angRF = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RF]->modelling.right.y) - 3.141593f;
+//                float angRB = CGeneral::GetATanOfXY(-automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.x, -automobile->m_aCarNodes[CAR_WHEEL_RB]->modelling.right.y) - 3.141593f;
+//
+//                swprintf(text, L"LF %.2f", angLF);
+//                CFont::PrintString(10.0f, 30.0f, text);
+//                swprintf(text, L"LB %.2f", angLB);
+//                CFont::PrintString(10.0f, 50.0f, text);
+//                swprintf(text, L"RF %.2f", angRF);
+//                CFont::PrintString(10.0f, 70.0f, text);
+//                swprintf(text, L"RB %.2f", angRB);
+//                CFont::PrintString(10.0f, 90.0f, text);*/
+//
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay(48, 1000))
+//                    randomInt2 = CGeneral::GetRandomNumber();
+//                    //*&CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag] = 1;
+//                if (KeyCheck::CheckWithDelay(49, 1000))
+//                    vehicle->BurstTyre(1);
+//                    //*&CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag] = 0;
+//                if (KeyCheck::CheckWithDelay(51, 1000)) {
+//                    randomFloat = CGeneral::GetRandomNumberInRange(5.0f, 10.0f);
+//                    static char message[256];
+//                    snprintf(message, 256, "float %.2f", randomFloat);
+//                    CMessages::AddMessageJumpQ(message, 2000, false);
+//                }
+//                    
+//                if (KeyCheck::CheckWithDelay(50, 1000)) {
+//                    randomInt = CGeneral::GetRandomNumberInRange(4, 12);
+//                }
+//                    
+//
+//                if (KeyCheck::CheckWithDelay(52, 1000)) {
+//                    //CVector offset = { 0.0f, 8.0f, 0.0f };
+//                    vehicle->SetPosition(vehicle->TransformFromObjectSpace(CVector(0.0f, 8.0f, 0.0f)));
+//                }
+//                    
+//
+//                //if (KeyCheck::CheckWithDelay(52, 1000)) {
+//                //    CVehicle *car = nullptr;
+//                //    car = new CAutomobile(vehicle->m_nModelIndex, 0);
+//                //    if (car) {
+//                //        CMessages::AddMessageJumpQ(L"yes", 1000, 0);
+//                //        CVector offset = { 0.0f, 8.0f, 0.0f };
+//                //        CVector posn = automobile->m_matrix * offset;
+//                //        //float Z = CWorld::FindGroundZForCoord(posn.x, posn.y);
+//                //        car->m_matrix.pos = posn;
+//                //        //car->m_matrix.pos.y = posn.y;
+//                //        //car->m_matrix.pos.z = Z;
+//                //        //player->GetPosition();
+//                //        //vehicle->SetHeading(angleZ);
+//                //        //vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
+//                //        CWorld::Add(car);
+//                //        //CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
+//                //        reinterpret_cast<CAutomobile *>(car)->PlaceOnRoadProperly();
+//                //    }
+//                //}
+//            }
+//        };
+//    }
+//} myPlugin;
 
 
 //#include "plugin_III.h"

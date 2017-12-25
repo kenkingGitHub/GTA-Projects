@@ -660,6 +660,8 @@ public:
         };
 
         Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
+            CVector &fCamPosX = *(CVector *)0x6FAD2C; // !!!
+
             if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && (vehicle->m_nVehicleFlags & 0x10) && vehicle->m_fHealth > 0.1f) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
                 eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
@@ -668,6 +670,12 @@ public:
                 if (vehicle->m_pDriver) {
                     CPed *playa = FindPlayerPed();
                     if (playa && playa->m_pVehicle == vehicle) {
+
+                        CRGBA color = { 255, 128, 0, 255 };
+                        static int coronaId = 200;
+                        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, color.red, color.green, color.blue, color.alpha, fCamPosX, 0.3f, 100.0f, 1, 0, 0, 0, 0, 0.0f);
+                        coronaId += 1;
+
                         turnlightsData.Get(vehicle).turnIgnore = true;
                         if (KeyPressed(settings.keyTurnL)) { // Z
                             UpdateLightStatus(vehicle); lightsStatus = LIGHTS_LEFT;
@@ -818,7 +826,12 @@ public:
                         UpdateLight(vehicle, 127, turnlightsData.Get(vehicle).m_pTurn[27]);
                     }
                     else {
-                        CRGBA color = { 255, 255, 255, 200 };
+                        CVector test = vehicle->m_matrix.pos - fCamPosX;
+                        CRGBA color;
+                        if ((test.x + test.y + test.z) >= 0.0f)
+                            color = { 255, 255, 255, 0 };
+                        else
+                            color = { 255, 255, 255, 200 };
                         DrawLight(vehicle, 126, color, turnlightsData.Get(vehicle).m_pTurn[26]);
                         DrawLight(vehicle, 127, color, turnlightsData.Get(vehicle).m_pTurn[27]);
                     }
