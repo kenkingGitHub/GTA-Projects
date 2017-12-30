@@ -1,6 +1,6 @@
 #include "plugin_III.h"
 #include "game_III\common.h"
-#include "extensions\KeyCheck.h"
+#include "game_III\CFont.h"
 #include "game_III\CMessages.h"
 #include "game_III\CVector.h"
 #include "game_III\CTheScripts.h"
@@ -19,9 +19,19 @@ public:
         Events::drawingEvent += [] {
             CVehicle *vehicle = FindPlayerVehicle();
             if (vehicle) {
+                CFont::SetScale(0.5f, 1.0f);
+                CFont::SetColor(CRGBA(255, 255, 255, 255));
+                CFont::SetJustifyOn();
+                CFont::SetFontStyle(0);
+                CFont::SetPropOn();
+                CFont::SetWrapx(600.0f);
+                wchar_t text[32];
+                swprintf(text, L"speed %.2f km/4", vehicle->m_vecMoveSpeed.Magnitude() * 50.0f * 3.6f);
+                CFont::PrintString(200.0f, 10.0f, text);
+                
                 if ((vehicle->m_fBreakPedal > 0.0f) && (enable == false)) {
                     start = vehicle->m_matrix.pos;
-                    speed = vehicle->m_vecMoveSpeed.Magnitude() * 50.0f;
+                    speed = vehicle->m_vecMoveSpeed.Magnitude() * 50.0f * 3.6f;
                     enable = true;
                 }
                 if (CTheScripts::IsVehicleStopped(vehicle) && enable) {

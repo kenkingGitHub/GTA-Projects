@@ -33,6 +33,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VC_test", "VC_test\VC_test.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "III_CreateCar", "III_CreateCar\III_CreateCar.vcxproj", "{1E4656DB-7DBB-4C95-8677-4DE59BD0875C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "III_MoreVehiclesSpawner", "III_MoreVehiclesSpawner\III_MoreVehiclesSpawner.vcxproj", "{6DFF1E51-5862-4DF7-8FDE-487B4C3FA84B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -99,6 +101,10 @@ Global
 		{1E4656DB-7DBB-4C95-8677-4DE59BD0875C}.Debug|x86.Build.0 = Debug|Win32
 		{1E4656DB-7DBB-4C95-8677-4DE59BD0875C}.Release|x86.ActiveCfg = Release|Win32
 		{1E4656DB-7DBB-4C95-8677-4DE59BD0875C}.Release|x86.Build.0 = Release|Win32
+		{6DFF1E51-5862-4DF7-8FDE-487B4C3FA84B}.Debug|x86.ActiveCfg = Debug|Win32
+		{6DFF1E51-5862-4DF7-8FDE-487B4C3FA84B}.Debug|x86.Build.0 = Debug|Win32
+		{6DFF1E51-5862-4DF7-8FDE-487B4C3FA84B}.Release|x86.ActiveCfg = Release|Win32
+		{6DFF1E51-5862-4DF7-8FDE-487B4C3FA84B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

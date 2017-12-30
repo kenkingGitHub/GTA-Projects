@@ -29,7 +29,6 @@ public:
         CStreaming::RequestModel(modelIndex, GAME_REQUIRED);
         CStreaming::LoadAllRequestedModels(false);
         if (CStreaming::ms_aInfoForModel[modelIndex].m_nLoadState == LOADSTATE_LOADED) {
-            CMessages::AddMessageJumpQ(L"model loaded", 1000, 0);
             if (!(oldFlags & GAME_REQUIRED)) {
                 CStreaming::SetModelIsDeletable(modelIndex);
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
@@ -46,6 +45,7 @@ public:
             if (vehicle) {
                 SetPosition(vehicle, position);
                 SetOrientation(vehicle, 0.0f, 0.0f, orientation);
+                vehicle->m_nState = 4;
                 vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
                 CWorld::Add(vehicle);
                 CTheScripts::ClearSpaceForMissionEntity(position, vehicle); 
