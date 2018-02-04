@@ -22,7 +22,7 @@ public:
     static unsigned int errorMessageTimer;
     static bool enabled;
 
-    static CVehicle *SpawnVehicle(unsigned int modelIndex, CVector position, float orientation) {
+    static void SpawnVehicle(unsigned int modelIndex, CVector position, float orientation) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[modelIndex].m_nFlags;
         CStreaming::RequestModel(modelIndex, GAME_REQUIRED);
         CStreaming::LoadAllRequestedModels(false);
@@ -32,14 +32,10 @@ public:
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
             }
             CVehicle *vehicle = nullptr;
-            switch (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType) {
-            case VEHICLE_BOAT:
+            if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType) 
                 vehicle = new CBoat(modelIndex, 1);
-                break;
-            default:
+            else
                 vehicle = new CAutomobile(modelIndex, 1);
-                break;
-            }
             if (vehicle) {
                 // Размещаем транспорт в игровом мире
                 vehicle->SetPosition(position);
@@ -53,10 +49,8 @@ public:
                 CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
                 if (vehicle->m_nVehicleClass != VEHICLE_BOAT)
                     reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                return vehicle;
             }
         }
-        return nullptr;
     }
 
     static void Update() {
@@ -89,15 +83,15 @@ public:
                 if (KeyCheck::CheckJustDown(45)) { // Если нажата Insert - спавним транспорт
                     if (typedBuffer.size() > 0) {
                         unsigned int modelId = std::stoi(typedBuffer);
-                        if (modelId < 5501) {
+                        if (modelId < 5500) {
                             int modelType = CModelInfo::IsVehicleModelType(modelId);
                             if (modelType != -1) {
                                 if (modelType == 0 || modelType == 1) {
-                                    CVehicle *vehicle = SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 1.5707964f);
+                                    SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 4.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 1.5707964f);
                                     errorMessageBuffer.clear(); // убираем надпись об ошибке (если она была на экране)
                                 }
                                 else
-                                    errorMessage = "Can't spawn a train, heli and plane model";
+                                    errorMessage = "Can't spawn a train, heli and plane";
                             }
                             else
                                 errorMessage = "This model is not a vehicle!";
@@ -116,25 +110,25 @@ public:
 
     static void Render() {
         if (enabled) {
-            CSprite2d::DrawRect(CRect(100.0f, 100.0f, 470.0f, 200.0f), CRGBA(0, 0, 0, 100));
-            CSprite2d::DrawRect(CRect(250.0f, 140.0f, 320.0f, 142.0f), CRGBA(255, 255, 255, 255));
+            CSprite2d::DrawRect(CRect(10.0f, 10.0f, 300.0f, 130.0f), CRGBA(0, 0, 0, 100));
+            CSprite2d::DrawRect(CRect(150.0f, 50.0f, 230.0f, 52.0f), CRGBA(255, 255, 255, 255));
             
             CFont::SetScale(0.8f, 1.9f);
             CFont::SetColor(CRGBA(255, 255, 255, 255));
             CFont::SetJustifyOn();
             CFont::SetFontStyle(0);
             CFont::SetPropOn();
-            CFont::SetWrapx(600.0f);
-            CFont::PrintString(105.0f, 105.0f, "Model ID:");
+            CFont::SetWrapx(300.0f);
+            CFont::PrintString(15.0f, 15.0f, "Model ID:");
             if (typedBuffer.size() > 0)
-                CFont::PrintString(250.0f, 105.0f, const_cast<char*>(typedBuffer.c_str()));
+                CFont::PrintString(160.0f, 15.0f, const_cast<char*>(typedBuffer.c_str()));
             if (errorMessage.size() > 0) {
                 errorMessageBuffer = errorMessage;
                 errorMessageTimer = CTimer::m_snTimeInMilliseconds;
             }
             if (errorMessageBuffer.size() > 0 && CTimer::m_snTimeInMilliseconds < (errorMessageTimer + 2000)) {
                 CFont::SetColor(CRGBA(255, 0, 0, 255));
-                CFont::PrintString(105.0f, 150.0f, const_cast<char*>(errorMessageBuffer.c_str()));
+                CFont::PrintString(15.0f, 55.0f, const_cast<char*>(errorMessageBuffer.c_str()));
             }
         }
     }

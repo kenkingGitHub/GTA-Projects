@@ -4,21 +4,33 @@
 #include "game_III\CMessages.h"
 #include "game_III\CVector.h"
 #include "game_III\CTheScripts.h"
+#include "extensions\KeyCheck.h"
+#include "game_III\CFire.h"
+#include "game_III\CGarages.h"
 
 using namespace plugin;
 
 class MyPlugin {
 public:
     MyPlugin() {
-        static float dist;
+        /*static float dist;
         static float speed;
         static CVector start;
         static CVector finish;
-        static bool enable = false;
+        static bool enable = false;*/
+        static int index = 0;
 
         Events::drawingEvent += [] {
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle) {
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay(VK_F11, 2000)) {
+                CGarages::DeActivateGarage(4);
+            }
+            if (KeyCheck::CheckWithDelay(VK_F10, 2000)) {
+                CGarages::ActivateGarage(4);
+            }
+
+            CPed *player = FindPlayerPed();
+            if (player) {
                 CFont::SetScale(0.5f, 1.0f);
                 CFont::SetColor(CRGBA(255, 255, 255, 255));
                 CFont::SetJustifyOn();
@@ -26,10 +38,81 @@ public:
                 CFont::SetPropOn();
                 CFont::SetWrapx(600.0f);
                 wchar_t text[32];
-                swprintf(text, L"speed %.2f km/4", vehicle->m_vecMoveSpeed.Magnitude() * 50.0f * 3.6f);
-                CFont::PrintString(200.0f, 10.0f, text);
                 
-                if ((vehicle->m_fBreakPedal > 0.0f) && (enable == false)) {
+                swprintf(text, L"id 00; typ %d; act %d", CGarages::aGarages[0].field_14, CGarages::aGarages[0].field_15);
+                CFont::PrintString(10.0f, 10.0f, text);
+                swprintf(text, L"id 01; typ %d; act %d", CGarages::aGarages[1].field_14, CGarages::aGarages[1].field_15);
+                CFont::PrintString(10.0f, 30.0f, text);
+                swprintf(text, L"id 02; typ %d; act %d", CGarages::aGarages[2].field_14, CGarages::aGarages[2].field_15);
+                CFont::PrintString(10.0f, 50.0f, text);
+                swprintf(text, L"id 03; typ %d; act %d", CGarages::aGarages[3].field_14, CGarages::aGarages[3].field_15);
+                CFont::PrintString(10.0f, 70.0f, text);
+                swprintf(text, L"id 04; typ %d; act %d", CGarages::aGarages[4].field_14, CGarages::aGarages[4].field_15);
+                CFont::PrintString(10.0f, 90.0f, text);
+                swprintf(text, L"id 05; typ %d; act %d", CGarages::aGarages[5].field_14, CGarages::aGarages[5].field_15);
+                CFont::PrintString(10.0f, 110.0f, text);
+                swprintf(text, L"id 06; typ %d; act %d", CGarages::aGarages[6].field_14, CGarages::aGarages[6].field_15);
+                CFont::PrintString(10.0f, 130.0f, text);
+                swprintf(text, L"id 07; typ %d; act %d", CGarages::aGarages[7].field_14, CGarages::aGarages[7].field_15);
+                CFont::PrintString(10.0f, 150.0f, text);
+                swprintf(text, L"id 08; typ %d; act %d", CGarages::aGarages[8].field_14, CGarages::aGarages[8].field_15);
+                CFont::PrintString(10.0f, 170.0f, text);
+                swprintf(text, L"id 09; typ %d; act %d", CGarages::aGarages[9].field_14, CGarages::aGarages[9].field_15);
+                CFont::PrintString(10.0f, 190.0f, text);
+                swprintf(text, L"id 10; typ %d; act %d", CGarages::aGarages[10].field_14, CGarages::aGarages[10].field_15);
+                CFont::PrintString(10.0f, 210.0f, text);
+                swprintf(text, L"id 11; typ %d; act %d", CGarages::aGarages[11].field_14, CGarages::aGarages[11].field_15);
+                CFont::PrintString(10.0f, 230.0f, text);
+                swprintf(text, L"id 12; typ %d; act %d", CGarages::aGarages[12].field_14, CGarages::aGarages[12].field_15);
+                CFont::PrintString(10.0f, 250.0f, text);
+                swprintf(text, L"id 13; typ %d; act %d", CGarages::aGarages[13].field_14, CGarages::aGarages[13].field_15);
+                CFont::PrintString(10.0f, 270.0f, text);
+                swprintf(text, L"id 14; typ %d; act %d", CGarages::aGarages[14].field_14, CGarages::aGarages[14].field_15);
+                CFont::PrintString(10.0f, 290.0f, text);
+                swprintf(text, L"id 15; typ %d; act %d", CGarages::aGarages[15].field_14, CGarages::aGarages[15].field_15);
+                CFont::PrintString(10.0f, 310.0f, text);
+                swprintf(text, L"id 16; typ %d; act %d", CGarages::aGarages[16].field_14, CGarages::aGarages[16].field_15);
+                CFont::PrintString(10.0f, 330.0f, text);
+                swprintf(text, L"id 17; typ %d; act %d", CGarages::aGarages[17].field_14, CGarages::aGarages[17].field_15);
+                CFont::PrintString(10.0f, 350.0f, text);
+                swprintf(text, L"id 18; typ %d; act %d", CGarages::aGarages[18].field_14, CGarages::aGarages[18].field_15);
+                CFont::PrintString(10.0f, 370.0f, text);
+                swprintf(text, L"id 19; typ %d; act %d", CGarages::aGarages[19].field_14, CGarages::aGarages[19].field_15);
+                CFont::PrintString(10.0f, 390.0f, text);
+                swprintf(text, L"id 20; typ %d; act %d", CGarages::aGarages[20].field_14, CGarages::aGarages[20].field_15);
+                CFont::PrintString(10.0f, 410.0f, text);
+                swprintf(text, L"id 21; typ %d; act %d", CGarages::aGarages[21].field_14, CGarages::aGarages[21].field_15);
+                CFont::PrintString(10.0f, 430.0f, text);
+                swprintf(text, L"id 22; typ %d; act %d", CGarages::aGarages[22].field_14, CGarages::aGarages[22].field_15);
+                CFont::PrintString(10.0f, 450.0f, text);
+                swprintf(text, L"id 23; typ %d; act %d", CGarages::aGarages[23].field_14, CGarages::aGarages[23].field_15);
+                CFont::PrintString(10.0f, 470.0f, text);
+                swprintf(text, L"id 24; typ %d; act %d", CGarages::aGarages[24].field_14, CGarages::aGarages[24].field_15);
+                CFont::PrintString(10.0f, 490.0f, text);
+                swprintf(text, L"id 25; typ %d; act %d", CGarages::aGarages[25].field_14, CGarages::aGarages[25].field_15);
+                CFont::PrintString(10.0f, 510.0f, text);
+                swprintf(text, L"id 26; typ %d; act %d", CGarages::aGarages[26].field_14, CGarages::aGarages[26].field_15);
+                CFont::PrintString(10.0f, 530.0f, text);
+            }
+
+
+            CVehicle *vehicle = FindPlayerVehicle();
+            if (vehicle) {
+                /*CFont::SetScale(0.5f, 1.0f);
+                CFont::SetColor(CRGBA(255, 255, 255, 255));
+                CFont::SetJustifyOn();
+                CFont::SetFontStyle(0);
+                CFont::SetPropOn();
+                CFont::SetWrapx(600.0f);
+                wchar_t text[32];
+                
+                swprintf(text, L"fire %d", vehicle->m_pCarFire);
+                CFont::PrintString(200.0f, 550.0f, text);
+                swprintf(text, L"FiringTime %d", vehicle->m_nGunFiringTime);
+                CFont::PrintString(200.0f, 580.0f, text);*/
+
+                
+                /*if ((vehicle->m_fBreakPedal > 0.0f) && (enable == false)) {
                     start = vehicle->m_matrix.pos;
                     speed = vehicle->m_vecMoveSpeed.Magnitude() * 50.0f * 3.6f;
                     enable = true;
@@ -41,7 +124,7 @@ public:
                     static char message[256];
                     snprintf(message, 256, "speed = %.2f; dist = %.2f", speed, dist);
                     CMessages::AddMessageJumpQ(message, 5000, false);
-                }
+                }*/
             }
         };
     }

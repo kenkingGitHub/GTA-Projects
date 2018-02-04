@@ -153,7 +153,7 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (1.12.2017)");
+            swprintf(text, L"Additional Components by kenking (4.02.2018)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
@@ -660,7 +660,6 @@ public:
         };
 
         Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
-            CVector &fCamPosX = *(CVector *)0x6FAD2C; // !!!
 
             if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && (vehicle->m_nVehicleFlags & 0x10) && vehicle->m_fHealth > 0.1f) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
@@ -670,12 +669,6 @@ public:
                 if (vehicle->m_pDriver) {
                     CPed *playa = FindPlayerPed();
                     if (playa && playa->m_pVehicle == vehicle) {
-
-                        CRGBA color = { 255, 128, 0, 255 };
-                        static int coronaId = 200;
-                        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, color.red, color.green, color.blue, color.alpha, fCamPosX, 0.3f, 100.0f, 1, 0, 0, 0, 0, 0.0f);
-                        coronaId += 1;
-
                         turnlightsData.Get(vehicle).turnIgnore = true;
                         if (KeyPressed(settings.keyTurnL)) { // Z
                             UpdateLightStatus(vehicle); lightsStatus = LIGHTS_LEFT;
@@ -736,8 +729,25 @@ public:
                                 UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                         }
                     }
+
+                    // day light
+                    if (turnlightsData.Get(vehicle).m_pTurn[26] && turnlightsData.Get(vehicle).m_pTurn[27]) {
+                        if (vehicle->m_nVehicleFlags & 0x40) {
+                            UpdateLight(vehicle, 126, turnlightsData.Get(vehicle).m_pTurn[26]);
+                            UpdateLight(vehicle, 127, turnlightsData.Get(vehicle).m_pTurn[27]);
+                        }
+                        else {
+                            CRGBA color;
+                            color = { 255, 255, 255, 200 };
+                            DrawLight(vehicle, 126, color, turnlightsData.Get(vehicle).m_pTurn[26]);
+                            DrawLight(vehicle, 127, color, turnlightsData.Get(vehicle).m_pTurn[27]);
+                        }
+                    }
+
+                    if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && turnlightsData.Get(vehicle).turnIgnore == false)
+                        turnlightsData.Get(vehicle).turnIgnore = true;
                 }
-                else if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == false)
+                else if ((vehicle->m_nVehicleFlags & 0x10) && (vehicle->field_1F7 & 0x2) && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == true)
                     lightsStatus = LIGHTS_BOTH;
 
                 if (CTimer::m_snTimeInMilliseconds & 0x200)
@@ -816,24 +826,6 @@ public:
                     for (i = 28, j = 128; i < 32; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i])
                             UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
-                    }
-                }
-                
-                // day light
-                if (turnlightsData.Get(vehicle).m_pTurn[26] && turnlightsData.Get(vehicle).m_pTurn[27]) {
-                    if (vehicle->m_nVehicleFlags & 0x40) {
-                        UpdateLight(vehicle, 126, turnlightsData.Get(vehicle).m_pTurn[26]);
-                        UpdateLight(vehicle, 127, turnlightsData.Get(vehicle).m_pTurn[27]);
-                    }
-                    else {
-                        CVector test = vehicle->m_matrix.pos - fCamPosX;
-                        CRGBA color;
-                        if ((test.x + test.y + test.z) >= 0.0f)
-                            color = { 255, 255, 255, 0 };
-                        else
-                            color = { 255, 255, 255, 200 };
-                        DrawLight(vehicle, 126, color, turnlightsData.Get(vehicle).m_pTurn[26]);
-                        DrawLight(vehicle, 127, color, turnlightsData.Get(vehicle).m_pTurn[27]);
                     }
                 }
 
