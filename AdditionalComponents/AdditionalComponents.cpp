@@ -51,7 +51,7 @@ public:
         }
         return nullptr;
     }
-    
+
     enum eWiperState { ONE_STATE_LEFT, ONE_STATE_RIGHT, TWO_STATE_LEFT, TWO_STATE_RIGHT };
     enum eOpenManholeState { STATE_OPENING, STATE_CLOSING, STATE_WAITING };
 
@@ -60,21 +60,21 @@ public:
     static float wiperOneAngle, wiperTwoLAngle, wiperTwoRAngle, cementAngle, manholeAngle;
     static CWeather *wather;
 
-    class VehicleComponents { 
+    class VehicleComponents {
     public:
-        RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM, 
-            *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL, 
-            *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf, 
-            *m_pManhole_cb, *m_pManhole_s, *m_pLightsUp, *m_pStepVanDoorL, *m_pStepVanDoorR, *m_pMiniVanDoorL, 
+        RwFrame *m_pBootSliding, *m_pSteerWheel, *m_pBootMirage, *m_pWiperOneR, *m_pWiperOneL, *m_pWiperOneM,
+            *m_pWiperTwoR, *m_pWiperTwoL, *m_pWiperOneTwoR, *m_pWiperOneTwoL, *m_pBrushOneR, *m_pBrushOneL,
+            *m_pDumper, *m_pCement, *m_pManhole_af, *m_pManhole_ab, *m_pManhole_bf, *m_pManhole_bb, *m_pManhole_cf,
+            *m_pManhole_cb, *m_pManhole_s, *m_pLightsUp, *m_pStepVanDoorL, *m_pStepVanDoorR, *m_pMiniVanDoorL,
             *m_pMiniVanDoorR, *m_pBootLeft, *m_pBootRight, *m_pBootBottom, *m_pHubLF, *m_pHubRF, *m_pHubLM, *m_pHubRM,
             *m_pHubLB, *m_pHubRB;
         bool wiperState, cementState, manholeState, lightsUpDown;
         float dumperAngle, manholePos, currentLightsAngle, maxLightsAngle;
 
-        VehicleComponents(CVehicle *) { 
-            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement 
-                = m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL 
-                = m_pDumper = m_pManhole_af = m_pManhole_ab = m_pManhole_bf = m_pManhole_bb = m_pManhole_cf 
+        VehicleComponents(CVehicle *) {
+            m_pBootSliding = m_pBootMirage = m_pSteerWheel = m_pWiperOneR = m_pWiperOneL = m_pWiperOneM = m_pCement
+                = m_pWiperTwoR = m_pWiperTwoL = m_pWiperOneTwoR = m_pWiperOneTwoL = m_pBrushOneR = m_pBrushOneL
+                = m_pDumper = m_pManhole_af = m_pManhole_ab = m_pManhole_bf = m_pManhole_bb = m_pManhole_cf
                 = m_pManhole_cb = m_pManhole_s = m_pLightsUp = m_pStepVanDoorL = m_pStepVanDoorR = m_pHubLF = m_pHubRF
                 = m_pHubLM = m_pHubRM = m_pHubLB = m_pHubRB = nullptr;
             wiperState = false; cementState = true; manholeState = true; lightsUpDown = false;
@@ -140,7 +140,7 @@ public:
             FrameSetRotateXOnly(vehComps.Get(vehicle).m_pManhole_cb, -manholeAngle);
     }
 
-    static VehicleExtendedData<VehicleComponents> vehComps; 
+    static VehicleExtendedData<VehicleComponents> vehComps;
 
     AdditionalComponents() {
         ReadSettingsFile();
@@ -153,11 +153,11 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (4.02.2018)");
+            swprintf(text, L"Additional Components by kenking (14.03.2018)");
             CFont::PrintString(25.0f, 25.0f, text);
         };
 
-        Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) { 
+        Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle) {
                 Zr350Info *entryModel = GetZr350InfoForModel(vehicle->m_nModelIndex);
                 if (entryModel) {
@@ -167,57 +167,57 @@ public:
                     vehComps.Get(vehicle).maxLightsAngle = entryModel->valueMaxLightsAngle;
                 }
             }
-            
-            if (vehicle->m_pRwClump) { 
-                vehComps.Get(vehicle).m_pBootSliding  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_sliding");
-                vehComps.Get(vehicle).m_pBootMirage   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_mirage");
-                vehComps.Get(vehicle).m_pSteerWheel   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "steerwheel"); 
-                vehComps.Get(vehicle).m_pWiperOneR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_or");
-                vehComps.Get(vehicle).m_pWiperOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_ol");
-                vehComps.Get(vehicle).m_pWiperOneM    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_om");
-                vehComps.Get(vehicle).m_pWiperTwoR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tr");
-                vehComps.Get(vehicle).m_pWiperTwoL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tl");
+
+            if (vehicle->m_pRwClump) {
+                vehComps.Get(vehicle).m_pBootSliding = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_sliding");
+                vehComps.Get(vehicle).m_pBootMirage = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_mirage");
+                vehComps.Get(vehicle).m_pSteerWheel = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "steerwheel");
+                vehComps.Get(vehicle).m_pWiperOneR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_or");
+                vehComps.Get(vehicle).m_pWiperOneL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_ol");
+                vehComps.Get(vehicle).m_pWiperOneM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_om");
+                vehComps.Get(vehicle).m_pWiperTwoR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tr");
+                vehComps.Get(vehicle).m_pWiperTwoL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_tl");
                 vehComps.Get(vehicle).m_pWiperOneTwoR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_otr");
                 vehComps.Get(vehicle).m_pWiperOneTwoL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_otl");
-                vehComps.Get(vehicle).m_pBrushOneR    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_or");
-                vehComps.Get(vehicle).m_pBrushOneL    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
-                vehComps.Get(vehicle).m_pDumper       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "dumper");
-                vehComps.Get(vehicle).m_pCement       = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "cement");
-                vehComps.Get(vehicle).m_pManhole_af   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_af_hi");
-                vehComps.Get(vehicle).m_pManhole_ab   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_ab_hi");
-                vehComps.Get(vehicle).m_pManhole_bf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bf_hi");
-                vehComps.Get(vehicle).m_pManhole_bb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bb_hi");
-                vehComps.Get(vehicle).m_pManhole_cf   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cf_hi");
-                vehComps.Get(vehicle).m_pManhole_cb   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cb_hi");
-                vehComps.Get(vehicle).m_pManhole_s    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_s_hi");
-                vehComps.Get(vehicle).m_pLightsUp     = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "lights_up");
+                vehComps.Get(vehicle).m_pBrushOneR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_or");
+                vehComps.Get(vehicle).m_pBrushOneL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "brush_ol");
+                vehComps.Get(vehicle).m_pDumper = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "dumper");
+                vehComps.Get(vehicle).m_pCement = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "cement");
+                vehComps.Get(vehicle).m_pManhole_af = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_af_hi");
+                vehComps.Get(vehicle).m_pManhole_ab = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_ab_hi");
+                vehComps.Get(vehicle).m_pManhole_bf = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bf_hi");
+                vehComps.Get(vehicle).m_pManhole_bb = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_bb_hi");
+                vehComps.Get(vehicle).m_pManhole_cf = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cf_hi");
+                vehComps.Get(vehicle).m_pManhole_cb = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_cb_hi");
+                vehComps.Get(vehicle).m_pManhole_s = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hatch_s_hi");
+                vehComps.Get(vehicle).m_pLightsUp = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "lights_up");
                 vehComps.Get(vehicle).m_pStepVanDoorL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_slf");
                 vehComps.Get(vehicle).m_pStepVanDoorR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_srf");
                 vehComps.Get(vehicle).m_pMiniVanDoorL = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_mlr");
                 vehComps.Get(vehicle).m_pMiniVanDoorR = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "door_mrr");
-                vehComps.Get(vehicle).m_pBootLeft     = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_l");
-                vehComps.Get(vehicle).m_pBootRight    = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_r");
-                vehComps.Get(vehicle).m_pBootBottom   = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_b");
-                vehComps.Get(vehicle).m_pHubLF        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lf");
-                vehComps.Get(vehicle).m_pHubRF        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rf");
-                vehComps.Get(vehicle).m_pHubLM        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lm");
-                vehComps.Get(vehicle).m_pHubRM        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rm");
-                vehComps.Get(vehicle).m_pHubLB        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lb");
-                vehComps.Get(vehicle).m_pHubRB        = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rb");
+                vehComps.Get(vehicle).m_pBootLeft = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_l");
+                vehComps.Get(vehicle).m_pBootRight = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_r");
+                vehComps.Get(vehicle).m_pBootBottom = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "boot_b");
+                vehComps.Get(vehicle).m_pHubLF = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lf");
+                vehComps.Get(vehicle).m_pHubRF = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rf");
+                vehComps.Get(vehicle).m_pHubLM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lm");
+                vehComps.Get(vehicle).m_pHubRM = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rm");
+                vehComps.Get(vehicle).m_pHubLB = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_lb");
+                vehComps.Get(vehicle).m_pHubRB = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hub_rb");
 
             }
             else {
-                vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR 
-                    = vehComps.Get(vehicle).m_pWiperOneL = vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM 
-                    = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = vehComps.Get(vehicle).m_pWiperOneTwoR 
-                    = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL 
-                    = vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = vehComps.Get(vehicle).m_pManhole_af 
+                vehComps.Get(vehicle).m_pBootSliding = vehComps.Get(vehicle).m_pSteerWheel = vehComps.Get(vehicle).m_pWiperOneR
+                    = vehComps.Get(vehicle).m_pWiperOneL = vehComps.Get(vehicle).m_pBootMirage = vehComps.Get(vehicle).m_pWiperOneM
+                    = vehComps.Get(vehicle).m_pWiperTwoR = vehComps.Get(vehicle).m_pWiperTwoL = vehComps.Get(vehicle).m_pWiperOneTwoR
+                    = vehComps.Get(vehicle).m_pWiperOneTwoL = vehComps.Get(vehicle).m_pBrushOneR = vehComps.Get(vehicle).m_pBrushOneL
+                    = vehComps.Get(vehicle).m_pDumper = vehComps.Get(vehicle).m_pCement = vehComps.Get(vehicle).m_pManhole_af
                     = vehComps.Get(vehicle).m_pManhole_ab = vehComps.Get(vehicle).m_pManhole_bf = vehComps.Get(vehicle).m_pManhole_bb
                     = vehComps.Get(vehicle).m_pManhole_cf = vehComps.Get(vehicle).m_pManhole_cb = vehComps.Get(vehicle).m_pManhole_s
-                    = vehComps.Get(vehicle).m_pLightsUp = vehComps.Get(vehicle).m_pStepVanDoorL = vehComps.Get(vehicle).m_pStepVanDoorR 
+                    = vehComps.Get(vehicle).m_pLightsUp = vehComps.Get(vehicle).m_pStepVanDoorL = vehComps.Get(vehicle).m_pStepVanDoorR
                     = vehComps.Get(vehicle).m_pMiniVanDoorL = vehComps.Get(vehicle).m_pMiniVanDoorR = vehComps.Get(vehicle).m_pBootLeft
-                    = vehComps.Get(vehicle).m_pBootRight = vehComps.Get(vehicle).m_pBootBottom = vehComps.Get(vehicle).m_pHubLF 
-                    = vehComps.Get(vehicle).m_pHubRF = vehComps.Get(vehicle).m_pHubLM = vehComps.Get(vehicle).m_pHubRM 
+                    = vehComps.Get(vehicle).m_pBootRight = vehComps.Get(vehicle).m_pBootBottom = vehComps.Get(vehicle).m_pHubLF
+                    = vehComps.Get(vehicle).m_pHubRF = vehComps.Get(vehicle).m_pHubLM = vehComps.Get(vehicle).m_pHubRM
                     = vehComps.Get(vehicle).m_pHubLB = vehComps.Get(vehicle).m_pHubRB = nullptr;
 
             }
@@ -379,7 +379,7 @@ public:
                                     break;
                                 }
                             }
-                        } 
+                        }
                         // step van doors
                         if (vehComps.Get(vehicle).m_pStepVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LF]) {
                             if (automobile->m_aDoors[2].m_fAngle > -0.9f)
@@ -449,7 +449,7 @@ public:
                             FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->m_aDoors[1].m_fAngle);
                         }
                         // hub
-                        if (vehComps.Get(vehicle).m_pHubLF && automobile->m_aCarNodes[CAR_WHEEL_LF]) 
+                        if (vehComps.Get(vehicle).m_pHubLF && automobile->m_aCarNodes[CAR_WHEEL_LF])
                             FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubLF, automobile->m_aCarNodes[CAR_WHEEL_LF], 1.0f);
                         if (vehComps.Get(vehicle).m_pHubLB && automobile->m_aCarNodes[CAR_WHEEL_LB]) {
                             FrameSetRotateAndPositionZ(vehComps.Get(vehicle).m_pHubLB, automobile->m_aCarNodes[CAR_WHEEL_LB], 1.0f);
@@ -466,10 +466,10 @@ public:
                         //
 
                     } // vehicle->GetIsOnScreen
-                    
-                    // lights up/down
+
+                      // lights up/down
                     if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pLightsUp) {
-                        if (vehicle->m_nVehicleFlags & 0x40 ) {
+                        if (vehicle->m_nVehicleFlags & 0x40) {
                             if (vehComps.Get(vehicle).lightsUpDown == false) {
                                 vehComps.Get(vehicle).currentLightsAngle += 0.1f;
                                 if (vehComps.Get(vehicle).currentLightsAngle < vehComps.Get(vehicle).maxLightsAngle)
@@ -510,7 +510,7 @@ public:
                 if (vehComps.Get(playerVehicle).m_pDumper) {
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyOpen)) {
                         vehComps.Get(playerVehicle).dumperAngle += 0.01f;
-                        if (vehComps.Get(playerVehicle).dumperAngle < 0.7f) 
+                        if (vehComps.Get(playerVehicle).dumperAngle < 0.7f)
                             FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         else {
                             CMessages::AddMessageJumpQ(L"full up", 1000, 0);
@@ -520,7 +520,7 @@ public:
                     }
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyClose)) {
                         vehComps.Get(playerVehicle).dumperAngle -= 0.01f;
-                        if (vehComps.Get(playerVehicle).dumperAngle > 0.0f) 
+                        if (vehComps.Get(playerVehicle).dumperAngle > 0.0f)
                             FrameSetRotateXOnly(vehComps.Get(playerVehicle).m_pDumper, vehComps.Get(playerVehicle).dumperAngle);
                         else {
                             CMessages::AddMessageJumpQ(L"full down", 1000, 0);
@@ -541,7 +541,7 @@ public:
                 if (vehComps.Get(playerVehicle).m_pManhole_s) {
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyOpen)) {
                         vehComps.Get(playerVehicle).manholePos -= 0.01f;
-                        if (vehComps.Get(playerVehicle).manholePos > -0.5f) 
+                        if (vehComps.Get(playerVehicle).manholePos > -0.5f)
                             vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
                         else {
                             CMessages::AddMessageJumpQ(L"full open", 1000, 0);
@@ -551,7 +551,7 @@ public:
                     }
                     if (KeyPressed(settings.keyOpenClose) && KeyPressed(settings.keyClose)) {
                         vehComps.Get(playerVehicle).manholePos += 0.01f;
-                        if (vehComps.Get(playerVehicle).manholePos < 0.0f) 
+                        if (vehComps.Get(playerVehicle).manholePos < 0.0f)
                             vehComps.Get(playerVehicle).m_pManhole_s->modelling.pos.y = vehComps.Get(playerVehicle).manholePos;
                         else {
                             CMessages::AddMessageJumpQ(L"full closed", 1000, 0);
@@ -588,12 +588,12 @@ public:
     enum eLightsStatus { LIGHTS_OFF, LIGHTS_LEFT, LIGHTS_RIGHT, LIGHTS_BOTH };
     enum eBlinksStatus { BLINKS_ENABLE, BLINKS_DISABLE, BLINKS_IGNORE };
     static unsigned int i, j;
-    static const int arrayNumber = 34;
+    static const int arrayNumber = 36;
     static CWeather *wather;
 
     class VehicleTurnlightsData {
     public:
-        eLightsStatus lightsStatus; 
+        eLightsStatus lightsStatus;
         eBlinksStatus blinksStatus;
         bool turnIgnore, fogEnable, fogExtraEnable;
         RwFrame *m_pTurn[arrayNumber];
@@ -606,23 +606,23 @@ public:
             turnIgnore = false; fogEnable = false; fogExtraEnable = false;
         }
     };
-    
+
     static VehicleExtendedData<VehicleTurnlightsData> turnlightsData;
 
     Turnlights() {
-    
+
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
-                turnlightsData.Get(vehicle).m_pTurn[0]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lf");
-                turnlightsData.Get(vehicle).m_pTurn[1]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lm");
-                turnlightsData.Get(vehicle).m_pTurn[2]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_ln");
-                turnlightsData.Get(vehicle).m_pTurn[3]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lb");
-                turnlightsData.Get(vehicle).m_pTurn[4]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rf");
-                turnlightsData.Get(vehicle).m_pTurn[5]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rm");
-                turnlightsData.Get(vehicle).m_pTurn[6]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rn");
-                turnlightsData.Get(vehicle).m_pTurn[7]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rb");
-                turnlightsData.Get(vehicle).m_pTurn[8]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlf");
-                turnlightsData.Get(vehicle).m_pTurn[9]  = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlr");
+                turnlightsData.Get(vehicle).m_pTurn[0] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lf");
+                turnlightsData.Get(vehicle).m_pTurn[1] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lm");
+                turnlightsData.Get(vehicle).m_pTurn[2] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_ln");
+                turnlightsData.Get(vehicle).m_pTurn[3] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_lb");
+                turnlightsData.Get(vehicle).m_pTurn[4] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rf");
+                turnlightsData.Get(vehicle).m_pTurn[5] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rm");
+                turnlightsData.Get(vehicle).m_pTurn[6] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rn");
+                turnlightsData.Get(vehicle).m_pTurn[7] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_rb");
+                turnlightsData.Get(vehicle).m_pTurn[8] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlf");
+                turnlightsData.Get(vehicle).m_pTurn[9] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlr");
                 turnlightsData.Get(vehicle).m_pTurn[10] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wrf");
                 turnlightsData.Get(vehicle).m_pTurn[11] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wrr");
                 turnlightsData.Get(vehicle).m_pTurn[12] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_wlm");
@@ -631,26 +631,28 @@ public:
                 turnlightsData.Get(vehicle).m_pTurn[15] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turnr_rb");
                 turnlightsData.Get(vehicle).m_pTurn[16] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turnr_wlr");
                 turnlightsData.Get(vehicle).m_pTurn[17] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turnr_wrr");
+                turnlightsData.Get(vehicle).m_pTurn[18] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_blf");
+                turnlightsData.Get(vehicle).m_pTurn[19] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "turn_brf");
 
-                turnlightsData.Get(vehicle).m_pTurn[18] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_l");
-                turnlightsData.Get(vehicle).m_pTurn[19] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_r");
-                turnlightsData.Get(vehicle).m_pTurn[20] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_lb");
-                turnlightsData.Get(vehicle).m_pTurn[21] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_rb");
-                turnlightsData.Get(vehicle).m_pTurn[22] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_l");
-                turnlightsData.Get(vehicle).m_pTurn[23] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_r");
-                turnlightsData.Get(vehicle).m_pTurn[24] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_lm");
-                turnlightsData.Get(vehicle).m_pTurn[25] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_rm");
-                
-                turnlightsData.Get(vehicle).m_pTurn[26] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "day_l");
-                turnlightsData.Get(vehicle).m_pTurn[27] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "day_r");
-                
-                turnlightsData.Get(vehicle).m_pTurn[28] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_l");
-                turnlightsData.Get(vehicle).m_pTurn[29] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_r");
-                turnlightsData.Get(vehicle).m_pTurn[30] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_lm");
-                turnlightsData.Get(vehicle).m_pTurn[31] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_rm");
-                
-                turnlightsData.Get(vehicle).m_pTurn[32] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "break_l");
-                turnlightsData.Get(vehicle).m_pTurn[33] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "break_r");
+                turnlightsData.Get(vehicle).m_pTurn[20] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_l");
+                turnlightsData.Get(vehicle).m_pTurn[21] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_r");
+                turnlightsData.Get(vehicle).m_pTurn[22] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_lb");
+                turnlightsData.Get(vehicle).m_pTurn[23] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fog_rb");
+                turnlightsData.Get(vehicle).m_pTurn[24] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_l");
+                turnlightsData.Get(vehicle).m_pTurn[25] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_r");
+                turnlightsData.Get(vehicle).m_pTurn[26] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_lm");
+                turnlightsData.Get(vehicle).m_pTurn[27] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "fogex_rm");
+
+                turnlightsData.Get(vehicle).m_pTurn[28] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "day_l");
+                turnlightsData.Get(vehicle).m_pTurn[29] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "day_r");
+
+                turnlightsData.Get(vehicle).m_pTurn[30] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_l");
+                turnlightsData.Get(vehicle).m_pTurn[31] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_r");
+                turnlightsData.Get(vehicle).m_pTurn[32] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_lm");
+                turnlightsData.Get(vehicle).m_pTurn[33] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "blink_rm");
+
+                turnlightsData.Get(vehicle).m_pTurn[34] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "break_l");
+                turnlightsData.Get(vehicle).m_pTurn[35] = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "break_r");
             }
             else {
                 for (i = 0; i < arrayNumber; i++) {
@@ -706,9 +708,9 @@ public:
 
                         if (lightsStatus == LIGHTS_OFF) {
                             /*if (vehicle->m_fSteerAngle < -0.2f)
-                                lightsStatus = LIGHTS_RIGHT;
+                            lightsStatus = LIGHTS_RIGHT;
                             else if (vehicle->m_fSteerAngle > 0.2f)
-                                lightsStatus = LIGHTS_LEFT;*/
+                            lightsStatus = LIGHTS_LEFT;*/
 
                             if (vehicle->m_autoPilot.m_nCurrentLane == 0 && vehicle->m_autoPilot.m_nNextLane == 1)
                                 lightsStatus = LIGHTS_RIGHT;
@@ -717,9 +719,9 @@ public:
                         }
                     }
                     // traffic end
-                    
+
                     // break
-                    for (i = 32, j = 132; i < 34; i++, j++) {
+                    for (i = 34, j = 134; i < 36; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i]) {
                             if (vehicle->m_fBreakPedal > 0.0f) {
                                 CRGBA color = { 255, 0, 0, 255 };
@@ -731,16 +733,16 @@ public:
                     }
 
                     // day light
-                    if (turnlightsData.Get(vehicle).m_pTurn[26] && turnlightsData.Get(vehicle).m_pTurn[27]) {
+                    if (turnlightsData.Get(vehicle).m_pTurn[28] && turnlightsData.Get(vehicle).m_pTurn[29]) {
                         if (vehicle->m_nVehicleFlags & 0x40) {
-                            UpdateLight(vehicle, 126, turnlightsData.Get(vehicle).m_pTurn[26]);
-                            UpdateLight(vehicle, 127, turnlightsData.Get(vehicle).m_pTurn[27]);
+                            UpdateLight(vehicle, 128, turnlightsData.Get(vehicle).m_pTurn[28]);
+                            UpdateLight(vehicle, 129, turnlightsData.Get(vehicle).m_pTurn[29]);
                         }
                         else {
                             CRGBA color;
                             color = { 255, 255, 255, 200 };
-                            DrawLight(vehicle, 126, color, turnlightsData.Get(vehicle).m_pTurn[26]);
-                            DrawLight(vehicle, 127, color, turnlightsData.Get(vehicle).m_pTurn[27]);
+                            DrawLight(vehicle, 128, color, turnlightsData.Get(vehicle).m_pTurn[28]);
+                            DrawLight(vehicle, 129, color, turnlightsData.Get(vehicle).m_pTurn[29]);
                         }
                     }
 
@@ -763,23 +765,23 @@ public:
 
                 if (turnlightsData.Get(vehicle).fogEnable == true) {
                     CRGBA color = { 255, 186, 0, 200 };
-                    if (turnlightsData.Get(vehicle).m_pTurn[18])
-                        DrawLight(vehicle, 118, color, turnlightsData.Get(vehicle).m_pTurn[18]);
-                    if (turnlightsData.Get(vehicle).m_pTurn[19])
-                        DrawLight(vehicle, 119, color, turnlightsData.Get(vehicle).m_pTurn[19]);
-                    if (turnlightsData.Get(vehicle).m_pTurn[20] && turnlightsData.Get(vehicle).m_pTurn[21] && vehicle->IsComponentPresent(7)) {
+                    if (turnlightsData.Get(vehicle).m_pTurn[20])
+                        DrawLight(vehicle, 120, color, turnlightsData.Get(vehicle).m_pTurn[20]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[21])
+                        DrawLight(vehicle, 121, color, turnlightsData.Get(vehicle).m_pTurn[21]);
+                    if (turnlightsData.Get(vehicle).m_pTurn[22] && turnlightsData.Get(vehicle).m_pTurn[23] && vehicle->IsComponentPresent(7)) {
                         if (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)) {
-                            DrawLight(vehicle, 120, color, turnlightsData.Get(vehicle).m_pTurn[20]);
-                            DrawLight(vehicle, 121, color, turnlightsData.Get(vehicle).m_pTurn[21]);
+                            DrawLight(vehicle, 122, color, turnlightsData.Get(vehicle).m_pTurn[22]);
+                            DrawLight(vehicle, 123, color, turnlightsData.Get(vehicle).m_pTurn[23]);
                         }
                         else {
-                            UpdateLight(vehicle, 120, turnlightsData.Get(vehicle).m_pTurn[20]);
-                            UpdateLight(vehicle, 121, turnlightsData.Get(vehicle).m_pTurn[21]);
+                            UpdateLight(vehicle, 122, turnlightsData.Get(vehicle).m_pTurn[22]);
+                            UpdateLight(vehicle, 123, turnlightsData.Get(vehicle).m_pTurn[23]);
                         }
                     }
                 }
                 else {
-                    for (i = 18, j = 118; i < 22; i++, j++) {
+                    for (i = 20, j = 120; i < 24; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i])
                             UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
@@ -791,7 +793,7 @@ public:
                 else if (wather->NewWeatherType != 3 && wather->NewWeatherType != 2 && vehicle->m_pDriver && turnlightsData.Get(vehicle).fogExtraEnable == true)
                     turnlightsData.Get(vehicle).fogExtraEnable = false;
 
-                for (i = 22, j = 122; i < 26; i++, j++) {
+                for (i = 24, j = 124; i < 28; i++, j++) {
                     if (turnlightsData.Get(vehicle).m_pTurn[i]) {
                         if (turnlightsData.Get(vehicle).fogExtraEnable == true) {
                             CRGBA color = { 255, 255, 255, 200 };
@@ -805,7 +807,7 @@ public:
                 // blink
                 if (blinksStatus == BLINKS_ENABLE) {
                     CRGBA color = { 255, 128, 0, 255 };
-                    for (i = 28, j = 128; i < 30; i++, j++) {
+                    for (i = 30, j = 130; i < 32; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i]) {
                             if (CTimer::m_snTimeInMilliseconds & 0x100)
                                 DrawLight(vehicle, j, color, turnlightsData.Get(vehicle).m_pTurn[i]);
@@ -813,7 +815,7 @@ public:
                                 UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                         }
                     }
-                    for (i = 30, j = 130; i < 32; i++, j++) {
+                    for (i = 32, j = 132; i < 34; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i]) {
                             if (CTimer::m_snTimeInMilliseconds & 0x200)
                                 DrawLight(vehicle, j, color, turnlightsData.Get(vehicle).m_pTurn[i]);
@@ -823,7 +825,7 @@ public:
                     }
                 }
                 else {
-                    for (i = 28, j = 128; i < 32; i++, j++) {
+                    for (i = 30, j = 130; i < 34; i++, j++) {
                         if (turnlightsData.Get(vehicle).m_pTurn[i])
                             UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
                     }
@@ -835,14 +837,14 @@ public:
 
 
     static void UpdateLightStatus(CVehicle *vehicle) {
-        for (i = 0, j = 100; i < 18; i++, j++) {
-            if (turnlightsData.Get(vehicle).m_pTurn[i]) 
+        for (i = 0, j = 100; i < 20; i++, j++) {
+            if (turnlightsData.Get(vehicle).m_pTurn[i])
                 UpdateLight(vehicle, j, turnlightsData.Get(vehicle).m_pTurn[i]);
         }
     }
 
     static CVector GetFramePosn(RwFrame *turn) {
-        CVector posnCorona; 
+        CVector posnCorona;
         RwV3d posn = RwFrameGetLTM(turn)->pos;
         posnCorona.x = posn.x;
         posnCorona.y = posn.y;
@@ -873,6 +875,8 @@ public:
                 DrawLight(vehicle, 109, color, turnlightsData.Get(vehicle).m_pTurn[9]); // turn_wlr
             if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(13) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT)))
                 DrawLight(vehicle, 112, color, turnlightsData.Get(vehicle).m_pTurn[12]); // turn_wlm
+            if (turnlightsData.Get(vehicle).m_pTurn[18] && vehicle->IsComponentPresent(7) && (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)))
+                DrawLight(vehicle, 118, color, turnlightsData.Get(vehicle).m_pTurn[18]); // turn_blf
             // red
             color = { 255, 0, 0, 255 };
             if (turnlightsData.Get(vehicle).m_pTurn[14])
@@ -892,6 +896,8 @@ public:
                 DrawLight(vehicle, 111, color, turnlightsData.Get(vehicle).m_pTurn[11]); // turn_wrr
             if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(9) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT)))
                 DrawLight(vehicle, 113, color, turnlightsData.Get(vehicle).m_pTurn[13]); // turn_wrm
+            if (turnlightsData.Get(vehicle).m_pTurn[19] && vehicle->IsComponentPresent(7) && (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)))
+                DrawLight(vehicle, 119, color, turnlightsData.Get(vehicle).m_pTurn[19]); // turn_brf
             // red
             color = { 255, 0, 0, 255 };
             if (turnlightsData.Get(vehicle).m_pTurn[15])

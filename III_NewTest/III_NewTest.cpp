@@ -1,5 +1,5 @@
-#include <string>
 #include "plugin.h"
+#include <string>
 #include "extensions\KeyCheck.h"
 #include "common.h"
 #include "CModelInfo.h"
@@ -34,7 +34,7 @@ public:
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
             }
             CVehicle *vehicle = nullptr;
-            if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType) 
+            if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType)
                 vehicle = new CBoat(modelIndex, 1);
             else
                 vehicle = new CAutomobile(modelIndex, 1);
@@ -119,7 +119,7 @@ public:
         if (enabled) {
             CSprite2d::DrawRect(CRect(10.0f, 10.0f, 300.0f, 130.0f), CRGBA(0, 0, 0, 100));
             CSprite2d::DrawRect(CRect(150.0f, 50.0f, 230.0f, 52.0f), CRGBA(255, 255, 255, 255));
-            
+
             CFont::SetScale(0.8f, 1.9f);
             CFont::SetColor(CRGBA(255, 255, 255, 255));
             CFont::SetJustifyOn();
@@ -151,3 +151,4 @@ std::string MoreVehiclesSpawner::errorMessage;
 std::string MoreVehiclesSpawner::errorMessageBuffer;
 unsigned int MoreVehiclesSpawner::errorMessageTimer = 0;
 bool MoreVehiclesSpawner::enabled = false;
+

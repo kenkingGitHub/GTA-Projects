@@ -1,5 +1,5 @@
 #pragma once
-#include "plugin_III.h"
+#include "plugin.h"
 #include "KeySettings.h"
 
 KeySettings settings;
