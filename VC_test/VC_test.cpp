@@ -1,3 +1,6 @@
+
+
+
 //#include "plugin.h"
 //#include "game_vc\common.h"
 //#include <map>
@@ -39,63 +42,63 @@
 
 
 
-#include "plugin_vc.h"
-#include "extensions\KeyCheck.h"
-#include "game_vc\CModelInfo.h"
-#include "game_vc\CFont.h"
-
-#include "game_vc\common.h"
-#include "game_vc\CCarCtrl.h"
-#include "game_vc\CStreaming.h"
-#include "game_vc\eVehicleModel.h"
-#include "game_vc\ePedModel.h"
-
-using namespace plugin;
-
-class MyPlugin {
-public:
-    MyPlugin() {
-
-        Events::drawingEvent += [] {
-            CFont::SetScale(0.5f, 1.0f);
-            CFont::SetColor(CRGBA(255, 255, 255, 255));
-            CFont::SetJustifyOn();
-            CFont::SetFontStyle(2);
-            CFont::SetPropOn();
-            CFont::SetWrapx(600.0f);
-            wchar_t text[32];
-            swprintf(text, L"TxdIndex %d", CModelInfo::ms_modelInfoPtrs[162]->m_nTxdIndex);
-            CFont::PrintString(10.0f, 30.0f, text);
-        };
-        
-        Events::gameProcessEvent += [] {
-            KeyCheck::Update();
-            if (KeyCheck::CheckWithDelay(VK_TAB, 1000)) {
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino2");
-            }
-            if (KeyCheck::CheckWithDelay(110, 1000)) {
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino");
-            }
-
-
-            CVehicle *veh = FindPlayerVehicle();
-            if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(veh);
-                if (KeyCheck::CheckWithDelay(53, 1000)) 
-                    automobile->SetModelIndex(automobile->m_nModelIndex);
-
-                if (KeyCheck::CheckWithDelay(52, 1000)) {
-                    //CVector offset = { 0.0f, 8.0f, 0.0f };
-                    //CVector posn = automobile->m_placement.pos;
-                    
-                    //CStreaming::RequestModel(137, 4);
-                    //CStreaming::RequestModel(6, 1);
-                    //CCarCtrl::GenerateOneEmergencyServicesCar(137, posn);
-                }
-                
-            }
-        };
-    }
-} myPlugin;
+//#include "plugin_vc.h"
+//#include "extensions\KeyCheck.h"
+//#include "game_vc\CModelInfo.h"
+//#include "game_vc\CFont.h"
+//
+//#include "game_vc\common.h"
+//#include "game_vc\CCarCtrl.h"
+//#include "game_vc\CStreaming.h"
+//#include "game_vc\eVehicleModel.h"
+//#include "game_vc\ePedModel.h"
+//
+//using namespace plugin;
+//
+//class MyPlugin {
+//public:
+//    MyPlugin() {
+//
+//        Events::drawingEvent += [] {
+//            CFont::SetScale(0.5f, 1.0f);
+//            CFont::SetColor(CRGBA(255, 255, 255, 255));
+//            CFont::SetJustifyOn();
+//            CFont::SetFontStyle(2);
+//            CFont::SetPropOn();
+//            CFont::SetWrapx(600.0f);
+//            wchar_t text[32];
+//            swprintf(text, L"TxdIndex %d", CModelInfo::ms_modelInfoPtrs[162]->m_nTxdIndex);
+//            CFont::PrintString(10.0f, 30.0f, text);
+//        };
+//        
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay(VK_TAB, 1000)) {
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino2");
+//            }
+//            if (KeyCheck::CheckWithDelay(110, 1000)) {
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino");
+//            }
+//
+//
+//            CVehicle *veh = FindPlayerVehicle();
+//            if (veh && veh->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+//                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(veh);
+//                if (KeyCheck::CheckWithDelay(53, 1000)) 
+//                    automobile->SetModelIndex(automobile->m_nModelIndex);
+//
+//                if (KeyCheck::CheckWithDelay(52, 1000)) {
+//                    //CVector offset = { 0.0f, 8.0f, 0.0f };
+//                    //CVector posn = automobile->m_placement.pos;
+//                    
+//                    //CStreaming::RequestModel(137, 4);
+//                    //CStreaming::RequestModel(6, 1);
+//                    //CCarCtrl::GenerateOneEmergencyServicesCar(137, posn);
+//                }
+//                
+//            }
+//        };
+//    }
+//} myPlugin;
