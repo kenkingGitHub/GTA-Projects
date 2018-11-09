@@ -54,7 +54,7 @@ public:
 
                 static char message[256];
                 //snprintf(message, 256, "Class: %d", reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleClass);
-                snprintf(message, 256, "extra: %d", vehicle->m_nExtra[0]);
+                snprintf(message, 256, "id vehicle: %d", vehicle->m_nModelIndex);
                 CMessages::AddMessageJumpQ(message, 5000, false);
 
             }
