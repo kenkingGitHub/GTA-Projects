@@ -5,6 +5,12 @@
 #include "extensions\KeyCheck.h"
 #include "common.h"
 #include <stdlib.h>
+#include <vector>
+#include <fstream>
+#include <string>
+#include "CStreaming.h"
+#include "CTheScripts.h"
+
 
 #include "CMessages.h"
 
@@ -40,6 +46,15 @@ float VehicleGetSpeed(CVehicle *vehicle) {
     return 180.0f * (float)sqrt(pow(vehicle->m_vecMoveSpeed.x, 2) + pow(vehicle->m_vecMoveSpeed.y, 2) + pow(vehicle->m_vecMoveSpeed.z, 2));
 }
 
+int __cdecl nGetRandomNumberInRange(int min, int max) {
+    return plugin::CallAndReturn<int, 0x54A4C0, int, int>(min, max);
+}
+
+void VehicleSetOrientation(CVehicle *vehicle, float z) {
+    //CVector pos = vehicle->m_matrix.pos;
+    vehicle->m_matrix.SetRotateZOnly(z);
+    //vehicle->m_matrix.pos = pos;
+}
 
 using namespace plugin;
 using namespace std;
@@ -48,64 +63,187 @@ class TruckTrailer {
 public:
     class VehicleComponents {
     public:
-        RwFrame *drag, *trailer;
-        char connector;
+        RwFrame *misc, *hookup;  char connector;
 
-        VehicleComponents(CVehicle *) {
-            drag = trailer = nullptr;  connector = 0; 
-        }
+        VehicleComponents(CVehicle *) { misc = hookup = nullptr;  connector = 0; }
     };
     
     static VehicleExtendedData<VehicleComponents> vehComps;
-    
+
+    class ModelInfo {
+    public:
+        bool enabledTrailer;
+        ModelInfo(CVehicle *vehicle) { enabledTrailer = true; }
+    };
+
+    static VehicleExtendedData<ModelInfo> modelInfo;
+
+    struct MyData {
+        unsigned int ModelId, TrailerIdOne, TrailerIdTwo, TrailerIdThree, TrailerIdFour, TrailerColours, TrailerExtras, TrailerConst;
+    };
+
+    static vector<MyData>& GetDataVector() {
+        static vector<MyData> vec;
+        return vec;
+    }
+
+    static void ReadSettingsFile() {
+        ifstream stream("trailer.dat");
+        for (string line; getline(stream, line); ) {
+            if (line[0] != ';' && line[0] != '#') {
+                if (!line.compare("trailer")) {
+                    while (getline(stream, line) && line.compare("end")) {
+                        if (line[0] != ';' && line[0] != '#') {
+                            MyData entry;
+                            if (sscanf(line.c_str(), "%d, %d, %d, %d, %d, %d, %d, %d", &entry.ModelId, &entry.TrailerIdOne, &entry.TrailerIdTwo, &entry.TrailerIdThree, &entry.TrailerIdFour, &entry.TrailerColours, &entry.TrailerExtras, &entry.TrailerConst) == 8)
+                                GetDataVector().push_back(entry);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static MyData *GetDataInfoForModel(unsigned int BaseModelId) {
+        for (unsigned int i = 0; i < GetDataVector().size(); i++) {
+            if (GetDataVector()[i].ModelId == BaseModelId)
+                return &GetDataVector()[i];
+        }
+        return nullptr;
+    }
+
+    static void SetTrailer(CVehicle *vehicle, unsigned int modelTrailer, unsigned int colour, unsigned int extra) {
+        unsigned char oldFlags = CStreaming::ms_aInfoForModel[modelTrailer].m_nFlags;
+        CStreaming::RequestModel(modelTrailer, GAME_REQUIRED);
+        CStreaming::LoadAllRequestedModels(false);
+        if (CStreaming::ms_aInfoForModel[modelTrailer].m_nLoadState == LOADSTATE_LOADED && vehicle) {
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(modelTrailer);
+                CStreaming::SetModelTxdIsDeletable(modelTrailer);
+            }
+            if (extra) {
+                CVehicleModelInfo::ms_compsToUse[0] = vehicle->m_nExtra[0];
+                CVehicleModelInfo::ms_compsToUse[1] = vehicle->m_nExtra[1];
+            }
+            CVehicle *trailer = nullptr;
+            if (CModelInfo::IsCarModel(modelTrailer)) {
+                trailer = new CAutomobile(modelTrailer, 1);
+                if (trailer) {
+                    float offsetY = -4.0f;
+                    if (vehComps.Get(vehicle).misc && vehComps.Get(trailer).hookup)
+                        offsetY = -((vehComps.Get(vehicle).misc->modelling.pos.y * (-1.0f)) + vehComps.Get(trailer).hookup->modelling.pos.y);
+                    trailer->SetPosition(vehicle->TransformFromObjectSpace(CVector(0.0f, offsetY, 0.0f)));
+                    CTheScripts::ClearSpaceForMissionEntity(trailer->GetPosition(), trailer);
+                    trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
+                    /*CVector orientation = { 0.0f, 0.0f, 0.0f };
+                    vehicle->GetOrientation(orientation.x, orientation.y, orientation.z);
+                    trailer->SetOrientation(orientation.x, orientation.y, orientation.z);*/
+                    //trailer->SetOrientation(0.0f, 0.0f, vehicle->m_pDriver->m_fRotationCur);
+                    float angle = vehicle->GetHeading();
+                    trailer->SetHeading(angle);
+                    //trailer->m_matrix.SetRotateZOnly(vehicle->m_pDriver->m_fRotationCur);
+                    trailer->m_nState = 4;
+                    CWorld::Add(trailer);
+                    //reinterpret_cast<CAutomobile *>(trailer)->PlaceOnRoadProperly();
+                    //trailer->SetOrientation(0.0f, 0.0f, vehicle->m_pDriver->m_fRotationCur);
+                    if (colour) {
+                        trailer->m_nPrimaryColor = vehicle->m_nPrimaryColor;
+                        trailer->m_nSecondaryColor = vehicle->m_nSecondaryColor;
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
     TruckTrailer() {
-        
+        ReadSettingsFile();
+        static unsigned int Id;
+        static unsigned int TrailerId;
+        static unsigned int currentVariant = 0;
+
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
                 vehComps.Get(vehicle).connector = 0;
-                vehComps.Get(vehicle).drag = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "drag1_dummy");		if (vehComps.Get(vehicle).drag)	   vehComps.Get(vehicle).connector = 1;
+                vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_a");		if (vehComps.Get(vehicle).misc)	   vehComps.Get(vehicle).connector = 1;
                 else {
-                    vehComps.Get(vehicle).drag = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "drag2_dummy");		if (vehComps.Get(vehicle).drag) 	vehComps.Get(vehicle).connector = 2;
+                    vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_b");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 2;
                     else {
-                        vehComps.Get(vehicle).drag = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "drag3_dummy");		if (vehComps.Get(vehicle).drag) 	vehComps.Get(vehicle).connector = 3;
+                        vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_c");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 3;
                         else {
-                            vehComps.Get(vehicle).drag = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "drag4_dummy");		if (vehComps.Get(vehicle).drag) 	vehComps.Get(vehicle).connector = 4;
+                            vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_d");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 4;
                             else {
-                                vehComps.Get(vehicle).drag = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "drag5_dummy");		if (vehComps.Get(vehicle).drag) 	vehComps.Get(vehicle).connector = 5;
+                                vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_e");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 5;
                             }
                         }
                     }
                 }
-                vehComps.Get(vehicle).trailer = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "trailer1_dummy");	if (vehComps.Get(vehicle).trailer)		vehComps.Get(vehicle).connector = 1;
+                vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_a");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 1;
                 else {
-                    vehComps.Get(vehicle).trailer = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "trailer2_dummy");	if (vehComps.Get(vehicle).trailer)		vehComps.Get(vehicle).connector = 2;
+                    vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_b");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 2;
                     else {
-                        vehComps.Get(vehicle).trailer = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "trailer3_dummy");	if (vehComps.Get(vehicle).trailer)		vehComps.Get(vehicle).connector = 3;
+                        vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_c");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 3;
                         else {
-                            vehComps.Get(vehicle).trailer = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "trailer4_dummy");	if (vehComps.Get(vehicle).trailer)		vehComps.Get(vehicle).connector = 4;
+                            vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_d");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 4;
                             else {
-                                vehComps.Get(vehicle).trailer = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "trailer5_dummy");	if (vehComps.Get(vehicle).trailer)		vehComps.Get(vehicle).connector = 5;
+                                vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_e");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 5;
                             }
                         }
                     }
                 }
             }
             else {
-                vehComps.Get(vehicle).drag = vehComps.Get(vehicle).trailer = nullptr;
+                vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = nullptr;
             }
         };
-        
+
+        Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
+            for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                if (vehicle && vehicle->m_fHealth > 0.1f && vehicle->m_pDriver && vehComps.Get(vehicle).misc /*&& FindPlayerPed()->m_pVehicle != vehicle*/) {
+                    MyData *entryModel = GetDataInfoForModel(vehicle->m_nModelIndex);
+                    ModelInfo &info = modelInfo.Get(vehicle);
+                    if (entryModel && info.enabledTrailer) {
+                        if (!entryModel->TrailerConst) {
+                            if (currentVariant < 2)
+                                currentVariant += 1;
+                            else
+                                currentVariant = 0;
+                            if (currentVariant == 2)
+                                info.enabledTrailer = false;
+                        }
+                        switch (nGetRandomNumberInRange(0, 4)) {
+                        case 0: TrailerId = entryModel->TrailerIdOne; break;
+                        case 1: TrailerId = entryModel->TrailerIdTwo; break;
+                        case 2: TrailerId = entryModel->TrailerIdThree; break;
+                        case 3: TrailerId = entryModel->TrailerIdFour; break;
+                        }
+                        if (info.enabledTrailer && (CModelInfo::IsVehicleModelType(TrailerId) == 0)) {
+                            SetTrailer(vehicle, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras);
+                            
+                            static char message[256];
+                            snprintf(message, 256, "yes: %d", 777);
+                            CMessages::AddMessageJumpQ(message, 1000, false);
+                        }
+                    }
+                    info.enabledTrailer = false;
+                }
+            }
+        };
+
         Events::gameProcessEvent += [] {
             //patch::SetFloat(0x6FAE24, 1.0f, true);  // camera
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                if (vehicle && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).drag) {
+                if (vehicle && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).misc) {
                     CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
                     for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                         CVehicle *trailer = CPools::ms_pVehiclePool->GetAt(i);
-                        if (trailer && trailer->m_fHealth > 0.1f && vehComps.Get(trailer).trailer) {
+                        if (trailer && trailer->m_fHealth > 0.1f && vehComps.Get(trailer).hookup) {
                             CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
-                            if (vehicle && trailer && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector) && (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).drag->modelling.pos.y, vehComps.Get(vehicle).drag->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).trailer->modelling.pos.y, vehComps.Get(trailer).trailer->modelling.pos.z)) < 2.0f)) {
+                            if (vehicle && trailer && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector) && (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f)) {
                                 CVehicle *playerVehicle = FindPlayerVehicle();
                                 if (playerVehicle && (playerVehicle == vehicle)) {
                                     //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y, true);	// camera
@@ -120,7 +258,7 @@ public:
                                         trailer->GetDistanceFromCentreOfMassToBaseOfModel() - trailer->m_matrix.pos.z);
                                     if ((TrailerOnGroundZ < -1.0f) || (!VehicleGetSpeed(vehicle)))
                                         continue;
-                                    CVector a = PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).drag->modelling.pos.y, LinkDifferenceZ);
+                                    CVector a = PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, LinkDifferenceZ);
                                     CVector b = PointOffset(trailer->m_matrix, 0, (trail)->m_aCarNodes[CAR_WHEEL_LB]->modelling.pos.y, TrailerOnGroundZ);
                                     float R = Distance(a, b);
                                     float cos_x = float(sqrt(pow(a.y - b.y, 2) + pow(b.x - a.x, 2)) / R);
@@ -135,7 +273,7 @@ public:
                                     MatrixAttach(&matrix, &trailer->m_matrix, 0);
                                     MatrixSet(&matrix, cos_x, sin_x, cos_y, sin_y, cos_z, sin_z);
                                     matrix.pos = a;
-                                    matrix.pos = PointOffset(matrix, 0, -vehComps.Get(trailer).trailer->modelling.pos.y, 0);
+                                    matrix.pos = PointOffset(matrix, 0, -vehComps.Get(trailer).hookup->modelling.pos.y, 0);
                                     matrix.UpdateRW();
                                     matrix.~CMatrix();
                                     for (int w = 0; w < 4; w++)
@@ -159,3 +297,4 @@ public:
 } truckTrailer;
 
 VehicleExtendedData<TruckTrailer::VehicleComponents> TruckTrailer::vehComps;
+VehicleExtendedData<TruckTrailer::ModelInfo> TruckTrailer::modelInfo;
