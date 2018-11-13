@@ -11,8 +11,9 @@
 #include "CStreaming.h"
 #include "CTheScripts.h"
 
-
-#include "CMessages.h"
+//#include "extensions\ScriptCommands.h"
+//#include"eScriptCommands.h"
+//#include "CMessages.h"
 
 CVector __cdecl PointOffset(CMatrix matrix, float x, float y, float z) {
     CVector pos;
@@ -50,11 +51,6 @@ int __cdecl nGetRandomNumberInRange(int min, int max) {
     return plugin::CallAndReturn<int, 0x54A4C0, int, int>(min, max);
 }
 
-void VehicleSetOrientation(CVehicle *vehicle, float z) {
-    //CVector pos = vehicle->m_matrix.pos;
-    vehicle->m_matrix.SetRotateZOnly(z);
-    //vehicle->m_matrix.pos = pos;
-}
 
 using namespace plugin;
 using namespace std;
@@ -135,17 +131,13 @@ public:
                     trailer->SetPosition(vehicle->TransformFromObjectSpace(CVector(0.0f, offsetY, 0.0f)));
                     CTheScripts::ClearSpaceForMissionEntity(trailer->GetPosition(), trailer);
                     trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
-                    /*CVector orientation = { 0.0f, 0.0f, 0.0f };
-                    vehicle->GetOrientation(orientation.x, orientation.y, orientation.z);
-                    trailer->SetOrientation(orientation.x, orientation.y, orientation.z);*/
-                    //trailer->SetOrientation(0.0f, 0.0f, vehicle->m_pDriver->m_fRotationCur);
-                    float angle = vehicle->GetHeading();
-                    trailer->SetHeading(angle);
-                    //trailer->m_matrix.SetRotateZOnly(vehicle->m_pDriver->m_fRotationCur);
+                    trailer->SetHeading(vehicle->GetHeading() / 57.295776f);
                     trailer->m_nState = 4;
                     CWorld::Add(trailer);
-                    //reinterpret_cast<CAutomobile *>(trailer)->PlaceOnRoadProperly();
-                    //trailer->SetOrientation(0.0f, 0.0f, vehicle->m_pDriver->m_fRotationCur);
+                    /*static char message[256];
+                    snprintf(message, 256, "yes: %.2f, %.2f", vehicle->GetHeading(), trailer->GetHeading());
+                    CMessages::AddMessageJumpQ(message, 4000, false);*/
+                    reinterpret_cast<CAutomobile *>(trailer)->PlaceOnRoadProperly();
                     if (colour) {
                         trailer->m_nPrimaryColor = vehicle->m_nPrimaryColor;
                         trailer->m_nSecondaryColor = vehicle->m_nSecondaryColor;
@@ -202,7 +194,7 @@ public:
         Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                if (vehicle && vehicle->m_fHealth > 0.1f && vehicle->m_pDriver && vehComps.Get(vehicle).misc /*&& FindPlayerPed()->m_pVehicle != vehicle*/) {
+                if (vehicle && vehicle->m_fHealth > 0.1f && vehicle->m_pDriver && vehComps.Get(vehicle).misc && FindPlayerPed()->m_pVehicle != vehicle) {
                     MyData *entryModel = GetDataInfoForModel(vehicle->m_nModelIndex);
                     ModelInfo &info = modelInfo.Get(vehicle);
                     if (entryModel && info.enabledTrailer) {
@@ -220,13 +212,8 @@ public:
                         case 2: TrailerId = entryModel->TrailerIdThree; break;
                         case 3: TrailerId = entryModel->TrailerIdFour; break;
                         }
-                        if (info.enabledTrailer && (CModelInfo::IsVehicleModelType(TrailerId) == 0)) {
+                        if (info.enabledTrailer && (CModelInfo::IsVehicleModelType(TrailerId) == 0)) 
                             SetTrailer(vehicle, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras);
-                            
-                            static char message[256];
-                            snprintf(message, 256, "yes: %d", 777);
-                            CMessages::AddMessageJumpQ(message, 1000, false);
-                        }
                     }
                     info.enabledTrailer = false;
                 }
