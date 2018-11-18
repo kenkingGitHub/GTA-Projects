@@ -11,6 +11,7 @@
 #include "CStreaming.h"
 #include "CTheScripts.h"
 
+//#include "CFont.h"
 //#include "extensions\ScriptCommands.h"
 //#include"eScriptCommands.h"
 //#include "CMessages.h"
@@ -50,6 +51,8 @@ float VehicleGetSpeed(CVehicle *vehicle) {
 int __cdecl nGetRandomNumberInRange(int min, int max) {
     return plugin::CallAndReturn<int, 0x54A4C0, int, int>(min, max);
 }
+
+float &dist = *(float *)0x5F07DC;
 
 
 using namespace plugin;
@@ -147,14 +150,54 @@ public:
         }
     }
 
-
-
+    static bool IsDummyPresent(CVehicle *vehicle, unsigned char numDummy) {
+        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+        if ((vehModel->m_avDummyPos[numDummy].x == 0.0f) && (vehModel->m_avDummyPos[numDummy].y == 0.0f) && (vehModel->m_avDummyPos[numDummy].z == 0.0f))
+            return FALSE;
+        else
+            return TRUE;
+    }
 
     TruckTrailer() {
         ReadSettingsFile();
         static unsigned int Id;
         static unsigned int TrailerId;
         static unsigned int currentVariant = 0;
+
+        /*Events::drawingEvent += [] {
+            CVehicle *car = FindPlayerVehicle();
+            if (car) {
+                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]);
+                CFont::SetScale(0.5f, 1.0f);
+                CFont::SetColor(CRGBA(255, 255, 255, 255));
+                CFont::SetJustifyOn();
+                CFont::SetFontStyle(0);
+                CFont::SetPropOn();
+                CFont::SetWrapx(600.0f);
+                wchar_t text[64];
+
+                swprintf(text, L" dammy 1: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[0].x, vehModel->m_avDummyPos[0].y, vehModel->m_avDummyPos[0].z);
+                CFont::PrintString(10.0f, 10.0f, text);
+                swprintf(text, L" dammy 2: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[1].x, vehModel->m_avDummyPos[1].y, vehModel->m_avDummyPos[1].z);
+                CFont::PrintString(10.0f, 30.0f, text);
+                swprintf(text, L" dammy 3: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[2].x, vehModel->m_avDummyPos[2].y, vehModel->m_avDummyPos[2].z);
+                CFont::PrintString(10.0f, 50.0f, text);
+                swprintf(text, L" dammy 4: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[3].x, vehModel->m_avDummyPos[3].y, vehModel->m_avDummyPos[3].z);
+                CFont::PrintString(10.0f, 70.0f, text);
+                swprintf(text, L" dammy 5: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[4].x, vehModel->m_avDummyPos[4].y, vehModel->m_avDummyPos[4].z);
+                CFont::PrintString(10.0f, 90.0f, text);
+                swprintf(text, L" dammy 6: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[5].x, vehModel->m_avDummyPos[5].y, vehModel->m_avDummyPos[5].z);
+                CFont::PrintString(10.0f, 110.0f, text);
+                swprintf(text, L" dammy 7: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[6].x, vehModel->m_avDummyPos[6].y, vehModel->m_avDummyPos[6].z);
+                CFont::PrintString(10.0f, 130.0f, text);
+                swprintf(text, L" dammy 8: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[7].x, vehModel->m_avDummyPos[7].y, vehModel->m_avDummyPos[7].z);
+                CFont::PrintString(10.0f, 150.0f, text);
+                swprintf(text, L" dammy 9: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[8].x, vehModel->m_avDummyPos[8].y, vehModel->m_avDummyPos[8].z);
+                CFont::PrintString(10.0f, 170.0f, text);
+                swprintf(text, L" dammy 10: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[9].x, vehModel->m_avDummyPos[9].y, vehModel->m_avDummyPos[9].z);
+                CFont::PrintString(10.0f, 190.0f, text);
+            }
+        };*/
 
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
@@ -168,6 +211,9 @@ public:
                             vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_d");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 4;
                             else {
                                 vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_e");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 5;
+                                else {
+                                    vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_f");		if (vehComps.Get(vehicle).misc) 	vehComps.Get(vehicle).connector = 6;
+                                }
                             }
                         }
                     }
@@ -181,6 +227,9 @@ public:
                             vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_d");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 4;
                             else {
                                 vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_e");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 5;
+                                else {
+                                    vehComps.Get(vehicle).hookup = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "hookup_f");	if (vehComps.Get(vehicle).hookup)		vehComps.Get(vehicle).connector = 6;
+                                }
                             }
                         }
                     }
@@ -221,6 +270,14 @@ public:
         };
 
         Events::gameProcessEvent += [] {
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay(80, 500)) {
+                dist = 10.0f;
+            }
+            if (KeyCheck::CheckWithDelay(79, 500)) {
+                dist = 2.0f;
+            }
+
             //patch::SetFloat(0x6FAE24, 1.0f, true);  // camera
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
@@ -273,6 +330,14 @@ public:
                                     trailer->m_vecMoveSpeed.y = vy;
                                     trailer->m_vecMoveSpeed.z = vz;
                                     trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
+                                    if (!IsDummyPresent(trailer, 0)) {
+                                        trail->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 1);
+                                        trail->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
+                                    }
+                                    if (!IsDummyPresent(trailer, 1)) {
+                                        trail->m_carDamage.SetLightStatus(LIGHT_REAR_LEFT, 1);
+                                        trail->m_carDamage.SetLightStatus(LIGHT_REAR_RIGHT, 1);
+                                    }
                                 }
                             }
                         }
