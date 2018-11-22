@@ -150,13 +150,22 @@ public:
         }
     }
 
-    static bool IsDummyPresent(CVehicle *vehicle, unsigned char numDummy) {
-        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-        if ((vehModel->m_avDummyPos[numDummy].x == 0.0f) && (vehModel->m_avDummyPos[numDummy].y == 0.0f) && (vehModel->m_avDummyPos[numDummy].z == 0.0f))
-            return FALSE;
-        else
-            return TRUE;
+    static void TrailerLightControl(CAutomobile *trailer) {
+        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]);
+        if ((vehModel->m_avDummyPos[0].x == 0.0f) && (vehModel->m_avDummyPos[0].y == 0.0f) && (vehModel->m_avDummyPos[0].z == 0.0f)) {
+            if (trailer->m_carDamage.GetLightStatus(LIGHT_FRONT_LEFT) == 0)
+                trailer->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 1);
+            if (trailer->m_carDamage.GetLightStatus(LIGHT_FRONT_RIGHT) == 0)
+                trailer->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
+        }
+        if ((vehModel->m_avDummyPos[1].x == 0.0f) && (vehModel->m_avDummyPos[1].y == 0.0f) && (vehModel->m_avDummyPos[1].z == 0.0f)) {
+            if (trailer->m_carDamage.GetLightStatus(LIGHT_REAR_LEFT) == 0)
+                trailer->m_carDamage.SetLightStatus(LIGHT_REAR_LEFT, 1);
+            if (trailer->m_carDamage.GetLightStatus(LIGHT_REAR_RIGHT) == 0)
+                trailer->m_carDamage.SetLightStatus(LIGHT_REAR_RIGHT, 1);
+        }
     }
+    
 
     TruckTrailer() {
         ReadSettingsFile();
@@ -272,7 +281,7 @@ public:
         Events::gameProcessEvent += [] {
             KeyCheck::Update();
             if (KeyCheck::CheckWithDelay(80, 500)) {
-                dist = 10.0f;
+                dist = 5.0f;
             }
             if (KeyCheck::CheckWithDelay(79, 500)) {
                 dist = 2.0f;
@@ -280,66 +289,75 @@ public:
 
             //patch::SetFloat(0x6FAE24, 1.0f, true);  // camera
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                if (vehicle && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).misc) {
-                    CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                CVehicle *trailer = CPools::ms_pVehiclePool->GetAt(i);
+                if (trailer && trailer->m_fHealth > 0.1f && vehComps.Get(trailer).hookup) {
+                    CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
                     for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                        CVehicle *trailer = CPools::ms_pVehiclePool->GetAt(i);
-                        if (trailer && trailer->m_fHealth > 0.1f && vehComps.Get(trailer).hookup) {
-                            CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
-                            if (vehicle && trailer && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector) && (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f)) {
-                                CVehicle *playerVehicle = FindPlayerVehicle();
-                                if (playerVehicle && (playerVehicle == vehicle)) {
-                                    //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y, true);	// camera
+                        CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                        if (vehicle && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).misc) {
+                            CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                            if (vehicle && trailer && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector)) {
+                                if (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f) {
+                                    CVehicle *playerVehicle = FindPlayerVehicle();
+                                    if (playerVehicle && (playerVehicle == vehicle)) {
+                                        //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y, true);	// camera
+                                    }
+                                    KeyCheck::Update();
+                                    if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && playerVehicle && (playerVehicle == vehicle)) {
+                                        trailer->m_matrix.pos = PointOffset(trailer->m_matrix, 0, -2.1f, 0);
+                                        trailer->m_nVehicleFlags.bEngineOn = 0;
+                                    }
+                                    else {
+                                        bool  find;
+                                        float LinkDifferenceZ = trailer->GetDistanceFromCentreOfMassToBaseOfModel() - vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
+                                        float TrailerOnGroundZ = min(0, CWorld::FindGroundZFor3DCoord(trailer->m_matrix.pos.x, trailer->m_matrix.pos.y, trailer->m_matrix.pos.z, &find) +
+                                            trailer->GetDistanceFromCentreOfMassToBaseOfModel() - trailer->m_matrix.pos.z);
+                                        if ((TrailerOnGroundZ < -1.0f) || (!VehicleGetSpeed(vehicle)))
+                                            continue;
+                                        CVector a = PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, LinkDifferenceZ);
+                                        CVector b = PointOffset(trailer->m_matrix, 0, (trail)->m_aCarNodes[CAR_WHEEL_LB]->modelling.pos.y, TrailerOnGroundZ);
+                                        float R = Distance(a, b);
+                                        float cos_x = float(sqrt(pow(a.y - b.y, 2) + pow(b.x - a.x, 2)) / R);
+                                        float sin_x = (a.z - b.z) / R;
+                                        float cos_y = float(sqrt(pow(vehicle->m_matrix.right.x, 2) + pow(vehicle->m_matrix.right.y, 2)));
+                                        float sin_y = -vehicle->m_matrix.right.z;
+                                        float cos_z = (a.y - b.y) / (R * cos_x);
+                                        float sin_z = (b.x - a.x) / (R * cos_x);
+                                        CMatrix matrix;
+                                        matrix.m_bOwnsAttachedMatrix = 0;
+                                        matrix.m_pAttachMatrix = 0;
+                                        MatrixAttach(&matrix, &trailer->m_matrix, 0);
+                                        MatrixSet(&matrix, cos_x, sin_x, cos_y, sin_y, cos_z, sin_z);
+                                        matrix.pos = a;
+                                        matrix.pos = PointOffset(matrix, 0, -vehComps.Get(trailer).hookup->modelling.pos.y, 0);
+                                        matrix.UpdateRW();
+                                        matrix.~CMatrix();
+                                        for (int w = 0; w < 4; w++)
+                                            trail->m_fWheelTotalRot[w] = automobile->m_fWheelTotalRot[w];
+                                        float vR = float(sqrt(pow(vehicle->m_vecMoveSpeed.x, 2) + pow(vehicle->m_vecMoveSpeed.y, 2)));
+                                        float vx = -vR * sin_z;
+                                        float vy = vR * cos_z;
+                                        float vz = vehicle->m_vecMoveSpeed.z;
+                                        trailer->m_vecMoveSpeed.x = vx;
+                                        trailer->m_vecMoveSpeed.y = vy;
+                                        trailer->m_vecMoveSpeed.z = vz;
+                                        trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
+                                        TrailerLightControl(trail);
+                                    }
                                 }
-                                KeyCheck::Update();
-                                if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && playerVehicle && (playerVehicle == vehicle))
-                                    trailer->m_matrix.pos = PointOffset(trailer->m_matrix, 0, -2.1f, 0);
                                 else {
-                                    bool  find;
-                                    float LinkDifferenceZ = trailer->GetDistanceFromCentreOfMassToBaseOfModel() - vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
-                                    float TrailerOnGroundZ = min(0, CWorld::FindGroundZFor3DCoord(trailer->m_matrix.pos.x, trailer->m_matrix.pos.y, trailer->m_matrix.pos.z, &find) +
-                                        trailer->GetDistanceFromCentreOfMassToBaseOfModel() - trailer->m_matrix.pos.z);
-                                    if ((TrailerOnGroundZ < -1.0f) || (!VehicleGetSpeed(vehicle)))
-                                        continue;
-                                    CVector a = PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, LinkDifferenceZ);
-                                    CVector b = PointOffset(trailer->m_matrix, 0, (trail)->m_aCarNodes[CAR_WHEEL_LB]->modelling.pos.y, TrailerOnGroundZ);
-                                    float R = Distance(a, b);
-                                    float cos_x = float(sqrt(pow(a.y - b.y, 2) + pow(b.x - a.x, 2)) / R);
-                                    float sin_x = (a.z - b.z) / R;
-                                    float cos_y = float(sqrt(pow(vehicle->m_matrix.right.x, 2) + pow(vehicle->m_matrix.right.y, 2)));
-                                    float sin_y = -vehicle->m_matrix.right.z;
-                                    float cos_z = (a.y - b.y) / (R * cos_x);
-                                    float sin_z = (b.x - a.x) / (R * cos_x);
-                                    CMatrix matrix;
-                                    matrix.m_bOwnsAttachedMatrix = 0;
-                                    matrix.m_pAttachMatrix = 0;
-                                    MatrixAttach(&matrix, &trailer->m_matrix, 0);
-                                    MatrixSet(&matrix, cos_x, sin_x, cos_y, sin_y, cos_z, sin_z);
-                                    matrix.pos = a;
-                                    matrix.pos = PointOffset(matrix, 0, -vehComps.Get(trailer).hookup->modelling.pos.y, 0);
-                                    matrix.UpdateRW();
-                                    matrix.~CMatrix();
-                                    for (int w = 0; w < 4; w++)
-                                        trail->m_fWheelTotalRot[w] = automobile->m_fWheelTotalRot[w];
-                                    float vR = float(sqrt(pow(vehicle->m_vecMoveSpeed.x, 2) + pow(vehicle->m_vecMoveSpeed.y, 2)));
-                                    float vx = -vR * sin_z;
-                                    float vy = vR * cos_z;
-                                    float vz = vehicle->m_vecMoveSpeed.z;
-                                    trailer->m_vecMoveSpeed.x = vx;
-                                    trailer->m_vecMoveSpeed.y = vy;
-                                    trailer->m_vecMoveSpeed.z = vz;
-                                    trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
-                                    if (!IsDummyPresent(trailer, 0)) {
-                                        trail->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 1);
-                                        trail->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
-                                    }
-                                    if (!IsDummyPresent(trailer, 1)) {
-                                        trail->m_carDamage.SetLightStatus(LIGHT_REAR_LEFT, 1);
-                                        trail->m_carDamage.SetLightStatus(LIGHT_REAR_RIGHT, 1);
-                                    }
+                                    if (trailer && trailer->m_nVehicleFlags.bEngineOn == 1)
+                                        trailer->m_nVehicleFlags.bEngineOn = 0;
                                 }
                             }
+                            else {
+                                if (trailer && trailer->m_nVehicleFlags.bEngineOn == 1)
+                                    trailer->m_nVehicleFlags.bEngineOn = 0;
+                            }
+                        }
+                        else {
+                            if (trailer && trailer->m_nVehicleFlags.bEngineOn == 1)
+                                trailer->m_nVehicleFlags.bEngineOn = 0;
                         }
                     }
                 }
