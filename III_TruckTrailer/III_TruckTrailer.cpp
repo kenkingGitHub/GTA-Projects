@@ -187,24 +187,7 @@ public:
 
                 swprintf(text, L" dammy 1: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[0].x, vehModel->m_avDummyPos[0].y, vehModel->m_avDummyPos[0].z);
                 CFont::PrintString(10.0f, 10.0f, text);
-                swprintf(text, L" dammy 2: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[1].x, vehModel->m_avDummyPos[1].y, vehModel->m_avDummyPos[1].z);
-                CFont::PrintString(10.0f, 30.0f, text);
-                swprintf(text, L" dammy 3: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[2].x, vehModel->m_avDummyPos[2].y, vehModel->m_avDummyPos[2].z);
-                CFont::PrintString(10.0f, 50.0f, text);
-                swprintf(text, L" dammy 4: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[3].x, vehModel->m_avDummyPos[3].y, vehModel->m_avDummyPos[3].z);
-                CFont::PrintString(10.0f, 70.0f, text);
-                swprintf(text, L" dammy 5: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[4].x, vehModel->m_avDummyPos[4].y, vehModel->m_avDummyPos[4].z);
-                CFont::PrintString(10.0f, 90.0f, text);
-                swprintf(text, L" dammy 6: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[5].x, vehModel->m_avDummyPos[5].y, vehModel->m_avDummyPos[5].z);
-                CFont::PrintString(10.0f, 110.0f, text);
-                swprintf(text, L" dammy 7: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[6].x, vehModel->m_avDummyPos[6].y, vehModel->m_avDummyPos[6].z);
-                CFont::PrintString(10.0f, 130.0f, text);
-                swprintf(text, L" dammy 8: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[7].x, vehModel->m_avDummyPos[7].y, vehModel->m_avDummyPos[7].z);
-                CFont::PrintString(10.0f, 150.0f, text);
-                swprintf(text, L" dammy 9: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[8].x, vehModel->m_avDummyPos[8].y, vehModel->m_avDummyPos[8].z);
-                CFont::PrintString(10.0f, 170.0f, text);
-                swprintf(text, L" dammy 10: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[9].x, vehModel->m_avDummyPos[9].y, vehModel->m_avDummyPos[9].z);
-                CFont::PrintString(10.0f, 190.0f, text);
+                
             }
         };*/
 
