@@ -11,7 +11,7 @@
 #include "CStreaming.h"
 #include "CTheScripts.h"
 
-//#include "CFont.h"
+#include "CFont.h"
 //#include "CMessages.h"
 
 CVector __cdecl PointOffset(CMatrix matrix, float x, float y, float z) {
@@ -163,24 +163,27 @@ public:
         static unsigned int Id;
         static unsigned int TrailerId;
         static unsigned int currentVariant = 0;
+        static CEntity *outEntity;
+        static short outCount;
 
-        /*Events::drawingEvent += [] {
-            CVehicle *car = FindPlayerVehicle();
-            if (car) {
-                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]);
-                CFont::SetScale(0.5f, 1.0f);
-                CFont::SetColor(CRGBA(255, 255, 255, 255));
-                CFont::SetJustifyOn();
-                CFont::SetFontStyle(0);
-                CFont::SetPropOn();
-                CFont::SetWrapx(600.0f);
-                wchar_t text[64];
-
-                swprintf(text, L" dammy 1: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[0].x, vehModel->m_avDummyPos[0].y, vehModel->m_avDummyPos[0].z);
-                CFont::PrintString(10.0f, 10.0f, text);
-                
-            }
-        };*/
+        //Events::drawingEvent += [] {
+        //    CVehicle *car = FindPlayerVehicle();
+        //    if (car) {
+        //        //CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]);
+        //        CFont::SetScale(0.5f, 1.0f);
+        //        CFont::SetColor(CRGBA(255, 255, 255, 255));
+        //        CFont::SetJustifyOn();
+        //        CFont::SetFontStyle(0);
+        //        CFont::SetPropOn();
+        //        CFont::SetWrapx(600.0f);
+        //        wchar_t text[64];
+        //
+        //        //swprintf(text, L" dammy 1: x %.3f y %.3f z %.3f", vehModel->m_avDummyPos[0].x, vehModel->m_avDummyPos[0].y, vehModel->m_avDummyPos[0].z);
+        //        swprintf(text, L"y: min %.2f max %.2f", CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y, CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y);
+        //        CFont::PrintString(10.0f, 10.0f, text);
+        //        
+        //    }
+        //};
 
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
@@ -229,7 +232,13 @@ public:
                 CVehicle *trailer = CPools::ms_pVehiclePool->GetAt(i);
                 if (trailer && trailer->m_nVehicleClass == VEHICLE_AUTOMOBILE && trailer->m_fHealth > 0.1f) {
                     if (vehComps.Get(trailer).hookup) {
-                        trailer->m_nVehicleFlags.bEngineOn = 0;
+                        if (trailer->m_nVehicleFlags.bEngineOn == 1) {
+                            outCount = 0;
+                            CWorld::FindObjectsInRange(trailer->TransformFromObjectSpace(CVector(0.0f, CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y, 0.0f)), 5.0, 1, &outCount, 5, &outEntity, 0, 1, 0, 0, 0);
+                            if (outCount == 0 && !trailer->GetIsOnScreen()) {
+                                CWorld::Remove(trailer);
+                            }
+                        }
                         CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
                         for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                             CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
@@ -238,7 +247,7 @@ public:
                                 if (vehicle && trailer && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector) && (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f)) {
                                     CVehicle *playerVehicle = FindPlayerVehicle();
                                     if (playerVehicle && (playerVehicle == vehicle)) {
-                                        //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y, true);	// camera
+                                        //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y, true);	// camera
                                     }
                                     KeyCheck::Update();
                                     if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && playerVehicle && (playerVehicle == vehicle)) {
@@ -247,7 +256,6 @@ public:
                                     }
                                     else {
                                         trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
-                                        trailer->m_nFlags = vehicle->m_nFlags;
                                         TrailerLightControl(trail);
                                         bool  find;
                                         float LinkDifferenceZ = trailer->GetDistanceFromCentreOfMassToBaseOfModel() - vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
@@ -287,7 +295,7 @@ public:
                             }
                         }
                     }
-                    // спавн прицепа
+                    // спавн прицепа (trailer здесь авто)
                     else if (!CTheScripts::IsPlayerOnAMission() && trailer->m_pDriver && vehComps.Get(trailer).misc && FindPlayerPed()->m_pVehicle != trailer) {
                         MyData *entryModel = GetDataInfoForModel(trailer->m_nModelIndex);
                         ModelInfo &info = modelInfo.Get(trailer);
@@ -301,14 +309,21 @@ public:
                                     info.enabledTrailer = false;
                             }
                             switch (nGetRandomNumberInRange(0, 4)) {
-                            case 0: TrailerId = entryModel->TrailerIdOne; break;
-                            case 1: TrailerId = entryModel->TrailerIdTwo; break;
-                            case 2: TrailerId = entryModel->TrailerIdThree; break;
-                            case 3: TrailerId = entryModel->TrailerIdFour; break;
+                            case 0:  TrailerId = entryModel->TrailerIdOne;   break;
+                            case 1:  TrailerId = entryModel->TrailerIdTwo;   break;
+                            case 2:  TrailerId = entryModel->TrailerIdThree; break;
+                            case 3:  TrailerId = entryModel->TrailerIdFour;  break;
+                            default: TrailerId = entryModel->TrailerIdOne;   break;
                             }
                             if (info.enabledTrailer && (CModelInfo::IsVehicleModelType(TrailerId) == 0)) {
-                                info.enabledTrailer = false;
-                                SetTrailer(trailer, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras);
+                                float offset_Y = (-1.0f * (CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[TrailerId]->m_pColModel->m_boundBox.m_vecMax.y;
+                                outCount = 0;
+                                CWorld::FindObjectsInRange(trailer->TransformFromObjectSpace(CVector(0.0f, -offset_Y, 0.0f)), 5.0, 1, &outCount, 5, &outEntity, 0, 1, 0, 0, 0);
+                                if (outCount == 0) {
+                                    info.enabledTrailer = false;
+                                    if (DistanceBetweenPoints(FindPlayerPed()->GetPosition(), trailer->GetPosition()) > 50.0f)
+                                        SetTrailer(trailer, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras);
+                                }
                             }
                         }
                     }
