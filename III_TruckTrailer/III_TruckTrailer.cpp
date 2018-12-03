@@ -11,9 +11,6 @@
 #include "CStreaming.h"
 #include "CTheScripts.h"
 
-#include "CFont.h"
-//#include "CMessages.h"
-
 CVector __cdecl PointOffset(CMatrix matrix, float x, float y, float z) {
     CVector pos;
     pos.x = matrix.pos.x + x * matrix.right.x + y * matrix.up.x + z * matrix.at.x;
@@ -50,7 +47,6 @@ int __cdecl nGetRandomNumberInRange(int min, int max) {
     return plugin::CallAndReturn<int, 0x54A4C0, int, int>(min, max);
 }
 
-
 using namespace plugin;
 using namespace std;
 
@@ -58,9 +54,9 @@ class TruckTrailer {
 public:
     class VehicleComponents {
     public:
-        RwFrame *misc, *hookup;  char connector;
+        RwFrame *misc, *hookup, *prop_a, *prop_b;  char connector;
 
-        VehicleComponents(CVehicle *) { misc = hookup = nullptr;  connector = 0; }
+        VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = nullptr;  connector = 0; }
     };
     
     static VehicleExtendedData<VehicleComponents> vehComps;
@@ -179,27 +175,10 @@ public:
         static CEntity *outEntity;
         static short outCount;
 
-        //Events::drawingEvent += [] {
-        //    CVehicle *car = FindPlayerVehicle();
-        //    if (car) {
-        //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]);
-        //        CFont::SetScale(0.5f, 1.0f);
-        //        CFont::SetColor(CRGBA(255, 255, 255, 255));
-        //        CFont::SetJustifyOn();
-        //        CFont::SetFontStyle(0);
-        //        CFont::SetPropOn();
-        //        CFont::SetWrapx(600.0f);
-        //        wchar_t text[64];
-        //
-        //        swprintf(text, L"test: %.2f", test);
-        //        //swprintf(text, L"y: min %.2f max %.2f", CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y, CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y);
-        //        CFont::PrintString(10.0f, 10.0f, text);
-        //        
-        //    }
-        //};
-
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle->m_pRwClump) {
+                vehComps.Get(vehicle).prop_a = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "prop_a");
+                vehComps.Get(vehicle).prop_b = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "prop_b");
                 vehComps.Get(vehicle).connector = 0;
                 vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_a");		if (vehComps.Get(vehicle).misc)	   vehComps.Get(vehicle).connector = 1;
                 else {
@@ -235,7 +214,7 @@ public:
                 }
             }
             else {
-                vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = nullptr;
+                vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = vehComps.Get(vehicle).prop_a = vehComps.Get(vehicle).prop_b = nullptr;
             }
         };
 
@@ -254,6 +233,10 @@ public:
                                 }
                             }
                             trailer->m_nVehicleFlags.bEngineOn = 0;
+                            if (vehComps.Get(trailer).prop_a)
+                                vehComps.Get(trailer).prop_a->modelling.pos.z = -0.6f;
+                            if (vehComps.Get(trailer).prop_b)
+                                vehComps.Get(trailer).prop_b->modelling.pos.z = -0.2f;
                             CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
                             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
@@ -269,8 +252,17 @@ public:
                                             trailer->m_nVehicleFlags.bEngineOn = 0;
                                         }
                                         else {
+                                            if (vehComps.Get(trailer).prop_a)
+                                                vehComps.Get(trailer).prop_a->modelling.pos.z = 0.0f;
+                                            if (vehComps.Get(trailer).prop_b)
+                                                vehComps.Get(trailer).prop_b->modelling.pos.z = 0.0f;
                                             trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
                                             trailer->m_nVehicleFlags.bIsLocked = 1;
+                                            //trailer->m_pDriver = vehicle->m_pDriver;
+                                            trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
+                                            trailer->m_fGasPedal = vehicle->m_fGasPedal;
+                                            if (vehicle->m_fBreakPedal > 0.0f)
+                                                trailer->m_nVehicleFlags.b06 = 1;
                                             TrailerLightControl(trail);
                                             bool  find;
                                             float LinkDifferenceZ = trailer->GetDistanceFromCentreOfMassToBaseOfModel() - vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
