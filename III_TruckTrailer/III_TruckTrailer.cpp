@@ -218,7 +218,8 @@ public:
             }
         };
 
-        Events::gameProcessEvent += [] {
+        //Events::gameProcessEvent += [] {
+        Events::vehicleRenderEvent += [](CVehicle *vehicle) {
             CPed *player = FindPlayerPed();
             if (player) {
                 //patch::SetFloat(0x6FAE24, 1.0f, true);  // camera
@@ -258,11 +259,10 @@ public:
                                                 vehComps.Get(trailer).prop_b->modelling.pos.z = 0.0f;
                                             trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
                                             trailer->m_nVehicleFlags.bIsLocked = 1;
+                                            //trailer->m_nVehicleFlags.bLightsOn = 1;
                                             //trailer->m_pDriver = vehicle->m_pDriver;
-                                            trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
-                                            trailer->m_fGasPedal = vehicle->m_fGasPedal;
-                                            if (vehicle->m_fBreakPedal > 0.0f)
-                                                trailer->m_nVehicleFlags.b06 = 1;
+                                            //trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
+                                            //trailer->m_fGasPedal = vehicle->m_fGasPedal;
                                             TrailerLightControl(trail);
                                             bool  find;
                                             float LinkDifferenceZ = trailer->GetDistanceFromCentreOfMassToBaseOfModel() - vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
@@ -325,7 +325,7 @@ public:
                                 if (info.enabledTrailer && (CModelInfo::IsVehicleModelType(TrailerId) == 0)) {
                                     float offset_Y = (-1.0f * (CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[TrailerId]->m_pColModel->m_boundBox.m_vecMax.y;
                                     outCount = 0;
-                                    CWorld::FindObjectsInRange(trailer->TransformFromObjectSpace(CVector(0.0f, -offset_Y, 0.0f)), 5.0, 1, &outCount, 5, &outEntity, 0, 1, 0, 0, 0);
+                                    CWorld::FindObjectsInRange(trailer->TransformFromObjectSpace(CVector(0.0f, -offset_Y, 0.0f)), 2.0, 1, &outCount, 2, &outEntity, 0, 1, 0, 0, 0);
                                     if (outCount == 0) {
                                         info.enabledTrailer = false;
                                         if (DistanceBetweenPoints(player->GetPosition(), trailer->GetPosition()) > 50.0f)
