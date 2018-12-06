@@ -218,7 +218,6 @@ public:
             }
         };
 
-        //Events::gameProcessEvent += [] {
         Events::vehicleRenderEvent += [](CVehicle *vehicle) {
             CPed *player = FindPlayerPed();
             if (player) {
@@ -235,7 +234,7 @@ public:
                             }
                             trailer->m_nVehicleFlags.bEngineOn = 0;
                             if (vehComps.Get(trailer).prop_a)
-                                vehComps.Get(trailer).prop_a->modelling.pos.z = -0.6f;
+                                vehComps.Get(trailer).prop_a->modelling.pos.z = -0.4f;
                             if (vehComps.Get(trailer).prop_b)
                                 vehComps.Get(trailer).prop_b->modelling.pos.z = -0.2f;
                             CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
@@ -248,9 +247,10 @@ public:
                                             //patch::SetFloat(0x6FAE24, 1.0f + 2 * CModelInfo::ms_modelInfoPtrs[trail->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y, true);	// camera
                                         }
                                         KeyCheck::Update();
-                                        if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && player->m_pVehicle == vehicle) {
+                                        if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && player->m_pVehicle == vehicle && player->m_bInVehicle) {
                                             trailer->m_matrix.pos = PointOffset(trailer->m_matrix, 0, -2.1f, 0);
                                             trailer->m_nVehicleFlags.bEngineOn = 0;
+                                            trailer->m_nVehicleFlags.bIsLocked = 0;
                                         }
                                         else {
                                             if (vehComps.Get(trailer).prop_a)
@@ -259,8 +259,6 @@ public:
                                                 vehComps.Get(trailer).prop_b->modelling.pos.z = 0.0f;
                                             trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
                                             trailer->m_nVehicleFlags.bIsLocked = 1;
-                                            //trailer->m_nVehicleFlags.bLightsOn = 1;
-                                            //trailer->m_pDriver = vehicle->m_pDriver;
                                             //trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
                                             //trailer->m_fGasPedal = vehicle->m_fGasPedal;
                                             TrailerLightControl(trail);
