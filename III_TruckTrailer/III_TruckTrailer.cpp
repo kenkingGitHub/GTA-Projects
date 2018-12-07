@@ -63,8 +63,8 @@ public:
 
     class ModelInfo {
     public:
-        bool enabledTrailer;
-        ModelInfo(CVehicle *vehicle) { enabledTrailer = true; }
+        bool enabledTrailer, isAttached;
+        ModelInfo(CVehicle *vehicle) { enabledTrailer = true; isAttached = false; }
     };
 
     static VehicleExtendedData<ModelInfo> modelInfo;
@@ -133,7 +133,9 @@ public:
                     trailer->m_nPrimaryColor = vehicle->m_nPrimaryColor;
                     trailer->m_nSecondaryColor = vehicle->m_nSecondaryColor;
                 }
-                trailer->m_nVehicleFlags.bIsLocked = 1;
+                ModelInfo &infoTrailer = modelInfo.Get(trailer);
+                infoTrailer.isAttached = true;
+                //trailer->m_nVehicleFlags.bIsLocked = 1;
             }
         }
     }
@@ -226,12 +228,17 @@ public:
                     CVehicle *trailer = CPools::ms_pVehiclePool->GetAt(i);
                     if (trailer && trailer->m_nVehicleClass == VEHICLE_AUTOMOBILE && trailer->m_fHealth > 0.1f) {
                         if (vehComps.Get(trailer).hookup) {
-                            if (trailer->m_nVehicleFlags.bIsLocked && DistanceBetweenPoints(player->GetPosition(), trailer->GetPosition()) > 40.0f) {
+                            ModelInfo &infoTrailer = modelInfo.Get(trailer);
+                            if (infoTrailer.isAttached && !trailer->GetIsOnScreen()) {
+                                if (!TrailerAttached(trailer)) 
+                                    CWorld::Remove(trailer);
+                            }
+                            /*if (trailer->m_nVehicleFlags.bIsLocked && DistanceBetweenPoints(player->GetPosition(), trailer->GetPosition()) > 40.0f) {
                                 if (!TrailerAttached(trailer)) {
                                     trailer->m_nVehicleFlags.bIsLocked = 0;
                                     CWorld::Remove(trailer);
                                 }
-                            }
+                            }*/
                             trailer->m_nVehicleFlags.bEngineOn = 0;
                             if (vehComps.Get(trailer).prop_a)
                                 vehComps.Get(trailer).prop_a->modelling.pos.z = -0.4f;
@@ -258,7 +265,6 @@ public:
                                             if (vehComps.Get(trailer).prop_b)
                                                 vehComps.Get(trailer).prop_b->modelling.pos.z = 0.0f;
                                             trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
-                                            trailer->m_nVehicleFlags.bIsLocked = 1;
                                             //trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
                                             //trailer->m_fGasPedal = vehicle->m_fGasPedal;
                                             TrailerLightControl(trail);
