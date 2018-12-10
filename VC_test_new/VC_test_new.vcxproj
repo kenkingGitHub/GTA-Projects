@@ -42,9 +42,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTAVC Release|Win32'">
-    <OutDir>$(GTA_VC_DIR)\scripts\</OutDir>
+    <OutDir>$(GTA_VC_DIR)\</OutDir>
     <IntDir>$(ProjectDir).obj\GTAVC\Release\</IntDir>
-    <TargetName>VC_test_new.VC</TargetName>
+    <TargetName>VC_test_new</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTAVC zDebug|Win32'">

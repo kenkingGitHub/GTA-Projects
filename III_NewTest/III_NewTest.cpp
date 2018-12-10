@@ -14,6 +14,13 @@
 
 //#include "CMessages.h"
 
+float &ms_vehicleLod0Dist = *(float *)0x600150; // 70
+float &ms_vehicleLod1Dist = *(float *)0x600154; // 90
+float &ms_bigVehicleLod0Dist = *(float *)0x60015C; // 60
+float &ms_bigVehicleLod1Dist = *(float *)0x600160; // 150
+float &ms_cullCompsDist = *(float *)0x600138; // 20
+float &ms_vehicleFadeDist = *(float *)0x600158; // 100
+
 using namespace plugin;
 
 class MoreVehiclesSpawner {
@@ -142,7 +149,11 @@ public:
     }*/
 
     static void RenderVehicleFlags() {
-        //CVehicle *car = FindPlayerVehicle();
+        /*CVehicle *car = FindPlayerVehicle();
+        if (car && car->m_nModelIndex == 90) {
+            car->m_nGettingInFlags |= 0x4;
+            car->m_nGettingOutFlags |= 0x4;
+        }*/
         CPed *player = FindPlayerPed();
         if (player && KeyPressed('I')) {
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -155,6 +166,20 @@ public:
                     CFont::SetPropOn();
                     CFont::SetWrapx(600.0f);
                     wchar_t text[64];
+                    swprintf(text, L"lod0 %.2f", ms_vehicleLod0Dist);
+                    CFont::PrintString(200.0f, 10.0f, text);
+                    swprintf(text, L"lod1 %.2f", ms_vehicleLod1Dist);
+                    CFont::PrintString(200.0f, 30.0f, text);
+                    swprintf(text, L"biglod0 %.2f", ms_bigVehicleLod0Dist);
+                    CFont::PrintString(200.0f, 50.0f, text);
+                    swprintf(text, L"biglod1 %.2f", ms_bigVehicleLod1Dist);
+                    CFont::PrintString(200.0f, 70.0f, text);
+                    swprintf(text, L"CompsDist %.2f", ms_cullCompsDist);
+                    CFont::PrintString(200.0f, 90.0f, text);
+                    swprintf(text, L"FadeDist %.2f", ms_vehicleFadeDist);
+                    CFont::PrintString(200.0f, 110.0f, text);
+
+
                     swprintf(text, L"bIsLawEnforcer %.d", car->m_nVehicleFlags.bIsLawEnforcer);
                     CFont::PrintString(10.0f, 10.0f, text);
                     swprintf(text, L"bIsAmbulanceOnDuty %.d", car->m_nVehicleFlags.bIsAmbulanceOnDuty);
@@ -234,6 +259,10 @@ public:
     }
 
     MoreVehiclesSpawner() {
+        //ms_vehicleLod0Dist = 250.0f;
+        //ms_bigVehicleLod0Dist = 250.0f;
+        //*(float *)0x600150 = 400.0f; // 70
+        //*(float *)0x60015C = 400.0f; // 60
         //Events::gameProcessEvent += Update;
         //Events::drawingEvent += Render;
         Events::drawingEvent += RenderVehicleFlags;

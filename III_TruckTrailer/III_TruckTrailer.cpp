@@ -50,6 +50,14 @@ int __cdecl nGetRandomNumberInRange(int min, int max) {
 using namespace plugin;
 using namespace std;
 
+class VehicleLodDist {
+public:
+    VehicleLodDist() {
+        *(float *)0x600150 = 400.0f; // 70
+        *(float *)0x60015C = 400.0f; // 60
+    };
+} vehicleLodDist;
+
 class TruckTrailer {
 public:
     class VehicleComponents {
