@@ -43,10 +43,6 @@ float VehicleGetSpeed(CVehicle *vehicle) {
     return 180.0f * (float)sqrt(pow(vehicle->m_vecMoveSpeed.x, 2) + pow(vehicle->m_vecMoveSpeed.y, 2) + pow(vehicle->m_vecMoveSpeed.z, 2));
 }
 
-int __cdecl nGetRandomNumberInRange(int min, int max) {
-    return plugin::CallAndReturn<int, 0x54A4C0, int, int>(min, max);
-}
-
 using namespace plugin;
 using namespace std;
 
@@ -143,7 +139,6 @@ public:
                 }
                 ModelInfo &infoTrailer = modelInfo.Get(trailer);
                 infoTrailer.isAttached = true;
-                //trailer->m_nVehicleFlags.bIsLocked = 1;
             }
         }
     }
@@ -241,12 +236,6 @@ public:
                                 if (!TrailerAttached(trailer)) 
                                     CWorld::Remove(trailer);
                             }
-                            /*if (trailer->m_nVehicleFlags.bIsLocked && DistanceBetweenPoints(player->GetPosition(), trailer->GetPosition()) > 40.0f) {
-                                if (!TrailerAttached(trailer)) {
-                                    trailer->m_nVehicleFlags.bIsLocked = 0;
-                                    CWorld::Remove(trailer);
-                                }
-                            }*/
                             trailer->m_nVehicleFlags.bEngineOn = 0;
                             if (vehComps.Get(trailer).prop_a)
                                 vehComps.Get(trailer).prop_a->modelling.pos.z = -0.4f;
@@ -327,7 +316,7 @@ public:
                                     if (currentVariant == 2)
                                         info.enabledTrailer = false;
                                 }
-                                switch (nGetRandomNumberInRange(0, 4)) {
+                                switch (plugin::Random(0, 4)) {
                                 case 0:  TrailerId = entryModel->TrailerIdOne;   break;
                                 case 1:  TrailerId = entryModel->TrailerIdTwo;   break;
                                 case 2:  TrailerId = entryModel->TrailerIdThree; break;

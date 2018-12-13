@@ -1,32 +1,99 @@
 #include "plugin.h"
-#include "CFont.h"
+#include "CWorld.h"
+#include "CTimer.h"
+#include "CVehicle.h"
+#include "CCarCtrl.h"
 
 using namespace plugin;
 
 class Test {
 public:
     Test() {
-        Events::drawingEvent += [] {
+        Events::gameProcessEvent += [] {
             CPed *player = FindPlayerPed();
             if (player) {
                 for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                     CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
                     if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
-                        CFont::SetScale(0.5f, 1.0f);
-                        CFont::SetColor(CRGBA(255, 255, 255, 255));
-                        CFont::SetJustifyOn();
-                        CFont::SetFontStyle(1);
-                        CFont::SetPropOn();
-                        CFont::SetWrapx(600.0f);
-                        wchar_t text[64];
-                        swprintf(text, L"ID vehicle %.d", vehicle->m_nModelIndex);
-                        CFont::PrintString(10.0f, 10.0f, text);
+                        CVector offset = { 0.0f, 10.0f, 0.0f };
+                        CVector point = vehicle->m_placement * offset;
+                        
+                        if (point.z <= -100.0f)
+                            point.z = CWorld::FindGroundZForCoord(point.x, point.y);
+                        point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
+                        if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
+                            vehicle->m_autopilot.m_nCarMission = 9;
+                        else
+                            vehicle->m_autopilot.m_nCarMission = 8;
+                        vehicle->m_nType |= 0x18;
+                        vehicle->m_nVehicleFlags.bIsEngineOn = 1;
+                        if (vehicle->m_autopilot.m_nCruiseSpeed <= 6)
+                            vehicle->m_autopilot.m_nCruiseSpeed = 6;
+                        else
+                            vehicle->m_autopilot.m_nCruiseSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
+                        vehicle->m_autopilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+
                     }
                 }
             }
         };
     }
 } test;
+
+#include "plugin.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+
+using namespace plugin;
+
+class Test {
+public:
+    Test() {
+        Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
+            if (player) {
+                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+                        CVector offset = {0.0f, 10.0f, 0.0f};
+                        CVector point = vehicle->m_placement * offset;
+                        Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), point.x, point.y, point.z);
+                    }
+                }
+            }
+        };
+    }
+} test;
+
+//#include "plugin.h"
+//#include "CFont.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::drawingEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+//                        CFont::SetScale(0.5f, 1.0f);
+//                        CFont::SetColor(CRGBA(255, 255, 255, 255));
+//                        CFont::SetJustifyOn();
+//                        CFont::SetFontStyle(1);
+//                        CFont::SetPropOn();
+//                        CFont::SetWrapx(600.0f);
+//                        wchar_t text[64];
+//                        swprintf(text, L"ID vehicle %.d", vehicle->m_nModelIndex);
+//                        CFont::PrintString(10.0f, 10.0f, text);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 
 //#include "plugin.h"

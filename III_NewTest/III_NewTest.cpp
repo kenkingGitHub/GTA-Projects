@@ -8,7 +8,8 @@
 //#include "CSprite2d.h"
 //#include "CStreaming.h"
 //#include "CBoat.h"
-//#include "CWorld.h"
+#include "CWorld.h"
+//#include "CCarCtrl.h"
 //#include "CTheScripts.h"
 //#include "eVehicleModel.h"
 
@@ -266,6 +267,36 @@ public:
         //Events::gameProcessEvent += Update;
         //Events::drawingEvent += Render;
         Events::drawingEvent += RenderVehicleFlags;
+
+        Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
+            if (player) {
+                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+                        CVector offset = { 0.0f, 10.0f, 0.0f };
+                        CVector point = vehicle->m_matrix * offset;
+
+                        if (point.z <= -100.0f)
+                            point.z = CWorld::FindGroundZForCoord(point.x, point.y);
+                        point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
+                        if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
+                            vehicle->m_autoPilot.m_nCarMission = 9;
+                        else
+                            vehicle->m_autoPilot.m_nCarMission = 8;
+                        vehicle->m_nType |= 0x18;
+                        vehicle->m_nVehicleFlags.bEngineOn = 1;
+                        if (vehicle->m_autoPilot.m_nCruiseSpeed <= 6)
+                            vehicle->m_autoPilot.m_nCruiseSpeed = 6;
+                        else
+                            vehicle->m_autoPilot.m_nCruiseSpeed = vehicle->m_autoPilot.m_nCruiseSpeed;
+                        vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+
+                    }
+                }
+            }
+        };
+
     };
 } moreVehiclesSpawner;
 
