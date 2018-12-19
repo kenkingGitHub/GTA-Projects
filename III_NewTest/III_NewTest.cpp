@@ -13,7 +13,7 @@
 //#include "CTheScripts.h"
 //#include "eVehicleModel.h"
 
-//#include "CMessages.h"
+#include "CMessages.h"
 
 float &ms_vehicleLod0Dist = *(float *)0x600150; // 70
 float &ms_vehicleLod1Dist = *(float *)0x600154; // 90
@@ -155,6 +155,13 @@ public:
             car->m_nGettingInFlags |= 0x4;
             car->m_nGettingOutFlags |= 0x4;
         }*/
+        KeyCheck::Update();
+        if (KeyCheck::CheckWithDelay('M', 200)) {
+            static char message[256];
+            snprintf(message, 256, "random %d", plugin::Random(12345, 98765));
+            CMessages::AddMessageJumpQ(message, 2000, false);
+        }
+
         CPed *player = FindPlayerPed();
         if (player && KeyPressed('I')) {
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -268,34 +275,34 @@ public:
         //Events::drawingEvent += Render;
         Events::drawingEvent += RenderVehicleFlags;
 
-        Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            if (player) {
-                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
-                        CVector offset = { 0.0f, 10.0f, 0.0f };
-                        CVector point = vehicle->m_matrix * offset;
+        //Events::gameProcessEvent += [] {
+        //    /*CPed *player = FindPlayerPed();
+        //    if (player) {
+        //        for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+        //            CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+        //            if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+        //                CVector offset = { 0.0f, 10.0f, 0.0f };
+        //                CVector point = vehicle->m_matrix * offset;
 
-                        if (point.z <= -100.0f)
-                            point.z = CWorld::FindGroundZForCoord(point.x, point.y);
-                        point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
-                        if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
-                            vehicle->m_autoPilot.m_nCarMission = 9;
-                        else
-                            vehicle->m_autoPilot.m_nCarMission = 8;
-                        vehicle->m_nType |= 0x18;
-                        vehicle->m_nVehicleFlags.bEngineOn = 1;
-                        if (vehicle->m_autoPilot.m_nCruiseSpeed <= 6)
-                            vehicle->m_autoPilot.m_nCruiseSpeed = 6;
-                        else
-                            vehicle->m_autoPilot.m_nCruiseSpeed = vehicle->m_autoPilot.m_nCruiseSpeed;
-                        vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+        //                if (point.z <= -100.0f)
+        //                    point.z = CWorld::FindGroundZForCoord(point.x, point.y);
+        //                point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
+        //                if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
+        //                    vehicle->m_autoPilot.m_nCarMission = 9;
+        //                else
+        //                    vehicle->m_autoPilot.m_nCarMission = 8;
+        //                vehicle->m_nType |= 0x18;
+        //                vehicle->m_nVehicleFlags.bEngineOn = 1;
+        //                if (vehicle->m_autoPilot.m_nCruiseSpeed <= 6)
+        //                    vehicle->m_autoPilot.m_nCruiseSpeed = 6;
+        //                else
+        //                    vehicle->m_autoPilot.m_nCruiseSpeed = vehicle->m_autoPilot.m_nCruiseSpeed;
+        //                vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
 
-                    }
-                }
-            }
-        };
+        //            }
+        //        }
+        //    }*/
+        //};
 
     };
 } moreVehiclesSpawner;

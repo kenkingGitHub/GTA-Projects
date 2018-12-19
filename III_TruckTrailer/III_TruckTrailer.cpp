@@ -58,9 +58,9 @@ class TruckTrailer {
 public:
     class VehicleComponents {
     public:
-        RwFrame *misc, *hookup, *prop_a, *prop_b;  char connector;
+        RwFrame *misc, *hookup, *prop_a, *prop_b, *prop_c;  char connector;
 
-        VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = nullptr;  connector = 0; }
+        VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = prop_c = nullptr;  connector = 0; }
     };
     
     static VehicleExtendedData<VehicleComponents> vehComps;
@@ -172,6 +172,12 @@ public:
         return result;
     }
 
+    static void FrameSetRotateXOnly(RwFrame *component, float angle) {
+        CMatrix matrixFrame(&component->modelling, false);
+        matrixFrame.SetRotateXOnly(angle);
+        matrixFrame.UpdateRW();
+    }
+
     TruckTrailer() {
         ReadSettingsFile();
         static unsigned int Id;
@@ -184,6 +190,7 @@ public:
             if (vehicle->m_pRwClump) {
                 vehComps.Get(vehicle).prop_a = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "prop_a");
                 vehComps.Get(vehicle).prop_b = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "prop_b");
+                vehComps.Get(vehicle).prop_c = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "prop_c");
                 vehComps.Get(vehicle).connector = 0;
                 vehComps.Get(vehicle).misc = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "misc_a");		if (vehComps.Get(vehicle).misc)	   vehComps.Get(vehicle).connector = 1;
                 else {
@@ -219,7 +226,7 @@ public:
                 }
             }
             else {
-                vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = vehComps.Get(vehicle).prop_a = vehComps.Get(vehicle).prop_b = nullptr;
+                vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = vehComps.Get(vehicle).prop_a = vehComps.Get(vehicle).prop_b = vehComps.Get(vehicle).prop_c = nullptr;
             }
         };
 
@@ -241,6 +248,8 @@ public:
                                 vehComps.Get(trailer).prop_a->modelling.pos.z = -0.4f;
                             if (vehComps.Get(trailer).prop_b)
                                 vehComps.Get(trailer).prop_b->modelling.pos.z = -0.2f;
+                            if (vehComps.Get(trailer).prop_c) 
+                                FrameSetRotateXOnly(vehComps.Get(trailer).prop_c, 1.65f);
                             CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
                             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                                 CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
@@ -261,6 +270,8 @@ public:
                                                 vehComps.Get(trailer).prop_a->modelling.pos.z = 0.0f;
                                             if (vehComps.Get(trailer).prop_b)
                                                 vehComps.Get(trailer).prop_b->modelling.pos.z = 0.0f;
+                                            if (vehComps.Get(trailer).prop_c)
+                                                FrameSetRotateXOnly(vehComps.Get(trailer).prop_c, 0.0f);
                                             trailer->m_nVehicleFlags = vehicle->m_nVehicleFlags;
                                             //trailer->m_fBreakPedal = vehicle->m_fBreakPedal;
                                             //trailer->m_fGasPedal = vehicle->m_fGasPedal;
@@ -316,7 +327,7 @@ public:
                                     if (currentVariant == 2)
                                         info.enabledTrailer = false;
                                 }
-                                switch (plugin::Random(0, 4)) {
+                                switch (plugin::Random(0, 3)) {
                                 case 0:  TrailerId = entryModel->TrailerIdOne;   break;
                                 case 1:  TrailerId = entryModel->TrailerIdTwo;   break;
                                 case 2:  TrailerId = entryModel->TrailerIdThree; break;
