@@ -263,7 +263,6 @@ public:
                                         if ((KeyCheck::CheckWithDelay(VK_BACK, 200)) && player->m_pVehicle == vehicle && player->m_bInVehicle) {
                                             trailer->m_matrix.pos = PointOffset(trailer->m_matrix, 0, -2.1f, 0);
                                             trailer->m_nVehicleFlags.bEngineOn = 0;
-                                            trailer->m_nVehicleFlags.bIsLocked = 0;
                                         }
                                         else {
                                             if (vehComps.Get(trailer).prop_a)
