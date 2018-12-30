@@ -1,8 +1,5 @@
 #include "plugin.h"
-#include "CWorld.h"
-#include "CTimer.h"
-#include "CVehicle.h"
-#include "CCarCtrl.h"
+#include "CMessages.h"
 
 using namespace plugin;
 
@@ -15,24 +12,14 @@ public:
                 for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                     CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
                     if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
-                        CVector offset = { 0.0f, 10.0f, 0.0f };
-                        CVector point = vehicle->m_placement * offset;
-                        
-                        if (point.z <= -100.0f)
-                            point.z = CWorld::FindGroundZForCoord(point.x, point.y);
-                        point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
-                        if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
-                            vehicle->m_autopilot.m_nCarMission = 9;
-                        else
-                            vehicle->m_autopilot.m_nCarMission = 8;
-                        vehicle->m_nType |= 0x18;
-                        vehicle->m_nVehicleFlags.bIsEngineOn = 1;
-                        if (vehicle->m_autopilot.m_nCruiseSpeed <= 6)
-                            vehicle->m_autopilot.m_nCruiseSpeed = 6;
-                        else
-                            vehicle->m_autopilot.m_nCruiseSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
-                        vehicle->m_autopilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
-
+                        static char message[256];
+                        snprintf(message, 256, "MaxSpeed = %.2f", vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed);
+                        CMessages::AddMessageJumpQ(message, 3000, false);
+                        vehicle->m_autopilot.m_nCruiseSpeed = 30.0f;
+                        float maxSpeed = 60.0f * vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed;
+                        if (vehicle->m_autopilot.m_nCruiseSpeed >= maxSpeed)
+                            maxSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
+                        vehicle->m_autopilot.m_nCruiseSpeed = maxSpeed;
                     }
                 }
             }
@@ -40,30 +27,97 @@ public:
     }
 } test;
 
-#include "plugin.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CVehicle *vehicle = FindPlayerVehicle();
+//            static int blip;
+//            KeyCheck::Update();
+//            if (vehicle && KeyCheck::CheckWithDelay('M', 200)) {
+//                Command<COMMAND_ADD_BLIP_FOR_CAR>(CPools::GetVehicleRef(vehicle), &blip);
+//            }
+//            if (vehicle && KeyCheck::CheckWithDelay('N', 200)) {
+//                Command<COMMAND_REMOVE_BLIP>(&blip);
+//            }
+//        };
+//    }
+//} test;
 
-using namespace plugin;
 
-class Test {
-public:
-    Test() {
-        Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            if (player) {
-                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
-                        CVector offset = {0.0f, 10.0f, 0.0f};
-                        CVector point = vehicle->m_placement * offset;
-                        Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), point.x, point.y, point.z);
-                    }
-                }
-            }
-        };
-    }
-} test;
+//#include "plugin.h"
+//#include "CWorld.h"
+//#include "CTimer.h"
+//#include "CVehicle.h"
+//#include "CCarCtrl.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+//                        CVector offset = { 0.0f, 10.0f, 0.0f };
+//                        CVector point = vehicle->m_placement * offset;
+//                        
+//                        if (point.z <= -100.0f)
+//                            point.z = CWorld::FindGroundZForCoord(point.x, point.y);
+//                        point.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + point.z;
+//                        if (CCarCtrl::JoinCarWithRoadSystemGotoCoors(vehicle, point))
+//                            vehicle->m_autopilot.m_nCarMission = 9;
+//                        else
+//                            vehicle->m_autopilot.m_nCarMission = 8;
+//                        vehicle->m_nType |= 0x18;
+//                        vehicle->m_nVehicleFlags.bIsEngineOn = 1;
+//                        if (vehicle->m_autopilot.m_nCruiseSpeed <= 6)
+//                            vehicle->m_autopilot.m_nCruiseSpeed = 6;
+//                        else
+//                            vehicle->m_autopilot.m_nCruiseSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
+//                        vehicle->m_autopilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+//
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+//                        CVector offset = {0.0f, 10.0f, 0.0f};
+//                        CVector point = vehicle->m_placement * offset;
+//                        Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), point.x, point.y, point.z);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "CFont.h"
