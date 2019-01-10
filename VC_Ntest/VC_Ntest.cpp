@@ -1,4 +1,7 @@
 #include "plugin.h"
+#include "extensions\KeyCheck.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
 #include "CMessages.h"
 
 using namespace plugin;
@@ -7,25 +10,47 @@ class Test {
 public:
     Test() {
         Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            if (player) {
-                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
-                        static char message[256];
-                        snprintf(message, 256, "MaxSpeed = %.2f", vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed);
-                        CMessages::AddMessageJumpQ(message, 3000, false);
-                        vehicle->m_autopilot.m_nCruiseSpeed = 30.0f;
-                        float maxSpeed = 60.0f * vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed;
-                        if (vehicle->m_autopilot.m_nCruiseSpeed >= maxSpeed)
-                            maxSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
-                        vehicle->m_autopilot.m_nCruiseSpeed = maxSpeed;
-                    }
-                }
+            CVehicle *vehicle = FindPlayerVehicle();
+            KeyCheck::Update();
+            if (vehicle && KeyCheck::CheckWithDelay('M', 200)) {
+                CVector pos = { 0.0f, 0.0f, 0.0f };
+                Command<COMMAND_GET_CAR_COORDINATES>(CPools::GetVehicleRef(vehicle), &pos.x, &pos.y, &pos.z);
+                static char message[256];
+                snprintf(message, 256, "x = %.2f; y = %.2f; z = %.2f; ", pos.x, pos.y, pos.z);
+                CMessages::AddMessageJumpQ(message, 3000, false);
             }
         };
     }
 } test;
+
+//#include "plugin.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+//                        static char message[256];
+//                        snprintf(message, 256, "MaxSpeed = %.2f", vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed);
+//                        CMessages::AddMessageJumpQ(message, 3000, false);
+//                        vehicle->m_autopilot.m_nCruiseSpeed = 30.0f;
+//                        float maxSpeed = 60.0f * vehicle->m_pHandlingData->m_transmissionData.m_fMaxSpeed;
+//                        if (vehicle->m_autopilot.m_nCruiseSpeed >= maxSpeed)
+//                            maxSpeed = vehicle->m_autopilot.m_nCruiseSpeed;
+//                        vehicle->m_autopilot.m_nCruiseSpeed = maxSpeed;
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"

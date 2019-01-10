@@ -124,36 +124,36 @@ public:
     //        enabled = false;
     //}
 
-   /* static void Render() {
-        if (enabled) {
-            CSprite2d::DrawRect(CRect(10.0f, 10.0f, 300.0f, 130.0f), CRGBA(0, 0, 0, 100));
-            CSprite2d::DrawRect(CRect(150.0f, 50.0f, 230.0f, 52.0f), CRGBA(255, 255, 255, 255));
+    /* static void Render() {
+    if (enabled) {
+    CSprite2d::DrawRect(CRect(10.0f, 10.0f, 300.0f, 130.0f), CRGBA(0, 0, 0, 100));
+    CSprite2d::DrawRect(CRect(150.0f, 50.0f, 230.0f, 52.0f), CRGBA(255, 255, 255, 255));
 
-            CFont::SetScale(0.8f, 1.9f);
-            CFont::SetColor(CRGBA(255, 255, 255, 255));
-            CFont::SetJustifyOn();
-            CFont::SetFontStyle(0);
-            CFont::SetPropOn();
-            CFont::SetWrapx(300.0f);
-            CFont::PrintString(15.0f, 15.0f, "Model ID:");
-            if (typedBuffer.size() > 0)
-                CFont::PrintString(160.0f, 15.0f, const_cast<char*>(typedBuffer.c_str()));
-            if (errorMessage.size() > 0) {
-                errorMessageBuffer = errorMessage;
-                errorMessageTimer = CTimer::m_snTimeInMilliseconds;
-            }
-            if (errorMessageBuffer.size() > 0 && CTimer::m_snTimeInMilliseconds < (errorMessageTimer + 2000)) {
-                CFont::SetColor(CRGBA(255, 0, 0, 255));
-                CFont::PrintString(15.0f, 55.0f, const_cast<char*>(errorMessageBuffer.c_str()));
-            }
-        }
+    CFont::SetScale(0.8f, 1.9f);
+    CFont::SetColor(CRGBA(255, 255, 255, 255));
+    CFont::SetJustifyOn();
+    CFont::SetFontStyle(0);
+    CFont::SetPropOn();
+    CFont::SetWrapx(300.0f);
+    CFont::PrintString(15.0f, 15.0f, "Model ID:");
+    if (typedBuffer.size() > 0)
+    CFont::PrintString(160.0f, 15.0f, const_cast<char*>(typedBuffer.c_str()));
+    if (errorMessage.size() > 0) {
+    errorMessageBuffer = errorMessage;
+    errorMessageTimer = CTimer::m_snTimeInMilliseconds;
+    }
+    if (errorMessageBuffer.size() > 0 && CTimer::m_snTimeInMilliseconds < (errorMessageTimer + 2000)) {
+    CFont::SetColor(CRGBA(255, 0, 0, 255));
+    CFont::PrintString(15.0f, 55.0f, const_cast<char*>(errorMessageBuffer.c_str()));
+    }
+    }
     }*/
 
     static void RenderVehicleFlags() {
         /*CVehicle *car = FindPlayerVehicle();
         if (car && car->m_nModelIndex == 90) {
-            car->m_nGettingInFlags |= 0x4;
-            car->m_nGettingOutFlags |= 0x4;
+        car->m_nGettingInFlags |= 0x4;
+        car->m_nGettingOutFlags |= 0x4;
         }*/
         KeyCheck::Update();
         if (KeyCheck::CheckWithDelay('M', 200)) {
@@ -205,13 +205,13 @@ public:
                     swprintf(text, L"8 %.d", car->m_nVehicleFlags.b08);
                     CFont::PrintString(10.0f, 150.0f, text);
 
-                    swprintf(text, L"bIsVan %.d", car->m_nVehicleFlags.b09);
+                    swprintf(text, L"bIsVan %.d", car->m_nVehicleFlags.bIsVan);
                     CFont::PrintString(10.0f, 170.0f, text);
-                    swprintf(text, L"bIsBus %.d", car->m_nVehicleFlags.b10);
+                    swprintf(text, L"bIsBus %.d", car->m_nVehicleFlags.bIsBus);
                     CFont::PrintString(10.0f, 190.0f, text);
-                    swprintf(text, L"bIsBig %.d", car->m_nVehicleFlags.b11);
+                    swprintf(text, L"bIsBig %.d", car->m_nVehicleFlags.bIsBig);
                     CFont::PrintString(10.0f, 210.0f, text);
-                    swprintf(text, L"bIsLow %.d", car->m_nVehicleFlags.b12);
+                    swprintf(text, L"bIsLow %.d", car->m_nVehicleFlags.bIsLow);
                     CFont::PrintString(10.0f, 230.0f, text);
                     swprintf(text, L"13 %.d", car->m_nVehicleFlags.b13);
                     CFont::PrintString(10.0f, 250.0f, text);
@@ -238,7 +238,7 @@ public:
                     CFont::PrintString(10.0f, 450.0f, text);
                     swprintf(text, L"24 %.d", car->m_nVehicleFlags.b24);
                     CFont::PrintString(10.0f, 470.0f, text);
-                    
+
                     swprintf(text, L"25 %.d", car->m_nVehicleFlags.b25);
                     CFont::PrintString(10.0f, 490.0f, text);
                     swprintf(text, L"26 %.d", car->m_nVehicleFlags.b26);
@@ -261,7 +261,7 @@ public:
                     swprintf(text, L"Out %.d", car->m_nGettingOutFlags);
                     CFont::PrintString(10.0f, 700.0f, text);
 
-               }
+                }
             }
         }
     }
@@ -274,6 +274,25 @@ public:
         //Events::gameProcessEvent += Update;
         //Events::drawingEvent += Render;
         Events::drawingEvent += RenderVehicleFlags;
+
+        Events::gameProcessEvent += [] {
+            CVehicle *car = FindPlayerVehicle();
+            if (car) {
+                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                    if (vehicle && (DistanceBetweenPoints(car->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
+                        KeyCheck::Update();
+                        if (KeyCheck::CheckWithDelay('N', 200)) {
+                            CVector offset = car->TransformFromObjectSpace(CVector(0.0f, 0.0f, 3.0f));
+                            CMatrix matrix;
+                            CPhysical::PlacePhysicalRelativeToOtherPhysical(car, vehicle, offset);
+                            matrix.~CMatrix();
+                        }
+                    }
+                }
+            }
+        };
+
 
         //Events::gameProcessEvent += [] {
         //    /*CPed *player = FindPlayerPed();

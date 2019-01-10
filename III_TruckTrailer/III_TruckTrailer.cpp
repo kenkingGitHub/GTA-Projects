@@ -62,7 +62,7 @@ public:
 
         VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = prop_c = nullptr;  connector = 0; }
     };
-    
+
     static VehicleExtendedData<VehicleComponents> vehComps;
 
     class ModelInfo {
@@ -74,7 +74,7 @@ public:
     static VehicleExtendedData<ModelInfo> modelInfo;
 
     struct MyData {
-        unsigned int ModelId, TrailerIdOne, TrailerIdTwo, TrailerIdThree, TrailerIdFour, TrailerColours, TrailerExtras, TrailerConst;
+        unsigned int ModelId, TrailerIdOne, TrailerIdTwo, TrailerIdThree, TrailerIdFour, TrailerColours, TrailerExtras, TrailerConst, TrailerSecond;
     };
 
     static vector<MyData>& GetDataVector() {
@@ -90,7 +90,7 @@ public:
                     while (getline(stream, line) && line.compare("end")) {
                         if (line[0] != ';' && line[0] != '#') {
                             MyData entry;
-                            if (sscanf(line.c_str(), "%d, %d, %d, %d, %d, %d, %d, %d", &entry.ModelId, &entry.TrailerIdOne, &entry.TrailerIdTwo, &entry.TrailerIdThree, &entry.TrailerIdFour, &entry.TrailerColours, &entry.TrailerExtras, &entry.TrailerConst) == 8)
+                            if (sscanf(line.c_str(), "%d, %d, %d, %d, %d, %d, %d, %d, %d", &entry.ModelId, &entry.TrailerIdOne, &entry.TrailerIdTwo, &entry.TrailerIdThree, &entry.TrailerIdFour, &entry.TrailerColours, &entry.TrailerExtras, &entry.TrailerConst, &entry.TrailerSecond) == 9)
                                 GetDataVector().push_back(entry);
                         }
                     }
@@ -107,15 +107,11 @@ public:
         return nullptr;
     }
 
-    static void SetTrailer(CVehicle *vehicle, unsigned int modelTrailer, unsigned int colour, unsigned int extra) {
+    static void SetTrailer(CVehicle *vehicle, unsigned int modelTrailer, unsigned int colour, unsigned int extra, unsigned int enableSecondTrailer) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[modelTrailer].m_nFlags;
         CStreaming::RequestModel(modelTrailer, GAME_REQUIRED);
         CStreaming::LoadAllRequestedModels(false);
         if (CStreaming::ms_aInfoForModel[modelTrailer].m_nLoadState == LOADSTATE_LOADED && vehicle) {
-            if (!(oldFlags & GAME_REQUIRED)) {
-                CStreaming::SetModelIsDeletable(modelTrailer);
-                CStreaming::SetModelTxdIsDeletable(modelTrailer);
-            }
             if (extra) {
                 CVehicleModelInfo::ms_compsToUse[0] = vehicle->m_nExtra[0];
                 CVehicleModelInfo::ms_compsToUse[1] = vehicle->m_nExtra[1];
@@ -139,6 +135,40 @@ public:
                 }
                 ModelInfo &infoTrailer = modelInfo.Get(trailer);
                 infoTrailer.isAttached = true;
+                // второй прицеп
+                int enable = plugin::Random(0, 2);
+                if (enableSecondTrailer && enable != 0) {
+                    float offset_Y_Two = (-1.0f * (CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y;
+                    CEntity *outEntityTwo;
+                    short outCountTwo = 0;
+                    CWorld::FindObjectsInRange(trailer->TransformFromObjectSpace(CVector(0.0f, -offset_Y_Two, 0.0f)), 2.0, 1, &outCountTwo, 2, &outEntityTwo, 0, 1, 0, 0, 0);
+                    if (outCountTwo == 0) {
+                        CVehicle *secondTrailer = nullptr;
+                        secondTrailer = new CAutomobile(modelTrailer, 1);
+                        if (secondTrailer) {
+                            float offsetY_Two = -4.0f;
+                            if (vehComps.Get(trailer).misc && vehComps.Get(secondTrailer).hookup)
+                                offsetY_Two = -((vehComps.Get(trailer).misc->modelling.pos.y * (-1.0f)) + vehComps.Get(secondTrailer).hookup->modelling.pos.y);
+                            secondTrailer->SetPosition(trailer->TransformFromObjectSpace(CVector(0.0f, offsetY_Two, 0.0f)));
+                            secondTrailer->SetHeading(trailer->GetHeading() / 57.295776f);
+                            secondTrailer->m_nState = 4;
+                            secondTrailer->m_nDoorLock = CARLOCK_LOCKED;
+                            CWorld::Add(secondTrailer);
+                            CTheScripts::ClearSpaceForMissionEntity(secondTrailer->GetPosition(), secondTrailer);
+                            reinterpret_cast<CAutomobile *>(secondTrailer)->PlaceOnRoadProperly();
+                            if (colour) {
+                                secondTrailer->m_nPrimaryColor = vehicle->m_nPrimaryColor;
+                                secondTrailer->m_nSecondaryColor = vehicle->m_nSecondaryColor;
+                            }
+                            ModelInfo &infoTrailerTwo = modelInfo.Get(secondTrailer);
+                            infoTrailerTwo.isAttached = true;
+                        }
+                    }
+                }
+            }
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(modelTrailer);
+                CStreaming::SetModelTxdIsDeletable(modelTrailer);
             }
         }
     }
@@ -158,15 +188,15 @@ public:
                 trailer->m_carDamage.SetLightStatus(LIGHT_REAR_RIGHT, 1);
         }
     }
-    
+
     static bool TrailerAttached(CVehicle *trailer) {
         bool result = FALSE;
         for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
             CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).misc 
-                && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector) 
+            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_fHealth > 0.1f && vehComps.Get(vehicle).misc
+                && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector)
                 && (Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f)) {
-                result = TRUE;
+                result = TRUE; break;
             }
         }
         return result;
@@ -240,7 +270,7 @@ public:
                         if (vehComps.Get(trailer).hookup) {
                             ModelInfo &infoTrailer = modelInfo.Get(trailer);
                             if (infoTrailer.isAttached && !trailer->GetIsOnScreen()) {
-                                if (!TrailerAttached(trailer)) 
+                                if (!TrailerAttached(trailer))
                                     CWorld::Remove(trailer);
                             }
                             trailer->m_nVehicleFlags.bEngineOn = 0;
@@ -248,7 +278,7 @@ public:
                                 vehComps.Get(trailer).prop_a->modelling.pos.z = -0.4f;
                             if (vehComps.Get(trailer).prop_b)
                                 vehComps.Get(trailer).prop_b->modelling.pos.z = -0.2f;
-                            if (vehComps.Get(trailer).prop_c) 
+                            if (vehComps.Get(trailer).prop_c)
                                 FrameSetRotateXOnly(vehComps.Get(trailer).prop_c, 1.65f);
                             CAutomobile *trail = reinterpret_cast<CAutomobile *>(trailer);
                             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -340,7 +370,7 @@ public:
                                     if (outCount == 0) {
                                         info.enabledTrailer = false;
                                         if (DistanceBetweenPoints(player->GetPosition(), trailer->GetPosition()) > 50.0f)
-                                            SetTrailer(trailer, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras);
+                                            SetTrailer(trailer, TrailerId, entryModel->TrailerColours, entryModel->TrailerExtras, entryModel->TrailerSecond);
                                     }
                                 }
                             }

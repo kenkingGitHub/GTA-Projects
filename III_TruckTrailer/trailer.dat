@@ -5,13 +5,13 @@
 #E - Id trailer fourth variant 
 #F - Colours of the trailer as at the tractor (0-no, 1-yes)
 #G - Extras at the trailer as at the tractor (0-no, 1-yes)
-#H - Trailer Constant (0-no, 1-yes)
+#H - Constant trailer (0-no, 1-yes)
+#I - Second trailer (0-no, 1-yes) !!! only the same numbers trailers for all variants: B, C, D, E
  
- 
-#A,   B,   C,   D,   E,  F, G, H 
+#A,   B,   C,   D,   E,  F, G, H, I 
  
 trailer
-93,  153, 153, 153, 153, 0, 0, 0
-152, 151, 151, 151, 151, 0, 0, 1
+93,  153, 153, 153, 153, 0, 0, 0, 1
+152, 151, 151, 151, 151, 0, 0, 1, 0
 end
 
