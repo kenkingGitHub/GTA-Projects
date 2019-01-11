@@ -6,7 +6,7 @@
 #F - Colours of the trailer as at the tractor (0-no, 1-yes)
 #G - Extras at the trailer as at the tractor (0-no, 1-yes)
 #H - Constant trailer (0-no, 1-yes)
-#I - Second trailer (0-no, 1-yes) !!! only the same numbers trailers for all variants: B, C, D, E
+#I - Second trailer (0-no, 1-yes) !!! only trailers with misc and hookup of the same type
  
 #A,   B,   C,   D,   E,  F, G, H, I 
  

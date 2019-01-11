@@ -137,7 +137,7 @@ public:
                 infoTrailer.isAttached = true;
                 // второй прицеп
                 int enable = plugin::Random(0, 2);
-                if (enableSecondTrailer && enable != 0) {
+                if (enableSecondTrailer && vehComps.Get(trailer).misc && enable != 0) {
                     float offset_Y_Two = (-1.0f * (CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y;
                     CEntity *outEntityTwo;
                     short outCountTwo = 0;
