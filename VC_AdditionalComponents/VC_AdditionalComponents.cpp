@@ -5,29 +5,12 @@
 #include "extensions\KeyCheck.h"
 #include "CMessages.h"
 #include "CFont.h"
-//#include "CCoronas.h"
+#include "CCoronas.h"
 #include "CGeneral.h"
 #include "KeySettings.h"
 #include <vector>
 #include <string>
 #include <fstream>
-
-void RegisterCorona(unsigned int id, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, unsigned char arg8, unsigned char arg9, unsigned char arg10, unsigned char arg11, unsigned char arg12, float arg13) {
-    plugin::Call<0x5427A0, unsigned int, unsigned char, unsigned char, unsigned char, unsigned char, CVector const&, float, float, unsigned char, unsigned char, unsigned char, unsigned char, unsigned char, float>(id, red, green, blue, alpha, posn, radius, farClip, arg8, arg9, arg10, arg11, arg12, arg13);
-}
-
-void UpdateCoronaCoors(unsigned int id, CVector const& posn, float farClip, float angle) {
-    plugin::Call<0x5423E0, unsigned int, CVector const&, float, float>(id, posn, farClip, angle);
-}
-
-unsigned int GetLightStatus(CDamageManager * manager, eLights light) {
-    return plugin::CallMethodAndReturn<unsigned int, 0x5A9870, CDamageManager *, eLights>(manager, light);
-}
-
-void SetLightStatus(CDamageManager * manager, eLights light, unsigned int status) {
-    manager->uLightBits &= ~(3 << 2 * light);
-    manager->uLightBits |= status << 2 * light;
-}
 
 int &ms_atomicPluginOffset = *(int *)0x69A1C8;
 
@@ -198,8 +181,8 @@ public:
                 Zr350Info *entryModel = GetZr350InfoForModel(vehicle->m_nModelIndex);
                 if (entryModel) {
                     CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-                    SetLightStatus(&automobile->stDamage, LIGHT_FRONT_LEFT, 1);
-                    SetLightStatus(&automobile->stDamage, LIGHT_FRONT_RIGHT, 1);
+                    automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 1);
+                    automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
                     vehComps.Get(vehicle).maxLightsAngle = entryModel->valueMaxLightsAngle;
                 }
             }
@@ -268,20 +251,20 @@ public:
                         // trunk shutters
                         if (vehicle->m_pDriver && vehComps.Get(vehicle).m_pBootSliding) {
                             if (automobile->m_aCarNodes[CAR_BOOT] && automobile->m_aCarNodes[CAR_WING_LR]) {
-                                if (automobile->stDamage.GetPanelStatus(WING_REAR_LEFT) == 0) {
-                                    automobile->stDamage.SetDoorStatus(BOOT, 0);
-                                    vehComps.Get(vehicle).m_pBootSliding->modelling.at.z = 1.0f + automobile->stDoors[1].fAngle;
+                                if (automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT) == 0) {
+                                    automobile->m_carDamage.SetDoorStatus(BOOT, 0);
+                                    vehComps.Get(vehicle).m_pBootSliding->modelling.at.z = 1.0f + automobile->m_aDoors[1].fAngle;
                                 }
                                 else
-                                    automobile->stDamage.SetDoorStatus(BOOT, 3);
+                                    automobile->m_carDamage.SetDoorStatus(BOOT, 3);
                             }
                         }
                         // trunk with wipers
                         if (vehComps.Get(vehicle).m_pBootMirage && automobile->m_aCarNodes[CAR_BOOT]) {
-                            if ((automobile->stDoors[1].fAngle < 0.0f) && vehicle->m_nVehicleFlags.bBrakeLightsOn)
-                                FrameSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->stDoors[1].fAngle);
-                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->stDoors[1].fAngle);
-                            if (automobile->stDamage.GetDoorStatus(BOOT) == 3) {
+                            if ((automobile->m_aDoors[1].fAngle < 0.0f) && vehicle->m_nVehicleFlags.bIsHandbrakeOn)
+                                FrameSetRotateXOnly(automobile->m_aCarNodes[CAR_BOOT], automobile->m_aDoors[1].fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootMirage, automobile->m_aDoors[1].fAngle);
+                            if (automobile->m_carDamage.GetDoorStatus(BOOT) == 3) {
                                 if (vehComps.Get(vehicle).m_pWiperOneM)
                                     SetComponentVisibility(automobile, vehComps.Get(vehicle).m_pWiperOneM, 1);
                             }
@@ -418,71 +401,71 @@ public:
                         }
                         // step van doors
                         if (vehComps.Get(vehicle).m_pStepVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LF]) {
-                            if (automobile->stDoors[2].fAngle > -0.9f)
-                                vehComps.Get(vehicle).m_pStepVanDoorL->modelling.pos.y = automobile->stDoors[2].fAngle;
+                            if (automobile->m_aDoors[2].fAngle > -0.9f)
+                                vehComps.Get(vehicle).m_pStepVanDoorL->modelling.pos.y = automobile->m_aDoors[2].fAngle;
                             if (automobile->m_aCarNodes[CAR_WING_LR]) {
-                                if (automobile->stDamage.GetPanelStatus(WING_REAR_LEFT) == 3) {
-                                    if (automobile->stDamage.GetDoorStatus(DOOR_FRONT_LEFT) != 3)
-                                        automobile->stDamage.SetDoorStatus(DOOR_FRONT_LEFT, 3);
+                                if (automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_LEFT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_FRONT_LEFT, 3);
                                 }
-                                else if (automobile->stDamage.GetDoorStatus(DOOR_FRONT_LEFT) == 3)
-                                    automobile->stDamage.SetDoorStatus(DOOR_FRONT_LEFT, 0);
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_LEFT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_FRONT_LEFT, 0);
                             }
                         }
                         if (vehComps.Get(vehicle).m_pStepVanDoorR && automobile->m_aCarNodes[CAR_DOOR_RF]) {
-                            if (automobile->stDoors[3].fAngle < 0.9f)
-                                vehComps.Get(vehicle).m_pStepVanDoorR->modelling.pos.y = -automobile->stDoors[3].fAngle;
+                            if (automobile->m_aDoors[3].fAngle < 0.9f)
+                                vehComps.Get(vehicle).m_pStepVanDoorR->modelling.pos.y = -automobile->m_aDoors[3].fAngle;
                             if (automobile->m_aCarNodes[CAR_WING_RR]) {
-                                if (automobile->stDamage.GetPanelStatus(WING_REAR_RIGHT) == 3) {
-                                    if (automobile->stDamage.GetDoorStatus(DOOR_FRONT_RIGHT) != 3)
-                                        automobile->stDamage.SetDoorStatus(DOOR_FRONT_RIGHT, 3);
+                                if (automobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_RIGHT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_FRONT_RIGHT, 3);
                                 }
-                                else if (automobile->stDamage.GetDoorStatus(DOOR_FRONT_RIGHT) == 3)
-                                    automobile->stDamage.SetDoorStatus(DOOR_FRONT_RIGHT, 0);
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_FRONT_RIGHT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_FRONT_RIGHT, 0);
                             }
                         }
                         // mini van doors
                         if (vehComps.Get(vehicle).m_pMiniVanDoorL && automobile->m_aCarNodes[CAR_DOOR_LR]) {
-                            if (automobile->stDoors[4].fAngle > -1.1f)
-                                vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.y = automobile->stDoors[4].fAngle;
-                            if (automobile->stDoors[4].fAngle != 0.0f)
+                            if (automobile->m_aDoors[4].fAngle > -1.1f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.y = automobile->m_aDoors[4].fAngle;
+                            if (automobile->m_aDoors[4].fAngle != 0.0f)
                                 vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.x = -0.15f;
                             else
                                 vehComps.Get(vehicle).m_pMiniVanDoorL->modelling.pos.x = 0.0f;
                             if (automobile->m_aCarNodes[CAR_WING_LF]) {
-                                if (automobile->stDamage.GetPanelStatus(WING_FRONT_LEFT) == 3) {
-                                    if (automobile->stDamage.GetDoorStatus(DOOR_REAR_LEFT) != 3)
-                                        automobile->stDamage.SetDoorStatus(DOOR_REAR_LEFT, 3);
+                                if (automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_LEFT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_REAR_LEFT, 3);
                                 }
-                                else if (automobile->stDamage.GetDoorStatus(DOOR_REAR_LEFT) == 3)
-                                    automobile->stDamage.SetDoorStatus(DOOR_REAR_LEFT, 0);
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_LEFT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_REAR_LEFT, 0);
                             }
                         }
                         if (vehComps.Get(vehicle).m_pMiniVanDoorR && automobile->m_aCarNodes[CAR_DOOR_RR]) {
-                            if (automobile->stDoors[5].fAngle < 1.1f)
-                                vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.y = -automobile->stDoors[5].fAngle;
-                            if (automobile->stDoors[5].fAngle != 0.0f)
+                            if (automobile->m_aDoors[5].fAngle < 1.1f)
+                                vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.y = -automobile->m_aDoors[5].fAngle;
+                            if (automobile->m_aDoors[5].fAngle != 0.0f)
                                 vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.x = 0.15f;
                             else
                                 vehComps.Get(vehicle).m_pMiniVanDoorR->modelling.pos.x = 0.0f;
                             if (automobile->m_aCarNodes[CAR_WING_RF]) {
-                                if (automobile->stDamage.GetPanelStatus(WING_FRONT_RIGHT) == 3) {
-                                    if (automobile->stDamage.GetDoorStatus(DOOR_REAR_RIGHT) != 3)
-                                        automobile->stDamage.SetDoorStatus(DOOR_REAR_RIGHT, 3);
+                                if (automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT) == 3) {
+                                    if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_RIGHT) != 3)
+                                        automobile->m_carDamage.SetDoorStatus(DOOR_REAR_RIGHT, 3);
                                 }
-                                else if (automobile->stDamage.GetDoorStatus(DOOR_REAR_RIGHT) == 3)
-                                    automobile->stDamage.SetDoorStatus(DOOR_REAR_RIGHT, 0);
+                                else if (automobile->m_carDamage.GetDoorStatus(DOOR_REAR_RIGHT) == 3)
+                                    automobile->m_carDamage.SetDoorStatus(DOOR_REAR_RIGHT, 0);
                             }
                         }
                         // dual trunk 
                         if (vehComps.Get(vehicle).m_pBootRight && automobile->m_aCarNodes[CAR_BOOT]) {
-                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootRight, 0.3f * automobile->stDoors[1].fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootRight, 0.3f * automobile->m_aDoors[1].fAngle);
                         }
                         if (vehComps.Get(vehicle).m_pBootLeft && automobile->m_aCarNodes[CAR_BOOT]) {
-                            FrameSetRotateZOnly(vehComps.Get(vehicle).m_pBootLeft, 1.3f * automobile->stDoors[1].fAngle);
+                            FrameSetRotateZOnly(vehComps.Get(vehicle).m_pBootLeft, 1.3f * automobile->m_aDoors[1].fAngle);
                         }
                         if (vehComps.Get(vehicle).m_pBootBottom && automobile->m_aCarNodes[CAR_BOOT]) {
-                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->stDoors[1].fAngle);
+                            FrameSetRotateXOnly(vehComps.Get(vehicle).m_pBootBottom, -1.3f * automobile->m_aDoors[1].fAngle);
                         }
                         // hub
                         if (vehComps.Get(vehicle).m_pHubLF && automobile->m_aCarNodes[CAR_WHEEL_LF])
@@ -513,15 +496,15 @@ public:
                                 else {
                                     vehComps.Get(vehicle).currentLightsAngle = vehComps.Get(vehicle).maxLightsAngle;
                                     FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
-                                    SetLightStatus(&automobile->stDamage, LIGHT_FRONT_LEFT, 0);
-                                    SetLightStatus(&automobile->stDamage, LIGHT_FRONT_RIGHT, 0);
+                                    automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 0);
+                                    automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 0);
                                     vehComps.Get(vehicle).lightsUpDown = true;
                                 }
                             }
                         }
                         else if (vehComps.Get(vehicle).lightsUpDown == true) {
-                            SetLightStatus(&automobile->stDamage, LIGHT_FRONT_LEFT, 1);
-                            SetLightStatus(&automobile->stDamage, LIGHT_FRONT_RIGHT, 1);
+                            automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_LEFT, 1);
+                            automobile->m_carDamage.SetLightStatus(LIGHT_FRONT_RIGHT, 1);
                             vehComps.Get(vehicle).currentLightsAngle -= 0.1f;
                             if (vehComps.Get(vehicle).currentLightsAngle > 0.0f)
                                 FrameSetRotateXOnly(vehComps.Get(vehicle).m_pLightsUp, vehComps.Get(vehicle).currentLightsAngle);
@@ -747,9 +730,9 @@ public:
                             else if (vehicle->m_fSteerAngle > 0.2f)
                             lightsStatus = LIGHTS_LEFT;*/
 
-                            if (vehicle->m_autopilot.m_nCuurentLane == 0 && vehicle->m_autopilot.m_nNextLane == 1)
+                            if (vehicle->m_autoPilot.m_nCuurentLane == 0 && vehicle->m_autoPilot.m_nNextLane == 1)
                                 lightsStatus = LIGHTS_RIGHT;
-                            else if (vehicle->m_autopilot.m_nCuurentLane == 1 && vehicle->m_autopilot.m_nNextLane == 0)
+                            else if (vehicle->m_autoPilot.m_nCuurentLane == 1 && vehicle->m_autoPilot.m_nNextLane == 0)
                                 lightsStatus = LIGHTS_LEFT;
                         }
                     }
@@ -805,7 +788,7 @@ public:
                     if (turnlightsData.Get(vehicle).m_pTurn[21])
                         DrawLight(vehicle, 121, color, turnlightsData.Get(vehicle).m_pTurn[21]);
                     if (turnlightsData.Get(vehicle).m_pTurn[22] && turnlightsData.Get(vehicle).m_pTurn[23] && vehicle->IsComponentPresent(7)) {
-                        if (3 > automobile->stDamage.GetPanelStatus(BUMP_FRONT)) {
+                        if (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)) {
                             DrawLight(vehicle, 122, color, turnlightsData.Get(vehicle).m_pTurn[22]);
                             DrawLight(vehicle, 123, color, turnlightsData.Get(vehicle).m_pTurn[23]);
                         }
@@ -888,11 +871,11 @@ public:
     }
 
     static void DrawLight(CVehicle *vehicle, unsigned int coronaId, CRGBA color, RwFrame *turn) {
-        RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, color.r, color.g, color.b, color.a, GetFramePosn(turn), 0.3f, 100.0f, 1, 0, 0, 0, 0, 0.0f);
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + coronaId, color.r, color.g, color.b, color.a, GetFramePosn(turn), 0.3f, 100.0f, 1, 0, 0, 0, 0, 0.0f, 0, 0.0f);
     }
 
     static void UpdateLight(CVehicle *vehicle, unsigned int coronaId, RwFrame *turn) {
-        UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 100.0f, 0.0f);
+        CCoronas::UpdateCoronaCoors(reinterpret_cast<unsigned int>(vehicle) + coronaId, GetFramePosn(turn), 100.0f, 0.0f);
     }
 
     static void DrawVehicleTurnlights(CVehicle *vehicle, eLightsStatus lightsStatus) {
@@ -904,19 +887,19 @@ public:
                 if (turnlightsData.Get(vehicle).m_pTurn[i])
                     DrawLight(vehicle, j, color, turnlightsData.Get(vehicle).m_pTurn[i]);
             }
-            if (turnlightsData.Get(vehicle).m_pTurn[8] && vehicle->IsComponentPresent(13) && (3 > automobile->stDamage.GetPanelStatus(WING_FRONT_LEFT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[8] && vehicle->IsComponentPresent(13) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT)))
                 DrawLight(vehicle, 108, color, turnlightsData.Get(vehicle).m_pTurn[8]); // turn_wlf
-            if (turnlightsData.Get(vehicle).m_pTurn[9] && vehicle->IsComponentPresent(14) && (3 > automobile->stDamage.GetPanelStatus(WING_REAR_LEFT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[9] && vehicle->IsComponentPresent(14) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT)))
                 DrawLight(vehicle, 109, color, turnlightsData.Get(vehicle).m_pTurn[9]); // turn_wlr
-            if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(13) && (3 > automobile->stDamage.GetPanelStatus(WING_FRONT_LEFT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[12] && vehicle->IsComponentPresent(13) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_LEFT)))
                 DrawLight(vehicle, 112, color, turnlightsData.Get(vehicle).m_pTurn[12]); // turn_wlm
-            if (turnlightsData.Get(vehicle).m_pTurn[18] && vehicle->IsComponentPresent(7) && (3 > automobile->stDamage.GetPanelStatus(BUMP_FRONT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[18] && vehicle->IsComponentPresent(7) && (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)))
                 DrawLight(vehicle, 118, color, turnlightsData.Get(vehicle).m_pTurn[18]); // turn_blf
                                                                                          // red
             color = { 255, 0, 0, 255 };
             if (turnlightsData.Get(vehicle).m_pTurn[14])
                 DrawLight(vehicle, 114, color, turnlightsData.Get(vehicle).m_pTurn[14]); // turnr_lb
-            if (turnlightsData.Get(vehicle).m_pTurn[16] && vehicle->IsComponentPresent(14) && (3 > automobile->stDamage.GetPanelStatus(WING_REAR_LEFT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[16] && vehicle->IsComponentPresent(14) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_LEFT)))
                 DrawLight(vehicle, 116, color, turnlightsData.Get(vehicle).m_pTurn[16]); // turnr_wlr
         }
         if (lightsStatus == LIGHTS_BOTH || lightsStatus == LIGHTS_RIGHT) {
@@ -925,19 +908,19 @@ public:
                 if (turnlightsData.Get(vehicle).m_pTurn[i])
                     DrawLight(vehicle, j, color, turnlightsData.Get(vehicle).m_pTurn[i]);
             }
-            if (turnlightsData.Get(vehicle).m_pTurn[10] && vehicle->IsComponentPresent(9) && (3 > automobile->stDamage.GetPanelStatus(WING_FRONT_RIGHT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[10] && vehicle->IsComponentPresent(9) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT)))
                 DrawLight(vehicle, 110, color, turnlightsData.Get(vehicle).m_pTurn[10]); // turn_wrf
-            if (turnlightsData.Get(vehicle).m_pTurn[11] && vehicle->IsComponentPresent(10) && (3 > automobile->stDamage.GetPanelStatus(WING_REAR_RIGHT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[11] && vehicle->IsComponentPresent(10) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT)))
                 DrawLight(vehicle, 111, color, turnlightsData.Get(vehicle).m_pTurn[11]); // turn_wrr
-            if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(9) && (3 > automobile->stDamage.GetPanelStatus(WING_FRONT_RIGHT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[13] && vehicle->IsComponentPresent(9) && (3 > automobile->m_carDamage.GetPanelStatus(WING_FRONT_RIGHT)))
                 DrawLight(vehicle, 113, color, turnlightsData.Get(vehicle).m_pTurn[13]); // turn_wrm
-            if (turnlightsData.Get(vehicle).m_pTurn[19] && vehicle->IsComponentPresent(7) && (3 > automobile->stDamage.GetPanelStatus(BUMP_FRONT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[19] && vehicle->IsComponentPresent(7) && (3 > automobile->m_carDamage.GetPanelStatus(BUMP_FRONT)))
                 DrawLight(vehicle, 119, color, turnlightsData.Get(vehicle).m_pTurn[19]); // turn_brf
                                                                                          // red
             color = { 255, 0, 0, 255 };
             if (turnlightsData.Get(vehicle).m_pTurn[15])
                 DrawLight(vehicle, 115, color, turnlightsData.Get(vehicle).m_pTurn[15]); // turnr_rb
-            if (turnlightsData.Get(vehicle).m_pTurn[17] && vehicle->IsComponentPresent(10) && (3 > automobile->stDamage.GetPanelStatus(WING_REAR_RIGHT)))
+            if (turnlightsData.Get(vehicle).m_pTurn[17] && vehicle->IsComponentPresent(10) && (3 > automobile->m_carDamage.GetPanelStatus(WING_REAR_RIGHT)))
                 DrawLight(vehicle, 117, color, turnlightsData.Get(vehicle).m_pTurn[17]); // turnr_wrr
         }
     }
