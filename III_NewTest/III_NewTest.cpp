@@ -198,7 +198,7 @@ public:
                     CFont::PrintString(10.0f, 70.0f, text);
                     swprintf(text, L"bEngineOn %.d", car->m_nVehicleFlags.bEngineOn);
                     CFont::PrintString(10.0f, 90.0f, text);
-                    swprintf(text, L"6 %.d", car->m_nVehicleFlags.b06);
+                    swprintf(text, L"bIsHandbrakeOn %.d", car->m_nVehicleFlags.bIsHandbrakeOn);
                     CFont::PrintString(10.0f, 110.0f, text);
                     swprintf(text, L"bLightsOn %.d", car->m_nVehicleFlags.bLightsOn);
                     CFont::PrintString(10.0f, 130.0f, text);
@@ -267,6 +267,20 @@ public:
     }
 
     MoreVehiclesSpawner() {
+        
+        Events::menuDrawingEvent += [] {
+            CFont::SetScale(0.5f, 1.0f);
+            CFont::SetColor(CRGBA(238, 173, 53, 255));
+            CFont::SetJustifyOn();
+            CFont::SetFontStyle(0);
+            CFont::SetPropOn();
+            CFont::SetWrapx(600.0f);
+            wchar_t text[64];
+            swprintf(text, L"Additional Components by kenking (14.03.2018)");
+            CFont::PrintString(25.0f, 55.0f, text);
+        };
+        
+        
         //ms_vehicleLod0Dist = 250.0f;
         //ms_bigVehicleLod0Dist = 250.0f;
         //*(float *)0x600150 = 400.0f; // 70

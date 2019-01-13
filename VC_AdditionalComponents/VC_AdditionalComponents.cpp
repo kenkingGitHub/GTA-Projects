@@ -164,17 +164,17 @@ public:
     AdditionalComponents() {
         ReadSettingsFile();
 
-        /*Events::onMenuDrawingEvent += [] {
+        Events::menuDrawingEvent += [] {
             CFont::SetScale(0.5f, 1.0f);
-            CFont::SetColor(CRGBA(238, 173, 53, 255));
+            CFont::SetColor(CRGBA(241, 143, 213, 255));
             CFont::SetJustifyOn();
-            CFont::SetFontStyle(0);
+            CFont::SetFontStyle(1);
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (14.03.2018)");
-            CFont::PrintString(25.0f, 25.0f, text);
-        };*/
+            swprintf(text, L"Additional Components by kenking (13.01.2019)");
+            CFont::PrintString(3.0f, 3.0f, text);
+        };
 
         Events::vehicleSetModelEvent += [](CVehicle *vehicle, int modelIndex) {
             if (vehicle) {
