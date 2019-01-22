@@ -11,6 +11,9 @@
 #include "CStreaming.h"
 #include "CTheScripts.h"
 
+#include "CMessages.h"
+#include "CFont.h"
+
 CVector __cdecl PointOffset(CMatrix matrix, float x, float y, float z) {
     CVector pos;
     pos.x = matrix.pos.x + x * matrix.right.x + y * matrix.up.x + z * matrix.at.x;
@@ -59,8 +62,9 @@ public:
     class VehicleComponents {
     public:
         RwFrame *misc, *hookup, *prop_a, *prop_b, *prop_c;  char connector;
+        CVehicle *m_pTractor, *m_pTrailer; bool enableSpeed;
 
-        VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = prop_c = nullptr;  connector = 0; }
+        VehicleComponents(CVehicle *) { misc = hookup = prop_a = prop_b = prop_c = nullptr;  connector = 0; m_pTractor = m_pTrailer = nullptr; enableSpeed = true; }
     };
 
     static VehicleExtendedData<VehicleComponents> vehComps;
@@ -112,9 +116,13 @@ public:
         CStreaming::RequestModel(modelTrailer, GAME_REQUIRED);
         CStreaming::LoadAllRequestedModels(false);
         if (CStreaming::ms_aInfoForModel[modelTrailer].m_nLoadState == LOADSTATE_LOADED && vehicle) {
+            //vehicle->m_autoPilot.m_nCruiseSpeed = 5.0f;
+            //vehicle->m_nMoveFlags |= 1;
+            //vehicle->m_fMass = vehicle->m_pHandlingData->m_fMass * 3.0f;
+            //vehicle->m_fTurnMass = vehicle->m_pHandlingData->m_fTurnMass * 5.0f;
             if (extra) {
-                CVehicleModelInfo::ms_compsToUse[0] = vehicle->m_nExtra[0];
-                CVehicleModelInfo::ms_compsToUse[1] = vehicle->m_nExtra[1];
+                CVehicleModelInfo::ms_compsToUse[0] = vehicle->m_anExtras[0];
+                CVehicleModelInfo::ms_compsToUse[1] = vehicle->m_anExtras[1];
             }
             CVehicle *trailer = nullptr;
             trailer = new CAutomobile(modelTrailer, 1);
@@ -208,6 +216,47 @@ public:
         matrixFrame.UpdateRW();
     }
 
+    static CVector GetFramePosn(RwFrame *frame) {
+        CVector posnFrame;
+        RwV3d posn = RwFrameGetLTM(frame)->pos;
+        posnFrame.x = posn.x;
+        posnFrame.y = posn.y;
+        posnFrame.z = posn.z;
+        return posnFrame;
+    }
+
+    static void SearchTrailer(CVehicle *vehicle) {
+        if (vehComps.Get(vehicle).misc) {
+            for (auto trailer : CPools::ms_pVehiclePool) {
+                if (vehComps.Get(trailer).hookup && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector)) {
+                    if (DistanceBetweenPoints(GetFramePosn(vehComps.Get(vehicle).misc), GetFramePosn(vehComps.Get(trailer).hookup)) <= 2.0f) {
+                        vehComps.Get(vehicle).m_pTrailer = trailer; break;
+                    }
+                }
+            }
+        }
+    }
+
+    /*static void SearchTrailer(CAutomobile *vehicle) {
+        vehComps.Get(vehicle).m_pTrailer = nullptr;
+        if (vehComps.Get(vehicle).misc) {
+            CEntity *outTrailer;
+            short outCountTrailer;
+            outCountTrailer = 0;
+            CWorld::FindObjectsInRange(vehicle->TransformFromObjectSpace(CVector(0.0f, -5.0f, 0.0f)), 10.0f, 1, &outCountTrailer, 2, &outTrailer, 0, 1, 0, 0, 0);
+            if (outCountTrailer > 0) {
+                CVehicle *trailer = reinterpret_cast<CVehicle *>(outTrailer);
+                vehComps.Get(trailer).m_pTractor = nullptr;
+                if (vehComps.Get(trailer).hookup && (vehComps.Get(vehicle).connector == vehComps.Get(trailer).connector)) {
+                    if ((Distance(PointOffset(vehicle->m_matrix, 0, vehComps.Get(vehicle).misc->modelling.pos.y, vehComps.Get(vehicle).misc->modelling.pos.z), PointOffset(trailer->m_matrix, 0, vehComps.Get(trailer).hookup->modelling.pos.y, vehComps.Get(trailer).hookup->modelling.pos.z)) < 2.0f)) {
+                        vehComps.Get(trailer).m_pTractor = vehicle;
+                        vehComps.Get(vehicle).m_pTrailer = trailer;
+                    }
+                }
+            }
+        }
+    }*/
+
     TruckTrailer() {
         ReadSettingsFile();
         static unsigned int Id;
@@ -257,6 +306,47 @@ public:
             }
             else {
                 vehComps.Get(vehicle).misc = vehComps.Get(vehicle).hookup = vehComps.Get(vehicle).prop_a = vehComps.Get(vehicle).prop_b = vehComps.Get(vehicle).prop_c = nullptr;
+            }
+        };
+
+        Events::drawingEvent += [] {
+            CPed *player = FindPlayerPed();
+            if (player) {
+                if (player->m_pVehicle && player->m_pVehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+                    vehComps.Get(player->m_pVehicle).m_pTrailer = nullptr;
+                    if (player->m_bInVehicle) {
+                        SearchTrailer(player->m_pVehicle);
+                        if (vehComps.Get(player->m_pVehicle).m_pTrailer) {
+                            if (vehComps.Get(player->m_pVehicle).enableSpeed) {
+                                player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 0.5f;
+                                vehComps.Get(player->m_pVehicle).enableSpeed = false;
+                            }
+                        }
+                        else if (!vehComps.Get(player->m_pVehicle).enableSpeed) {
+                            player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 2.0f;
+                            vehComps.Get(player->m_pVehicle).enableSpeed = true;
+                        }
+                    }
+                    else if (!vehComps.Get(player->m_pVehicle).enableSpeed) {
+                        player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 2.0f;
+                        vehComps.Get(player->m_pVehicle).enableSpeed = true;
+                    }
+                    CFont::SetScale(0.5f, 1.0f);
+                    CFont::SetColor(CRGBA(238, 173, 53, 255));
+                    CFont::SetJustifyOn();
+                    CFont::SetFontStyle(0);
+                    CFont::SetPropOn();
+                    CFont::SetWrapx(600.0f);
+                    wchar_t text[64];
+                    swprintf(text, L"enableSpeed %d", vehComps.Get(player->m_pVehicle).enableSpeed);
+                    CFont::PrintString(10.0f, 100.0f, text);
+                    swprintf(text, L"MaxGearVelocity %.2f", player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity);
+                    CFont::PrintString(10.0f, 120.0f, text);
+                    if (vehComps.Get(player->m_pVehicle).m_pTrailer) {
+                        swprintf(text, L"ID trailer %d", vehComps.Get(player->m_pVehicle).m_pTrailer->m_nModelIndex);
+                        CFont::PrintString(10.0f, 80.0f, text);
+                    }
+                }
             }
         };
 

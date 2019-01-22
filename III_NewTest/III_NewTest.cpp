@@ -15,6 +15,8 @@
 
 #include "CMessages.h"
 
+//#include <bitset>
+
 float &ms_vehicleLod0Dist = *(float *)0x600150; // 70
 float &ms_vehicleLod1Dist = *(float *)0x600154; // 90
 float &ms_bigVehicleLod0Dist = *(float *)0x60015C; // 60
@@ -161,12 +163,94 @@ public:
             snprintf(message, 256, "random %d", plugin::Random(12345, 98765));
             CMessages::AddMessageJumpQ(message, 2000, false);
         }
+        CVehicle *playerCar = FindPlayerVehicle();
+        if (playerCar && playerCar->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+            CEntity *outEntity;
+            short outCount;
+            outCount = 0;
+            int index = 0;
+            CWorld::FindObjectsInRange(playerCar->TransformFromObjectSpace(CVector(0.0f, -10.0f, 0.0f)), 5.0f, 1, &outCount, 5, &outEntity, 0, 1, 0, 0, 0);
+            if (outCount > 0) {
+                CFont::SetScale(0.5f, 1.0f);
+                CFont::SetColor(CRGBA(255, 255, 255, 255));
+                CFont::SetJustifyOn();
+                CFont::SetFontStyle(0);
+                CFont::SetPropOn();
+                CFont::SetWrapx(600.0f);
+                wchar_t text3[64];
+                swprintf(text3, L"ID %d", outEntity->m_nModelIndex);
+                CFont::PrintString(10.0f, 10.0f, text3);
+                swprintf(text3, L"prim %d", reinterpret_cast<CVehicle *>(outEntity)->m_nPrimaryColor);
+                CFont::PrintString(10.0f, 30.0f, text3);
+                swprintf(text3, L"sec %d", reinterpret_cast<CVehicle *>(outEntity)->m_nPrimaryColor);
+                CFont::PrintString(10.0f, 50.0f, text3);
+
+                if (KeyCheck::CheckWithDelay('K', 200)) {
+                    reinterpret_cast<CVehicle *>(outEntity)->m_nPrimaryColor = playerCar->m_nPrimaryColor;
+                    reinterpret_cast<CVehicle *>(outEntity)->m_nSecondaryColor = playerCar->m_nSecondaryColor;
+                }
+            }
+            
+            
+            if (KeyCheck::CheckWithDelay('N', 200)) {
+                playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 0.5f;
+            }
+            if (KeyCheck::CheckWithDelay('B', 200)) {
+                playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 2.0f;
+            }
+            
+            CFont::SetScale(0.5f, 1.0f);
+            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            CFont::SetJustifyOn();
+            CFont::SetFontStyle(0);
+            CFont::SetPropOn();
+            CFont::SetWrapx(600.0f);
+            wchar_t text2[64];
+            swprintf(text2, L"SpeedScaleFactor %d", playerCar->m_autoPilot.m_nSpeedScaleFactor);
+            CFont::PrintString(200.0f, 10.0f, text2);
+            swprintf(text2, L"Mass %.2f", playerCar->m_pHandlingData->m_fMass);
+            CFont::PrintString(200.0f, 30.0f, text2);
+            swprintf(text2, L"TurnMass %.2f", playerCar->m_pHandlingData->m_fTurnMass);
+            CFont::PrintString(200.0f, 50.0f, text2);
+            swprintf(text2, L"TotSpeed %.2f", playerCar->m_fTotSpeed);
+            CFont::PrintString(200.0f, 70.0f, text2);
+            swprintf(text2, L"MaxGear %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity);
+            CFont::PrintString(200.0f, 90.0f, text2);
+            swprintf(text2, L"MinGear %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fMinGearVelocity);
+            CFont::PrintString(200.0f, 110.0f, text2);
+            swprintf(text2, L"CurrentGearVelocity %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fCurrentGearVelocity);
+            CFont::PrintString(200.0f, 130.0f, text2);
+            swprintf(text2, L"CurrentGear %d", playerCar->m_nCurrentGear);
+            CFont::PrintString(200.0f, 150.0f, text2);
+
+            swprintf(text2, L"MaxVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fMaxVelocity);
+            CFont::PrintString(200.0f, 170.0f, text2);
+            swprintf(text2, L"MaxVelocity1 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fMaxVelocity);
+            CFont::PrintString(200.0f, 190.0f, text2);
+            swprintf(text2, L"MaxVelocity2 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fMaxVelocity);
+            CFont::PrintString(200.0f, 210.0f, text2);
+            swprintf(text2, L"UpVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeUpVelocity);
+            CFont::PrintString(200.0f, 230.0f, text2);
+            swprintf(text2, L"UpVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeUpVelocity);
+            CFont::PrintString(200.0f, 250.0f, text2);
+            swprintf(text2, L"UpVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeUpVelocity);
+            CFont::PrintString(200.0f, 270.0f, text2);
+            swprintf(text2, L"DownVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeDownVelocity);
+            CFont::PrintString(200.0f, 290.0f, text2);
+            swprintf(text2, L"DownVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeDownVelocity);
+            CFont::PrintString(200.0f, 310.0f, text2);
+            swprintf(text2, L"DownVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeDownVelocity);
+            CFont::PrintString(200.0f, 330.0f, text2);
+            swprintf(text2, L"speed %.2f", playerCar->m_vecMoveSpeed.Magnitude());
+            CFont::PrintString(200.0f, 350.0f, text2);
+            
+        }
 
         CPed *player = FindPlayerPed();
         if (player && KeyPressed('I')) {
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                 CVehicle *car = CPools::ms_pVehiclePool->GetAt(i);
-                if (car && (DistanceBetweenPoints(player->GetPosition(), car->GetPosition()) < 5.0f)) {
+                if (car && (DistanceBetweenPoints(player->GetPosition(), car->GetPosition()) < 5.0f) && !player->m_bInVehicle) {
                     CFont::SetScale(0.5f, 1.0f);
                     CFont::SetColor(CRGBA(255, 255, 255, 255));
                     CFont::SetJustifyOn();
@@ -186,7 +270,6 @@ public:
                     CFont::PrintString(200.0f, 90.0f, text);
                     swprintf(text, L"FadeDist %.2f", ms_vehicleFadeDist);
                     CFont::PrintString(200.0f, 110.0f, text);
-
 
                     swprintf(text, L"bIsLawEnforcer %.d", car->m_nVehicleFlags.bIsLawEnforcer);
                     CFont::PrintString(10.0f, 10.0f, text);
@@ -268,7 +351,7 @@ public:
 
     MoreVehiclesSpawner() {
         
-        Events::menuDrawingEvent += [] {
+        /*Events::menuDrawingEvent += [] {
             CFont::SetScale(0.5f, 1.0f);
             CFont::SetColor(CRGBA(238, 173, 53, 255));
             CFont::SetJustifyOn();
@@ -276,9 +359,9 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text[64];
-            swprintf(text, L"Additional Components by kenking (14.03.2018)");
+            swprintf(text, L"Additional Components by kenking (19.01.2019)");
             CFont::PrintString(25.0f, 55.0f, text);
-        };
+        };*/
         
         
         //ms_vehicleLod0Dist = 250.0f;
@@ -296,7 +379,7 @@ public:
                     CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
                     if (vehicle && (DistanceBetweenPoints(car->GetPosition(), vehicle->GetPosition()) < 5.0f)) {
                         KeyCheck::Update();
-                        if (KeyCheck::CheckWithDelay('N', 200)) {
+                        if (KeyCheck::CheckWithDelay('U', 200)) {
                             CVector offset = car->TransformFromObjectSpace(CVector(0.0f, 0.0f, 3.0f));
                             CMatrix matrix;
                             CPhysical::PlacePhysicalRelativeToOtherPhysical(car, vehicle, offset);
