@@ -24,6 +24,12 @@ float &ms_bigVehicleLod1Dist = *(float *)0x600160; // 150
 float &ms_cullCompsDist = *(float *)0x600138; // 20
 float &ms_vehicleFadeDist = *(float *)0x600158; // 100
 
+float &CurrentSpeed = *(float *)0x64D054;
+float &Acceleration = *(float *)0x64D04C;
+char &byte_64D03C = *(char *)0x64D03C;
+char &byte_64D044 = *(char *)0x64D044;
+float &dword_64D058 = *(float *)0x64D058;
+
 using namespace plugin;
 
 class MoreVehiclesSpawner {
@@ -165,7 +171,7 @@ public:
         }
         CVehicle *playerCar = FindPlayerVehicle();
         if (playerCar && playerCar->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-            CEntity *outEntity;
+            /*CEntity *outEntity;
             short outCount;
             outCount = 0;
             int index = 0;
@@ -189,7 +195,7 @@ public:
                     reinterpret_cast<CVehicle *>(outEntity)->m_nPrimaryColor = playerCar->m_nPrimaryColor;
                     reinterpret_cast<CVehicle *>(outEntity)->m_nSecondaryColor = playerCar->m_nSecondaryColor;
                 }
-            }
+            }*/
             
             
             if (KeyCheck::CheckWithDelay('N', 200)) {
@@ -199,6 +205,20 @@ public:
                 playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity *= 2.0f;
             }
             
+            if (KeyCheck::CheckWithDelay('U', 200)) {
+                playerCar->m_pHandlingData->m_fMass *= 0.5f;
+            }
+            if (KeyCheck::CheckWithDelay('Y', 200)) {
+                playerCar->m_pHandlingData->m_fMass *= 2.0f;
+            }
+
+            if (KeyCheck::CheckWithDelay('H', 200)) {
+                playerCar->m_pHandlingData->m_fTurnMass *= 0.5f;
+            }
+            if (KeyCheck::CheckWithDelay('G', 200)) {
+                playerCar->m_pHandlingData->m_fTurnMass *= 2.0f;
+            }
+
             CFont::SetScale(0.5f, 1.0f);
             CFont::SetColor(CRGBA(255, 255, 255, 255));
             CFont::SetJustifyOn();
@@ -206,15 +226,15 @@ public:
             CFont::SetPropOn();
             CFont::SetWrapx(600.0f);
             wchar_t text2[64];
-            swprintf(text2, L"SpeedScaleFactor %d", playerCar->m_autoPilot.m_nSpeedScaleFactor);
+            swprintf(text2, L"fMaxVelocityData %d", (int)(playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity * 152.5f));
             CFont::PrintString(200.0f, 10.0f, text2);
-            swprintf(text2, L"Mass %.2f", playerCar->m_pHandlingData->m_fMass);
+            swprintf(text2, L"Acceleration %.5f", Acceleration);
             CFont::PrintString(200.0f, 30.0f, text2);
-            swprintf(text2, L"TurnMass %.2f", playerCar->m_pHandlingData->m_fTurnMass);
+            swprintf(text2, L"CurrentSpeed %.2f", CurrentSpeed);
             CFont::PrintString(200.0f, 50.0f, text2);
-            swprintf(text2, L"TotSpeed %.2f", playerCar->m_fTotSpeed);
+            swprintf(text2, L"MaxSpeed %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fMaxSpeed);
             CFont::PrintString(200.0f, 70.0f, text2);
-            swprintf(text2, L"MaxGear %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity);
+            swprintf(text2, L"MaxGear %.7f", playerCar->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity);
             CFont::PrintString(200.0f, 90.0f, text2);
             swprintf(text2, L"MinGear %.2f", playerCar->m_pHandlingData->m_transmissionData.m_fMinGearVelocity);
             CFont::PrintString(200.0f, 110.0f, text2);
@@ -223,29 +243,29 @@ public:
             swprintf(text2, L"CurrentGear %d", playerCar->m_nCurrentGear);
             CFont::PrintString(200.0f, 150.0f, text2);
 
-            swprintf(text2, L"MaxVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fMaxVelocity);
+            /*swprintf(text2, L"byte_64D03C %d", byte_64D03C);
             CFont::PrintString(200.0f, 170.0f, text2);
-            swprintf(text2, L"MaxVelocity1 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fMaxVelocity);
+            swprintf(text2, L"byte_64D044 %d", byte_64D044);
             CFont::PrintString(200.0f, 190.0f, text2);
-            swprintf(text2, L"MaxVelocity2 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fMaxVelocity);
-            CFont::PrintString(200.0f, 210.0f, text2);
-            swprintf(text2, L"UpVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeUpVelocity);
-            CFont::PrintString(200.0f, 230.0f, text2);
-            swprintf(text2, L"UpVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeUpVelocity);
-            CFont::PrintString(200.0f, 250.0f, text2);
-            swprintf(text2, L"UpVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeUpVelocity);
-            CFont::PrintString(200.0f, 270.0f, text2);
-            swprintf(text2, L"DownVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeDownVelocity);
-            CFont::PrintString(200.0f, 290.0f, text2);
-            swprintf(text2, L"DownVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeDownVelocity);
-            CFont::PrintString(200.0f, 310.0f, text2);
-            swprintf(text2, L"DownVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeDownVelocity);
-            CFont::PrintString(200.0f, 330.0f, text2);
+            swprintf(text2, L"dword_64D058 %.2f", dword_64D058);
+            CFont::PrintString(200.0f, 210.0f, text2);*/
+            ///*swprintf(text2, L"UpVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeUpVelocity);
+            //CFont::PrintString(200.0f, 230.0f, text2);
+            //swprintf(text2, L"UpVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeUpVelocity);
+            //CFont::PrintString(200.0f, 250.0f, text2);
+            //swprintf(text2, L"UpVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeUpVelocity);
+            //CFont::PrintString(200.0f, 270.0f, text2);
+            //swprintf(text2, L"DownVelocity0 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeDownVelocity);
+            //CFont::PrintString(200.0f, 290.0f, text2);
+            //swprintf(text2, L"DownVelocity01 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeDownVelocity);
+            //CFont::PrintString(200.0f, 310.0f, text2);
+            //swprintf(text2, L"DownVelocity02 %.2f", playerCar->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeDownVelocity);
+            //CFont::PrintString(200.0f, 330.0f, text2);*/
             swprintf(text2, L"speed %.2f", playerCar->m_vecMoveSpeed.Magnitude());
             CFont::PrintString(200.0f, 350.0f, text2);
             
         }
-
+        
         CPed *player = FindPlayerPed();
         if (player && KeyPressed('I')) {
             for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -372,7 +392,7 @@ public:
         //Events::drawingEvent += Render;
         Events::drawingEvent += RenderVehicleFlags;
 
-        Events::gameProcessEvent += [] {
+        /*Events::gameProcessEvent += [] {
             CVehicle *car = FindPlayerVehicle();
             if (car) {
                 for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -388,7 +408,7 @@ public:
                     }
                 }
             }
-        };
+        };*/
 
 
         //Events::gameProcessEvent += [] {

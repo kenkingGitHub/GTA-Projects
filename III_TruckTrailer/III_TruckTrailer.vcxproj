@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F9767737-F796-4232-84D4-61A030FE311C}</ProjectGuid>
+    <ProjectGuid>{7C3CAB04-ED01-40A3-AEB7-7B624E497F17}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>III_TruckTrailer</RootNamespace>
