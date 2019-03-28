@@ -3,6 +3,8 @@
 #include "CStreaming.h"
 #include "CWorld.h"
 #include "CVehicleModelInfo.h"
+#include "eVehicleModel.h"
+#include "ePedModel.h"
 
 using namespace plugin;
 
@@ -10,50 +12,32 @@ class Test {
 public:
     
     static int ChoosePoliceCarModel() {
-        CPed *player = FindPlayerPed();
+        CPlayerPed *player = FindPlayerPed();
         if (player) {
-            
-            player = FindPlayerPed();
-            if (CWanted::AreSwatRequired(player->m_pWanted)
-                && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == 1
-                && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == 1)
-            {
+            int result;
+            if (player->m_pWanted->AreSwatRequired() && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == 1) {
                 if (rand() & 15)
                     result = MODEL_POLICE;
                 else
                     result = MODEL_ENFORCER;
             }
-            else
-            {
-                player_1 = FindPlayerPed();
-                if (CWanted::AreFbiRequired(player_1->m_pWanted)
-                    && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == 1
-                    && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == 1)
-                {
+            else  {
+                if (player->m_pWanted->AreFbiRequired() && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == 1) {
                     result = MODEL_FBICAR;
                 }
-                else
-                {
-                    player_2 = FindPlayerPed();
-                    if (CWanted::AreArmyRequired(player_2->m_pWanted)
-                        && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == 1
-                        && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == 1
-                        && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == 1)
-                    {
+                else {
+                    if (player->m_pWanted->AreArmyRequired() && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == 1) {
                         if ((unsigned __int16)rand() < 16383u)
                             result = MODEL_BARRACKS;
                         else
                             result = MODEL_RHINO;
                     }
-                    else
-                    {
+                    else  {
                         result = MODEL_POLICE;
                     }
                 }
             }
             return result;
-
-
         }
     }
 

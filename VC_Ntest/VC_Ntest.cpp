@@ -1,7 +1,6 @@
 #include "plugin.h"
-#include "extensions\KeyCheck.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
+#include "CPed.h"
+#include "CWorld.h"
 #include "CMessages.h"
 
 using namespace plugin;
@@ -10,18 +9,69 @@ class Test {
 public:
     Test() {
         Events::gameProcessEvent += [] {
-            CVehicle *vehicle = FindPlayerVehicle();
-            KeyCheck::Update();
-            if (vehicle && KeyCheck::CheckWithDelay('M', 200)) {
-                CVector pos = { 0.0f, 0.0f, 0.0f };
-                Command<COMMAND_GET_CAR_COORDINATES>(CPools::GetVehicleRef(vehicle), &pos.x, &pos.y, &pos.z);
-                static char message[256];
-                snprintf(message, 256, "x = %.2f; y = %.2f; z = %.2f; ", pos.x, pos.y, pos.z);
-                CMessages::AddMessageJumpQ(message, 3000, false);
+            CPed *player = FindPlayerPed();
+            if (player) {
+                for (int i = 0; i < CPools::ms_pObjectPool->m_nSize; i++) {
+                    CObject *object = CPools::ms_pObjectPool->GetAt(i);
+                    if (object && /*object->m_nModelIndex == 370 &&*/ DistanceBetweenPoints(object->GetPosition(), player->GetPosition()) < 5.0f) {
+                        static char message[256];
+                        snprintf(message, 256, "ID = %d", object->m_nModelIndex);
+                        CMessages::AddMessageJumpQ(message, 1000, false);
+                        //object->m_placement.pos.x += 2.0f;
+                    }
+                }
             }
         };
     }
 } test;
+
+
+//#include "plugin.h"
+//#include "CPed.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (auto car : CPools::ms_pVehiclePool) {
+//                    if (DistanceBetweenPoints(car->GetPosition(), player->GetPosition()) < 20.0f && car->m_nVehicleClass == VEHICLE_AUTOMOBILE && car->m_fHealth > 50.0f) {
+//                        if (car->m_pDriver && car->m_pDriver != player)
+//                            car->m_pDriver->SetExitCar(car, 15);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CVehicle *vehicle = FindPlayerVehicle();
+//            KeyCheck::Update();
+//            if (vehicle && KeyCheck::CheckWithDelay('M', 200)) {
+//                CVector pos = { 0.0f, 0.0f, 0.0f };
+//                Command<COMMAND_GET_CAR_COORDINATES>(CPools::GetVehicleRef(vehicle), &pos.x, &pos.y, &pos.z);
+//                static char message[256];
+//                snprintf(message, 256, "x = %.2f; y = %.2f; z = %.2f; ", pos.x, pos.y, pos.z);
+//                CMessages::AddMessageJumpQ(message, 3000, false);
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "CMessages.h"
