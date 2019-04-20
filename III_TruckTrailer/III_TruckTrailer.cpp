@@ -10,6 +10,7 @@
 #include <string>
 #include "CStreaming.h"
 #include "CTheScripts.h"
+#include "CCamera.h"
 
 //#include "CMessages.h"
 //#include "CFont.h"
@@ -343,6 +344,9 @@ public:
                     if (player->m_bInVehicle) {
                         CVehicle *trailer = FindTrailer(player->m_pVehicle);
                         if (trailer) {
+                            //TheCamera.m_fCarZoomValueScript = TheCamera.m_fCarZoomValue + CModelInfo::ms_modelInfoPtrs[trailer->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y;
+                            TheCamera.m_fCarZoomValueScript = TheCamera.m_fCarZoomValue + (-1.0f * CModelInfo::ms_modelInfoPtrs[player->m_pVehicle->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y);
+                            TheCamera.m_bUseScriptZoomValueCar = 1;
                             KeyCheck::Update();
                             if (KeyCheck::CheckWithDelay(VK_BACK, 200)) {
                                 trailer->m_matrix.pos = PointOffset(trailer->m_matrix, 0, -1.6f, 0);
@@ -354,14 +358,27 @@ public:
                                 vehComps.Get(player->m_pVehicle).disableSpeed = false;
                             }
                         }
-                        else if (!vehComps.Get(player->m_pVehicle).disableSpeed) {
+                        else {
+                            if (TheCamera.m_bUseScriptZoomValueCar) {
+                                TheCamera.m_fCarZoomValueScript = 0.0f;
+                                TheCamera.m_bUseScriptZoomValueCar = 0;
+                            }
+                            if (!vehComps.Get(player->m_pVehicle).disableSpeed) {
+                                player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxForwardsVelocity *= 2.0f;
+                                vehComps.Get(player->m_pVehicle).disableSpeed = true;
+                            }
+                        }
+                    }
+                    else {
+                        if (TheCamera.m_bUseScriptZoomValueCar) {
+                            TheCamera.m_fCarZoomValueScript = 0.0f;
+                            TheCamera.m_bUseScriptZoomValueCar = 0;
+                            TheCamera.m_fCarZoomValueSmooth = TheCamera.m_fCarZoomValue;
+                        }
+                        if (!vehComps.Get(player->m_pVehicle).disableSpeed) {
                             player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxForwardsVelocity *= 2.0f;
                             vehComps.Get(player->m_pVehicle).disableSpeed = true;
                         }
-                    }
-                    else if (!vehComps.Get(player->m_pVehicle).disableSpeed) {
-                        player->m_pVehicle->m_pHandlingData->m_transmissionData.m_fMaxForwardsVelocity *= 2.0f;
-                        vehComps.Get(player->m_pVehicle).disableSpeed = true;
                     }
                 }
             }

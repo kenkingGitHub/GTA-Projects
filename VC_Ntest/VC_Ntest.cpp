@@ -1,30 +1,145 @@
 #include "plugin.h"
-#include "CPed.h"
-#include "CWorld.h"
-#include "CMessages.h"
+#include "extensions\KeyCheck.h"
+#include "CModelInfo.h"
+#include "CFont.h"
+#include "CStreaming.h"
 
 using namespace plugin;
 
-class Test {
+class MyPlugin {
 public:
-    Test() {
+    MyPlugin() {
+
+        Events::drawingEvent += [] {
+            CFont::SetScale(0.5f, 1.0f);
+            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            CFont::SetJustifyOn();
+            CFont::SetFontStyle(2);
+            CFont::SetPropOn();
+            CFont::SetWrapx(600.0f);
+            wchar_t text[32];
+            swprintf(text, L"TxdIndex %d", CModelInfo::ms_modelInfoPtrs[162]->m_nTxdIndex);
+            CFont::PrintString(10.0f, 30.0f, text);
+
+            unsigned char oldFlags = CStreaming::ms_aInfoForModel[162].m_nFlags;
+            swprintf(text, L"Flag %d", oldFlags);
+            CFont::PrintString(10.0f, 50.0f, text);
+
+            swprintf(text, L"LoadState %d", CStreaming::ms_aInfoForModel[162].m_nLoadState);
+            CFont::PrintString(10.0f, 70.0f, text);
+        };
+
         Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            if (player) {
-                for (int i = 0; i < CPools::ms_pObjectPool->m_nSize; i++) {
-                    CObject *object = CPools::ms_pObjectPool->GetAt(i);
-                    if (object && /*object->m_nModelIndex == 370 &&*/ DistanceBetweenPoints(object->GetPosition(), player->GetPosition()) < 5.0f) {
-                        static char message[256];
-                        snprintf(message, 256, "ID = %d", object->m_nModelIndex);
-                        CMessages::AddMessageJumpQ(message, 1000, false);
-                        //object->m_placement.pos.x += 2.0f;
-                    }
-                }
+            KeyCheck::Update();
+            //unsigned char oldLoadState;
+            if (KeyCheck::CheckWithDelay(99, 1000)) {
+                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+                
+                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino4");
+                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(98, 1000)) {
+                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+                
+                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino3");
+                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(97, 1000)) {
+                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+                
+                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino2");
+                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(96, 1000)) {
+                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+                
+                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino");
+                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
             }
         };
     }
-} test;
+} myPlugin;
 
+
+//#include "plugin.h"
+//#include "CPed.h"
+//#include "extensions\KeyCheck.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static CPed *GetRandomPed(CVector const &posn, float radius) {
+//        std::vector<CPed *> peds;
+//        for (auto ped : CPools::ms_pPedPool) {
+//            if (DistanceBetweenPoints(ped->GetPosition(), posn) <= radius)
+//                peds.push_back(ped);
+//        }
+//        return peds.empty() ? nullptr : peds[plugin::Random(0, peds.size() - 1)];
+//    }
+//    
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 500)) {
+//                CPed *player = FindPlayerPed();
+//                if (player) {
+//                    CVector offset = { 0.0f, 20.0f, 0.0f };
+//                    CVector point = player->m_placement * offset;
+//                    player->m_nPedFlags.bHasObjectiveCompleted = 0;
+//                    player->SetObjective(OBJECTIVE_RUN_TO_AREA, point);
+//                    /*CPed *ped = GetRandomPed(player->GetPosition(), 15.0f);
+//                    if (ped) {
+//                        CVector offset = { 0.0f, 2.0f, 0.0f };
+//                        CVector point = player->m_placement * offset;
+//                        ped->m_nPedFlags.bHasObjectiveCompleted = 0;
+//                        ped->SetObjective(OBJECTIVE_RUN_TO_AREA, point);
+//                    }*/
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+
+//#include "plugin.h"
+//#include "CPed.h"
+//#include "CWorld.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pObjectPool->m_nSize; i++) {
+//                    CObject *object = CPools::ms_pObjectPool->GetAt(i);
+//                    if (object && /*object->m_nModelIndex == 370 &&*/ DistanceBetweenPoints(object->GetPosition(), player->GetPosition()) < 5.0f) {
+//                        static char message[256];
+//                        snprintf(message, 256, "ID = %d", object->m_nModelIndex);
+//                        CMessages::AddMessageJumpQ(message, 1000, false);
+//                        //object->m_placement.pos.x += 2.0f;
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "CPed.h"
@@ -126,7 +241,6 @@ public:
 //    }
 //} test;
 
-
 //#include "plugin.h"
 //#include "CWorld.h"
 //#include "CTimer.h"
@@ -224,7 +338,6 @@ public:
 //    }
 //} test;
 
-
 //#include "plugin.h"
 //#include "CWorld.h"
 //#include "extensions\KeyCheck.h"
@@ -251,7 +364,6 @@ public:
 //    }
 //} test;
 
-
 //#include "plugin.h"
 //#include "CWorld.h"
 //#include "extensions\KeyCheck.h"
@@ -277,7 +389,6 @@ public:
 //        };
 //    }
 //} test;
-
 
 //#include "plugin.h"
 //#include "CClumpModelInfo.h"
