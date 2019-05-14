@@ -97,6 +97,10 @@ public:
         Events::gameProcessEvent += [] {
             int index;
 
+            /*CPed *player = FindPlayerPed();
+            if (player)
+                player->m_nFlags.bBulletProof = 1;*/
+
             KeyCheck::Update();
             if (KeyCheck::CheckWithDelay('Y', 500)) {
                 //TheCamera.m_asCams[TheCamera.m_nActiveCam].
