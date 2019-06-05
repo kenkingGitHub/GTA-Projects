@@ -1,76 +1,106 @@
 #include "plugin.h"
 #include "extensions\KeyCheck.h"
-#include "CModelInfo.h"
-#include "CFont.h"
-#include "CStreaming.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
 
 using namespace plugin;
 
-class MyPlugin {
+class Test {
 public:
-    MyPlugin() {
-
-        Events::drawingEvent += [] {
-            CFont::SetScale(0.5f, 1.0f);
-            CFont::SetColor(CRGBA(255, 255, 255, 255));
-            CFont::SetJustifyOn();
-            CFont::SetFontStyle(2);
-            CFont::SetPropOn();
-            CFont::SetWrapx(600.0f);
-            wchar_t text[32];
-            swprintf(text, L"TxdIndex %d", CModelInfo::ms_modelInfoPtrs[162]->m_nTxdIndex);
-            CFont::PrintString(10.0f, 30.0f, text);
-
-            unsigned char oldFlags = CStreaming::ms_aInfoForModel[162].m_nFlags;
-            swprintf(text, L"Flag %d", oldFlags);
-            CFont::PrintString(10.0f, 50.0f, text);
-
-            swprintf(text, L"LoadState %d", CStreaming::ms_aInfoForModel[162].m_nLoadState);
-            CFont::PrintString(10.0f, 70.0f, text);
-        };
-
+    static int blip;
+    
+    Test() {
         Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
             KeyCheck::Update();
-            //unsigned char oldLoadState;
-            if (KeyCheck::CheckWithDelay(99, 1000)) {
-                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
-                
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino4");
-                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
-                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
-                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
-            }
-            if (KeyCheck::CheckWithDelay(98, 1000)) {
-                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
-                
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino3");
-                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
-                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
-                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
-            }
-            if (KeyCheck::CheckWithDelay(97, 1000)) {
-                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
-                
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino2");
-                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
-                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
-                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
-            }
-            if (KeyCheck::CheckWithDelay(96, 1000)) {
-                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
-                
-                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
-                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino");
-                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
-                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
-                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
-            }
+            if (player && KeyCheck::CheckWithDelay('M', 1000)) 
+                Command<COMMAND_ADD_BLIP_FOR_CHAR_OLD>(CPools::GetPedRef(player), 4, 2, &blip);
+                //Command<COMMAND_ADD_BLIP_FOR_CHAR>(CPools::GetPedRef(player), &blip);
+                //CVector offset = { 0.0f, 10.0f, 0.0f };
+                //CVector point = player->m_placement * offset;
+                //Command<COMMAND_ADD_BLIP_FOR_COORD_OLD>(point.x, point.y, point.z, 1, 3, &blip);
+            if (player && KeyCheck::CheckWithDelay('N', 1000)) 
+                Command<COMMAND_REMOVE_BLIP>(blip);
         };
     }
-} myPlugin;
+} test;
+
+int Test::blip;
+
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CModelInfo.h"
+//#include "CFont.h"
+//#include "CStreaming.h"
+//
+//using namespace plugin;
+//
+//class MyPlugin {
+//public:
+//    MyPlugin() {
+//
+//        Events::drawingEvent += [] {
+//            CFont::SetScale(0.5f, 1.0f);
+//            CFont::SetColor(CRGBA(255, 255, 255, 255));
+//            CFont::SetJustifyOn();
+//            CFont::SetFontStyle(2);
+//            CFont::SetPropOn();
+//            CFont::SetWrapx(600.0f);
+//            wchar_t text[32];
+//            swprintf(text, L"TxdIndex %d", CModelInfo::ms_modelInfoPtrs[162]->m_nTxdIndex);
+//            CFont::PrintString(10.0f, 30.0f, text);
+//
+//            unsigned char oldFlags = CStreaming::ms_aInfoForModel[162].m_nFlags;
+//            swprintf(text, L"Flag %d", oldFlags);
+//            CFont::PrintString(10.0f, 50.0f, text);
+//
+//            swprintf(text, L"LoadState %d", CStreaming::ms_aInfoForModel[162].m_nLoadState);
+//            CFont::PrintString(10.0f, 70.0f, text);
+//        };
+//
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            //unsigned char oldLoadState;
+//            if (KeyCheck::CheckWithDelay(99, 1000)) {
+//                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+//                
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino4");
+//                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+//                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(98, 1000)) {
+//                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+//                
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino3");
+//                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+//                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(97, 1000)) {
+//                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+//                
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino2");
+//                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+//                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(96, 1000)) {
+//                //oldLoadState = CStreaming::ms_aInfoForModel[162].m_nLoadState;
+//                
+//                CModelInfo::ms_modelInfoPtrs[162]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[162]->SetTexDictionary("rhino");
+//                CStreaming::ms_aInfoForModel[162].m_nLoadState = 0;
+//                CStreaming::ms_aInfoForModel[162].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[162].m_nLoadState = oldLoadState;
+//            }
+//        };
+//    }
+//} myPlugin;
 
 
 //#include "plugin.h"
@@ -96,17 +126,20 @@ public:
 //            if (KeyCheck::CheckWithDelay('M', 500)) {
 //                CPed *player = FindPlayerPed();
 //                if (player) {
-//                    CVector offset = { 0.0f, 20.0f, 0.0f };
+//                    /*CVector offset = { 0.0f, 20.0f, 0.0f };
 //                    CVector point = player->m_placement * offset;
 //                    player->m_nPedFlags.bHasObjectiveCompleted = 0;
-//                    player->SetObjective(OBJECTIVE_RUN_TO_AREA, point);
-//                    /*CPed *ped = GetRandomPed(player->GetPosition(), 15.0f);
+//                    player->SetObjective(OBJECTIVE_RUN_TO_AREA, point);*/
+//                    CPed *ped = GetRandomPed(player->GetPosition(), 15.0f);
 //                    if (ped) {
-//                        CVector offset = { 0.0f, 2.0f, 0.0f };
-//                        CVector point = player->m_placement * offset;
+//                        //CVector offset = { 0.0f, 2.0f, 0.0f };
+//                        //CVector point = player->m_placement * offset;
 //                        ped->m_nPedFlags.bHasObjectiveCompleted = 0;
-//                        ped->SetObjective(OBJECTIVE_RUN_TO_AREA, point);
-//                    }*/
+//                        //ped->SetObjective(OBJECTIVE_RUN_TO_AREA, point);
+//                        //ped->SetObjective(OBJECTIVE_SOLICIT_VEHICLE, player->m_pVehicle);
+//                        ped->SetObjective(OBJECTIVE_ENTER_CAR_AS_PASSENGER, player->m_pVehicle);
+//                        ped->m_dwObjectiveTimer = 60000;
+//                    }
 //                }
 //            }
 //        };

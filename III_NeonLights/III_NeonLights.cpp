@@ -2,7 +2,7 @@
 #include "extensions\KeyCheck.h"
 #include "common.h"
 #include "CClock.h"
-//#include "CShadows.h"
+#include "CShadows.h"
 #include "CModelInfo.h"
 #include "CTimer.h"
 
@@ -12,9 +12,6 @@ using namespace plugin;
 using namespace std;
 
 RwTexture *&pWhiteTex = *(RwTexture **)0x64C4F8;
-void __cdecl StoreShadowToBeRendered(unsigned char type, RwTexture *texture, CVector *posn, float frontX, float frontY, float sideX, float sideY, short intensity, unsigned char red, unsigned char green, unsigned char blue, float zDistance, bool drawOnWater, float scale) {
-    ((void(__cdecl *)(unsigned char, RwTexture*, CVector*, float, float, float, float, short, unsigned char, unsigned char, unsigned char, float, bool, float))0x513750)(type, texture, posn, frontX, frontY, sideX, sideY, intensity, red, green, blue, zDistance, drawOnWater, scale);
-}
 
 class NeonLights {
 public:
@@ -99,7 +96,7 @@ public:
                 CVector center = vehicle->TransformFromObjectSpace(CVector(0.0f, 0.0f, 0.0f));
                 CVector up = vehicle->TransformFromObjectSpace(CVector(0.0f, -Pos.y - 0.5f, 0.0f)) - center;
                 CVector right = vehicle->TransformFromObjectSpace(CVector(Pos.x + 0.2f, 0.0f, 0.0f)) - center;
-                StoreShadowToBeRendered(2, pWhiteTex, &center, up.x, up.y, right.x, right.y, 255, r, g, b, 6.0f, false, 1.0f);
+                CShadows::StoreShadowToBeRendered(1, pWhiteTex, &center, up.x, up.y, right.x, right.y, 255, r, g, b, 4.5f, false, 1.0f);
             }
         }
     }
