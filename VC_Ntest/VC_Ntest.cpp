@@ -1,31 +1,92 @@
 #include "plugin.h"
-#include "extensions\KeyCheck.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
 
 using namespace plugin;
 
 class Test {
 public:
-    static int blip;
-    
+    static int m_test;
+
     Test() {
-        Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            KeyCheck::Update();
-            if (player && KeyCheck::CheckWithDelay('M', 1000)) 
-                Command<COMMAND_ADD_BLIP_FOR_CHAR_OLD>(CPools::GetPedRef(player), 4, 2, &blip);
-                //Command<COMMAND_ADD_BLIP_FOR_CHAR>(CPools::GetPedRef(player), &blip);
-                //CVector offset = { 0.0f, 10.0f, 0.0f };
-                //CVector point = player->m_placement * offset;
-                //Command<COMMAND_ADD_BLIP_FOR_COORD_OLD>(point.x, point.y, point.z, 1, 3, &blip);
-            if (player && KeyCheck::CheckWithDelay('N', 1000)) 
-                Command<COMMAND_REMOVE_BLIP>(blip);
+        Events::initRwEvent += [] {
+            m_test++;
         };
+
+        Events::drawingEvent += [] {
+            gamefont::Print({ Format("m_test %d", m_test) }, 10, 10, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        };
+
     }
 } test;
 
-int Test::blip;
+int Test::m_test = 0;
+
+
+//#include "plugin.h"
+//#include "CSprite2d.h"
+//#include "CFileLoader.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static RwTexture *textureTest;
+//    static RwTexDictionary *m_txd;
+//
+//    static float ScreenCoord(float a) {
+//        return static_cast<int>(a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
+//    }
+//
+//    Test() {
+//        Events::initRwEvent += [] {
+//            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\MYTEST.TXD"));
+//            textureTest = GetFirstTexture(m_txd);
+//        };
+//
+//        Events::drawingEvent += [] {
+//            if (textureTest) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, textureTest->raster);
+//                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255));
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//        };
+//
+//        Events::shutdownRwEvent += [] {
+//            RwTexDictionaryDestroy(m_txd);
+//        };
+//    }
+//} test;
+//
+//RwTexDictionary  *Test::m_txd;
+//RwTexture *Test::textureTest;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static int blip;
+//    
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            KeyCheck::Update();
+//            if (player && KeyCheck::CheckWithDelay('M', 1000)) 
+//                Command<COMMAND_ADD_BLIP_FOR_CHAR_OLD>(CPools::GetPedRef(player), 4, 2, &blip);
+//                //Command<COMMAND_ADD_BLIP_FOR_CHAR>(CPools::GetPedRef(player), &blip);
+//                //CVector offset = { 0.0f, 10.0f, 0.0f };
+//                //CVector point = player->m_placement * offset;
+//                //Command<COMMAND_ADD_BLIP_FOR_COORD_OLD>(point.x, point.y, point.z, 1, 3, &blip);
+//            if (player && KeyCheck::CheckWithDelay('N', 1000)) 
+//                Command<COMMAND_REMOVE_BLIP>(blip);
+//        };
+//    }
+//} test;
+//
+//int Test::blip;
 
 
 //#include "plugin.h"

@@ -57,171 +57,170 @@ public:
 } vehicleTextures;
 
 
-//class MyPlugin {
-//public:
-//    MyPlugin() {
-//
-//        Events::drawingEvent += [] {
-//            CFont::SetScale(0.5f, 1.0f);
-//            CFont::SetColor(CRGBA(255, 255, 255, 255));
-//            CFont::SetJustifyOn();
-//            CFont::SetFontStyle(0);
-//            CFont::SetPropOn();
-//            CFont::SetWrapx(600.0f);
-//            wchar_t text[64];
-//            swprintf(text, L"TxdIndex %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[4001]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[90]->m_nTxdIndex);
-//            CFont::PrintString(10.0f, 80.0f, text);
-//
-//            unsigned char oldFlags = CStreaming::ms_aInfoForModel[116].m_nFlags;
-//            swprintf(text, L"Flag %d : %d : %d", oldFlags, CStreaming::ms_aInfoForModel[4001].m_nFlags, CStreaming::ms_aInfoForModel[90].m_nFlags);
-//            CFont::PrintString(10.0f, 110.0f, text);
-//
-//            swprintf(text, L"LoadState %d : %d : %d", CStreaming::ms_aInfoForModel[116].m_nLoadState, CStreaming::ms_aInfoForModel[4001].m_nLoadState, CStreaming::ms_aInfoForModel[90].m_nLoadState);
-//            CFont::PrintString(10.0f, 140.0f, text);
-//
-//            swprintf(text, L"NumRefs %d : %d : %d", CTxdStore::GetNumRefs(35), CTxdStore::GetNumRefs(78), CTxdStore::GetNumRefs(736));
-//            CFont::PrintString(10.0f, 170.0f, text);
-//
-//            swprintf(text, L"RefCount %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[4001]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[90]->m_nRefCount);
-//            CFont::PrintString(10.0f, 210.0f, text);
-//
-//            swprintf(text, L"ValueScript %.2f", TheCamera.m_fCarZoomValueScript);
-//            CFont::PrintString(10.0f, 250.0f, text);
-//            swprintf(text, L"ZoomIndicator %.2f", TheCamera.m_fCarZoomIndicator);
-//            CFont::PrintString(10.0f, 280.0f, text);
-//            swprintf(text, L"ZoomValue %.2f", TheCamera.m_fCarZoomValue);
-//            CFont::PrintString(10.0f, 310.0f, text);
-//            swprintf(text, L"ValueSmooth %.2f", TheCamera.m_fCarZoomValueSmooth);
-//            CFont::PrintString(10.0f, 340.0f, text);
-//
-//            //swprintf(text, L"numModelsReq %d", CStreaming::ms_numModelsRequested);
-//            swprintf(text, L"bUse %d", TheCamera.m_bUseScriptZoomValueCar);
-//            CFont::PrintString(10.0f, 380.0f, text);
-//        };
-//
-//        Events::gameProcessEvent += [] {
-//            int index;
-//
-//            /*CPed *player = FindPlayerPed();
-//            if (player)
-//                player->m_nFlags.bBulletProof = 1;*/
-//
-//            KeyCheck::Update();
-//            if (KeyCheck::CheckWithDelay('Y', 500)) {
-//                //TheCamera.m_asCams[TheCamera.m_nActiveCam].
-//                TheCamera.m_fCarZoomValueScript = 5.0f;
-//                TheCamera.m_fCarZoomIndicator = 1.0f;
-//                TheCamera.m_fCarZoomValue = 1.0f;
-//                //TheCamera.m_fCarZoomValueSmooth = 7.0f;
-//                TheCamera.m_bUseScriptZoomValueCar = 1;
-//            }
-//            if (KeyCheck::CheckWithDelay('U', 500)) {
-//                TheCamera.m_fCarZoomValueScript = 0.0f;
-//                TheCamera.m_bUseScriptZoomValueCar = 0;
-//                TheCamera.m_fCarZoomIndicator = 1.0f;
-//                TheCamera.m_fCarZoomValue = 0.5f;
-//                TheCamera.m_fCarZoomValueSmooth = 0.5f;
-//                //TheCamera.m_bUseScriptZoomValueCar = 1;
-//            }
-//            if (KeyCheck::CheckWithDelay('I', 500)) {
-//                TheCamera.m_bInATunnelAndABigVehicle = 1;
-//            }
-//            if (KeyCheck::CheckWithDelay('P', 500)) {
-//                TheCamera.m_bInATunnelAndABigVehicle = 0;
-//            }
-//
-//
-//            if (KeyCheck::CheckWithDelay('N', 200)) {
-//                CVehicle* vehicle = FindPlayerVehicle();
-//                if (vehicle) {
-//                    CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-//                    RpMaterial **materialPrim;
-//                    materialPrim = vehModel->m_apMaterialsPrimary;
-//                    RpMaterial *material;
-//                    material = *materialPrim;
-//                    RpMaterialSetTexture(material, *reinterpret_cast<RwTexture **>(0x648F2C));
-//                    //vehModel->m_nTxdIndex = CTxdStore::FindTxdSlot("police2");
-//                    //vehModel->SetTexDictionary("police2");
-//                    //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                    //vehicle->SetModelIndex(vehicle->m_nModelIndex);
-//                }
-//            }
-//            
-//            //unsigned char oldLoadState;
-//            if (KeyCheck::CheckWithDelay(99, 1000)) {
-//                index = CTxdStore::FindTxdSlot("police4");
-//                if (index != -1) {
-//                    CTxdStore::AddTxdSlot("police4");
-//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
-//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                }
-//                
-//                
-//                //oldLoadState = CStreaming::ms_aInfoForModel[116].m_nLoadState;
-//
-//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
-//                //CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police4");
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
-//            }
-//            if (KeyCheck::CheckWithDelay(98, 1000)) {
-//                index = CTxdStore::FindTxdSlot("police3");
-//                if (index != -1) {
-//                    CTxdStore::AddTxdSlot("police3");
-//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
-//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                    
-//                }
-//
-//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
-//                //CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police3");
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
-//            }
-//            if (KeyCheck::CheckWithDelay(97, 1000)) {
-//                index = CTxdStore::FindTxdSlot("police2");
-//                if (index != -1) {
-//                    CTxdStore::AddTxdSlot("police2");
-//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
-//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                    
-//                }
-//
-//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
-//                //CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police2");
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
-//            }
-//            if (KeyCheck::CheckWithDelay(96, 1000)) {
-//                index = CTxdStore::FindTxdSlot("police");
-//                if (index != -1) {
-//                    CTxdStore::AddTxdSlot("police");
-//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
-//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                }
-//
-//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
-//                //CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police");
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
-//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
-//            }
-//        };
-//
-//
-//
-//        /*Events::shutdownRwEvent += [] {
-//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police2"));
-//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police3"));
-//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police4"));
-//            CModelInfo::ms_modelInfoPtrs[116]->RemoveTexDictionaryRef();
-//        };*/
-//
-//    }
-//} myPlugin;
+class MyPlugin {
+public:
+    MyPlugin() {
+
+        Events::drawingEvent += [] {
+            CFont::SetScale(0.5f, 1.0f);
+            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            CFont::SetJustifyOn();
+            CFont::SetFontStyle(0);
+            CFont::SetPropOn();
+            CFont::SetWrapx(600.0f);
+            wchar_t text[64];
+            swprintf(text, L"TxdIndex %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[4001]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[90]->m_nTxdIndex);
+            CFont::PrintString(10.0f, 80.0f, text);
+
+            unsigned char oldFlags = CStreaming::ms_aInfoForModel[116].m_nFlags;
+            swprintf(text, L"Flag %d : %d : %d", oldFlags, CStreaming::ms_aInfoForModel[4001].m_nFlags, CStreaming::ms_aInfoForModel[90].m_nFlags);
+            CFont::PrintString(10.0f, 110.0f, text);
+
+            swprintf(text, L"LoadState %d : %d : %d", CStreaming::ms_aInfoForModel[116].m_nLoadState, CStreaming::ms_aInfoForModel[4001].m_nLoadState, CStreaming::ms_aInfoForModel[90].m_nLoadState);
+            CFont::PrintString(10.0f, 140.0f, text);
+
+            swprintf(text, L"NumRefs %d : %d : %d", CTxdStore::GetNumRefs(35), CTxdStore::GetNumRefs(78), CTxdStore::GetNumRefs(736));
+            CFont::PrintString(10.0f, 170.0f, text);
+
+            swprintf(text, L"RefCount %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[4001]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[90]->m_nRefCount);
+            CFont::PrintString(10.0f, 210.0f, text);
+
+            /*swprintf(text, L"ValueScript %.2f", TheCamera.m_fCarZoomValueScript);
+            CFont::PrintString(10.0f, 250.0f, text);
+            swprintf(text, L"ZoomIndicator %.2f", TheCamera.m_fCarZoomIndicator);
+            CFont::PrintString(10.0f, 280.0f, text);
+            swprintf(text, L"ZoomValue %.2f", TheCamera.m_fCarZoomValue);
+            CFont::PrintString(10.0f, 310.0f, text);
+            swprintf(text, L"ValueSmooth %.2f", TheCamera.m_fCarZoomValueSmooth);
+            CFont::PrintString(10.0f, 340.0f, text);*/
+
+            //swprintf(text, L"numModelsReq %d", CStreaming::ms_numModelsRequested);
+            /*swprintf(text, L"bUse %d", TheCamera.m_bUseScriptZoomValueCar);
+            CFont::PrintString(10.0f, 380.0f, text);*/
+        };
+
+        Events::gameProcessEvent += [] {
+            //int index;
+
+            /*CPed *player = FindPlayerPed();
+            if (player)
+                player->m_nFlags.bBulletProof = 1;*/
+
+            KeyCheck::Update();
+            //if (KeyCheck::CheckWithDelay('Y', 500)) {
+            //    //TheCamera.m_asCams[TheCamera.m_nActiveCam].
+            //    TheCamera.m_fCarZoomValueScript = 5.0f;
+            //    TheCamera.m_fCarZoomIndicator = 1.0f;
+            //    TheCamera.m_fCarZoomValue = 1.0f;
+            //    //TheCamera.m_fCarZoomValueSmooth = 7.0f;
+            //    TheCamera.m_bUseScriptZoomValueCar = 1;
+            //}
+            //if (KeyCheck::CheckWithDelay('U', 500)) {
+            //    TheCamera.m_fCarZoomValueScript = 0.0f;
+            //    TheCamera.m_bUseScriptZoomValueCar = 0;
+            //    TheCamera.m_fCarZoomIndicator = 1.0f;
+            //    TheCamera.m_fCarZoomValue = 0.5f;
+            //    TheCamera.m_fCarZoomValueSmooth = 0.5f;
+            //    //TheCamera.m_bUseScriptZoomValueCar = 1;
+            //}
+            //if (KeyCheck::CheckWithDelay('I', 500)) {
+            //    TheCamera.m_bInATunnelAndABigVehicle = 1;
+            //}
+            //if (KeyCheck::CheckWithDelay('P', 500)) {
+            //    TheCamera.m_bInATunnelAndABigVehicle = 0;
+            //}
+            
+            //if (KeyCheck::CheckWithDelay('N', 200)) {
+            //    CVehicle* vehicle = FindPlayerVehicle();
+            //    if (vehicle) {
+            //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+            //        RpMaterial **materialPrim;
+            //        materialPrim = vehModel->m_apMaterialsPrimary;
+            //        RpMaterial *material;
+            //        material = *materialPrim;
+            //        RpMaterialSetTexture(material, *reinterpret_cast<RwTexture **>(0x648F2C));
+            //        //vehModel->m_nTxdIndex = CTxdStore::FindTxdSlot("police2");
+            //        //vehModel->SetTexDictionary("police2");
+            //        //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+            //        //vehicle->SetModelIndex(vehicle->m_nModelIndex);
+            //    }
+            //}
+            
+            //unsigned char oldLoadState;
+            if (KeyCheck::CheckWithDelay(99, 1000)) {
+                /*index = CTxdStore::FindTxdSlot("police4");
+                if (index != -1) {
+                    CTxdStore::AddTxdSlot("police4");
+                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                }*/
+                
+                
+                //oldLoadState = CStreaming::ms_aInfoForModel[116].m_nLoadState;
+
+                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police4");
+                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(98, 1000)) {
+                /*index = CTxdStore::FindTxdSlot("police3");
+                if (index != -1) {
+                    CTxdStore::AddTxdSlot("police3");
+                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                    
+                }*/
+
+                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police3");
+                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(97, 1000)) {
+                /*index = CTxdStore::FindTxdSlot("police2");
+                if (index != -1) {
+                    CTxdStore::AddTxdSlot("police2");
+                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                    
+                }*/
+
+                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police2");
+                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+            }
+            if (KeyCheck::CheckWithDelay(96, 1000)) {
+                /*index = CTxdStore::FindTxdSlot("police");
+                if (index != -1) {
+                    CTxdStore::AddTxdSlot("police");
+                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                }*/
+
+                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police");
+                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+            }
+        };
+
+
+
+        /*Events::shutdownRwEvent += [] {
+            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police2"));
+            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police3"));
+            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police4"));
+            CModelInfo::ms_modelInfoPtrs[116]->RemoveTexDictionaryRef();
+        };*/
+
+    }
+} myPlugin;
 
 
 

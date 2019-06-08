@@ -5,7 +5,7 @@
 #include "eVehicleModel.h"
 #include "CSprite2d.h"
 #include "extensions\KeyCheck.h"
-
+#include "CFileLoader.h"
 
 char *gString = (char *)0x711B40;
 
@@ -15,156 +15,184 @@ class VehicleTexture {
 public:
     //static RwTexture *pMyTexture;
     static RwTexture *myTexture;
+    static RwTexture *texture;
+
+    static RwTexDictionary *m_txd;
+    static RwTexture *m_textureLogo;
+    static RwTexture *m_textureTest;
+
     static float ScreenCoord(float a) {
         return static_cast<int>(a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
     }
 
-    static void Draw() {
+    //static void Draw() {
 
-        static TxdDef *myTxd;
-        
-        KeyCheck::Update();
-        if (KeyCheck::CheckWithDelay('J', 1000)) {
-            //sprintf(gString, "skins\\%s.bmp", "mytest");
-            //sprintf(gString, "image\\%s.bmp", "mytest");
-            //RwImage *image = RtBMPImageRead(gString);
-            //if (image)
-            //{
-                //RwInt32 width, height, depth, flags;
-                //RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-                //RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-                //RwRasterSetFromImage(raster, image);
-                //myTexture = RwTextureCreate(raster);
-                //RwTextureSetName(myTexture, "mytest");
-                if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
-                    myTxd = nullptr;
-                else {
-                    myTxd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
-                    RwTexture *textureR = RwTexDictionaryFindNamedTexture(myTxd->m_pRwDictionary, "remap");
-                    if (textureR) {
-                        textureR = RwTextureRead("test", 0);
-                        //RwTextureDestroy(textureR);
-                        //RwTexDictionaryAddTexture(myTxd->m_pRwDictionary, myTexture);
-                    }
-                }
-                //myTxd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
-                //if (myTxd) {
-                    //myTxd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
-                    //RwTexDictionaryAddTexture(myTxd->m_pRwDictionary, myTexture);
-                    //RwImageDestroy(image);
-                //}
-            //}
-        }
+    //    static TxdDef *myTxd;
+    //    
+    //    KeyCheck::Update();
+    //    //if (KeyCheck::CheckWithDelay('J', 1000)) {
+    //    //    if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
+    //    //        myTxd = nullptr;
+    //    //    else {
+    //    //        myTxd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
+    //    //        RwTexture *texture = RwTexDictionaryFindNamedTexture(myTxd->m_pRwDictionary, "remap");
+    //    //        if (texture) {
+    //    //            if (texture->dict) {
+    //    //                texture->dict = 0;
+    //    //                texture->lInDictionary.prev = texture->lInDictionary.next;
+    //    //                texture->lInDictionary.next = texture->lInDictionary.prev;
+    //    //            }
+    //    //            //texture = RwTextureRead("test", 0);
+    //    //            //RwTextureDestroy(texture);
+    //    //            //RwTexDictionaryAddTexture(myTxd->m_pRwDictionary, myTexture);
+    //    //        }
+    //    //    }
+    //    //}
 
-        if (KeyCheck::CheckWithDelay('N', 1000)) {
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle) {
-                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-                RpMaterial **materialPrim;
-                materialPrim = vehModel->m_apMaterialsPrimary;
-                RpMaterial *material;
-                while (true) {
-                    material = *materialPrim;
-                    if (!*materialPrim)
-                        break;
-                    if (myTexture)
-                        RpMaterialSetTexture(material, myTexture);
-                    ++materialPrim;
-                }
-            }
-        }
-        
-        if (KeyCheck::CheckWithDelay('B', 1000)) {
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle) {
-                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-                RpMaterial **materialPrim;
-                materialPrim = vehModel->m_apMaterialsPrimary;
-                RpMaterial *material;
-                TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
-                if (txd) {
-                    RwTexture *remaptexture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "remap");
-                    if (remaptexture) {
-                        while (true) {
-                            material = *materialPrim;
-                            if (!*materialPrim)
-                                break;
-                            RpMaterialSetTexture(material, remaptexture);
-                            ++materialPrim;
-                        }
-                    }
-                }
-            }
-        }
+    //    if (KeyCheck::CheckWithDelay('N', 1000)) {
+    //        //CVehicle *vehicle = FindPlayerVehicle();
+    //        //if (vehicle) {
+    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
+    //            if (myTexture) {
+    //                RpMaterial **materialPrim;
+    //                materialPrim = &vehModel->m_apMaterialsPrimary[13];
+    //                RpMaterial *material;
+    //                //int i = 13;
+    //                while (true) {
+    //                    material = *materialPrim;
+    //                    if (!*materialPrim)
+    //                        break;
+    //                    if (myTexture)
+    //                        RpMaterialSetTexture(material, myTexture);
+    //                    ++materialPrim; //++i;
+    //                }
+    //            }
+    //        //}
+    //    }
+    //    
+    //    if (KeyCheck::CheckWithDelay('B', 1000)) {
+    //        //CVehicle *vehicle = FindPlayerVehicle();
+    //        //if (vehicle) {
+    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
+    //            RpMaterial **materialPrim;
+    //            materialPrim = &vehModel->m_apMaterialsPrimary[0];
+    //            RpMaterial *material;
+    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
+    //            if (txd) {
+    //                RwTexture *remaptexture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "remap");
+    //                if (remaptexture) {
+    //                    int i = 0;
+    //                    while (i < 13) {
+    //                        material = *materialPrim;
+    //                        if (!*materialPrim)
+    //                            break;
+    //                        RpMaterialSetTexture(material, remaptexture);
+    //                        ++materialPrim; ++i;
+    //                    }
+    //                }
+    //            }
+    //        //}
+    //    }
 
 
+    //    CPed *player = FindPlayerPed();
+    //    //CVehicle *veh = FindPlayerVehicle();
+    //    //if (veh && veh->m_nModelIndex == MODEL_IDAHO) {
+    //    if (player) {
+    //        //if (!myTexture) {
+    //        //    //sprintf(gString, "image\\%s.bmp", "mytest");
+    //        //    //RwImage *image = RtBMPImageRead(gString);
+    //        //    RwImage *image = RtBMPImageRead("image\\mytest.bmp");
+    //        //    if (image) {
+    //        //        RwInt32 width, height, depth, flags;
+    //        //        RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
+    //        //        RwRaster *raster = RwRasterCreate(width, height, depth, flags);
+    //        //        RwRasterSetFromImage(raster, image);
+    //        //        myTexture = RwTextureCreate(raster);
+    //        //        RwTextureSetName(myTexture, "mytest");
+    //        //        RwImageDestroy(image);
+    //        //    }
+    //        //}
+
+    //        //TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex]->m_nTxdIndex);
+    //        if (!texture) {
+    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
+    //            if (txd) {
+    //                texture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "test");
+    //            }
+    //        }
+    //        
+    //        if (texture) {
+    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
+    //            //CSprite2d::DrawRect(CRect(RsGlobal.maximumWidth / 2 - 128, 200.0f, RsGlobal.maximumWidth / 2 + 128, 264.0f), CRGBA(255, 255, 255, 255));
+    //            //CSprite2d::SetVertices(CRect(RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 130), RsGlobal.maximumHeight - 122, RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 210), RsGlobal.maximumHeight - 42), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+    //            CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+    //        }
+    //        
+    //        /*if (myTexture) {
+    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, myTexture->raster);
+    //            CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(300.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+    //        }*/
+
+    //    }
+    //}
+
+    /*static void DrawLogo() {
         CPed *player = FindPlayerPed();
-        //CVehicle *veh = FindPlayerVehicle();
-        //if (veh && veh->m_nModelIndex == MODEL_IDAHO) {
         if (player) {
-            if (!myTexture) {
-                sprintf(gString, "image\\%s.bmp", "mytest");
-                RwImage *image = RtBMPImageRead(gString);
-                if (image) {
-                    RwInt32 width, height, depth, flags;
-                    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-                    RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-                    RwRasterSetFromImage(raster, image);
-                    myTexture = RwTextureCreate(raster);
-                    RwTextureSetName(myTexture, "mytest");
-                    RwImageDestroy(image);
-                }
-            }
-
-            //TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex]->m_nTxdIndex);
-            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
-            if (txd) {
-                RwTexture *texture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "test");
-                if (texture) {
-                    RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
-                    //CSprite2d::DrawRect(CRect(RsGlobal.maximumWidth / 2 - 128, 200.0f, RsGlobal.maximumWidth / 2 + 128, 264.0f), CRGBA(255, 255, 255, 255));
-                    //CSprite2d::SetVertices(CRect(RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 130), RsGlobal.maximumHeight - 122, RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 210), RsGlobal.maximumHeight - 42), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                    CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
-                }
-            }
-
-            
-            if (myTexture) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, myTexture->raster);
-                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(300.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+            if (m_textureTest) {
+                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
+                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
                 RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
             }
-
+            if (m_textureLogo) {
+                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
+                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            }
         }
-    }
+    }*/
 
     VehicleTexture() {
-        /*Events::initRwEvent += [] {
-            sprintf(gString, "image\\%s.bmp", "mytest");
-            RwImage *image = RtBMPImageRead(gString);
-            if (image) {
-                RwInt32 width, height, depth, flags;
-                RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-                RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-                RwRasterSetFromImage(raster, image);
-                pMyTexture = RwTextureCreate(raster);
-                RwTextureSetName(pMyTexture, "mytest");
-                RwImageDestroy(image);
-            }
-        };*/
+        Events::initRwEvent += [] {
+            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\testlogo.txd"));
+            m_textureLogo = GetFirstTexture(m_txd);
+            m_textureTest = RwTexDictionaryFindNamedTexture(m_txd, "test");
+        };
 
         //Events::drawingEvent += Draw;
-        Events::menuDrawingEvent += Draw;
+        //Events::menuDrawingEvent += Draw;
+        //Events::menuDrawingEvent += DrawLogo;
+        //Events::drawHudEvent += DrawLogo;
 
-        /*Events::shutdownRwEvent += [] {
-            RwTextureDestroy(pMyTexture);
-        };*/
+        Events::drawingEvent += [] {
+            if (m_textureTest) {
+                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
+                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            }
+            if (m_textureLogo) {
+                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
+                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            }
+        };
+
+        Events::shutdownRwEvent += [] {
+            RwTexDictionaryDestroy(m_txd);
+        };
     }
 } vehTexture;
 
 //RwTexture *VehicleTexture::pMyTexture;
 RwTexture *VehicleTexture::myTexture = nullptr;
+RwTexture *VehicleTexture::texture = nullptr;
+
+RwTexDictionary *VehicleTexture::m_txd;
+RwTexture *VehicleTexture::m_textureLogo;
+RwTexture *VehicleTexture::m_textureTest;
 
 
 //#include "plugin.h"

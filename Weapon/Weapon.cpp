@@ -1,23 +1,65 @@
 #include "plugin.h"
-#include "extensions\KeyCheck.h"
-#include "CMessages.h"
+#include "CSprite2d.h"
+#include "CFileLoader.h"
 
 using namespace plugin;
 
-class PlayerCoors {
+class Test {
 public:
-    PlayerCoors() {
+    static RwTexture *textureTest;
+    static RwTexDictionary *m_txd;
+    static int m_test;
+
+    Test() {
+        Events::initRwEvent += [] {
+            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\MYTEST.TXD"));
+            textureTest = GetFirstTexture(m_txd);
+            m_test++;
+        };
+
         Events::drawingEvent += [] {
-            CPed *player = FindPlayerPed();
-            KeyCheck::Update();
-            if (KeyCheck::CheckWithDelay('M', 200) && player) {
-                static char message[256];
-                snprintf(message, 256, "x = %.2f; y = %.2f; z = %.2f;", player->GetPosition().x, player->GetPosition().y, player->GetPosition().z);
-                CMessages::AddMessageJumpQ(message, 5000, 3, false);
+            gamefont::Print({
+                Format("m_test %d", m_test),
+            }, 10, 210, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+
+            if (textureTest) {
+                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, textureTest->raster);
+                CSprite2d::SetVertices(CRect(20.0f, 20.0f, 100.0f, 100.0f), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255));
+                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
             }
         };
+
+        Events::shutdownRwEvent += [] {
+            RwTexDictionaryDestroy(m_txd);
+        };
     }
-} playerCoors;
+} test;
+
+RwTexDictionary  *Test::m_txd;
+RwTexture *Test::textureTest;
+int Test::m_test = 0;
+
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class PlayerCoors {
+//public:
+//    PlayerCoors() {
+//        Events::drawingEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 200) && player) {
+//                static char message[256];
+//                snprintf(message, 256, "x = %.2f; y = %.2f; z = %.2f;", player->GetPosition().x, player->GetPosition().y, player->GetPosition().z);
+//                CMessages::AddMessageJumpQ(message, 5000, 3, false);
+//            }
+//        };
+//    }
+//} playerCoors;
 
 
 //#include "plugin.h"
