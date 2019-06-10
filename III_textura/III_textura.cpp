@@ -14,7 +14,7 @@ public:
     static float m_startLeft, m_startRight, m_currentLeft, m_currentRight;
 
     static float ScreenCoord(float a) {
-        return static_cast<int>(a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
+        return (a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
     }
 
     Test() {
@@ -36,7 +36,7 @@ public:
                 if (m_textureTest) {
                     // Setup texture
                     RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
-                    CSprite2d::SetVertices(CRect(ScreenCoord(140.0f), RsGlobal.maximumHeight - ScreenCoord(110.0f), ScreenCoord(215.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+                    CSprite2d::SetVertices(CRect(ScreenCoord(160.0f), RsGlobal.maximumHeight - ScreenCoord(110.0f), ScreenCoord(235.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
                     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
                     // Reset texture
                     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);

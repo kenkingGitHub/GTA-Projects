@@ -1,4 +1,12 @@
 #include "plugin.h"
+#include "extensions\KeyCheck.h"
+#include "CMessages.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "CWorld.h"
+#include "eWeaponModel.h"
+#include "eWeaponType.h"
+#include "CStreaming.h"
 
 using namespace plugin;
 
@@ -7,18 +15,45 @@ public:
     static int m_test;
 
     Test() {
-        Events::initRwEvent += [] {
-            m_test++;
-        };
+        Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay('B', 1000)) {
+                static char message[256];
+                snprintf(message, 256, "test = %d", m_test);
+                CMessages::AddMessageJumpQ(message, 1000, false);
+            }
+            if (player) {
+                if (KeyCheck::CheckWithDelay('N', 1000)) {
+                    //if (player->m_bInVehicle)
+                    if (Command<COMMAND_IS_PLAYER_IN_ANY_CAR>(CWorld::PlayerInFocus))
+                        CMessages::AddMessageJumpQ(L"in car", 1000, 0);
+                    else
+                        CMessages::AddMessageJumpQ(L"not in car", 1000, 0);
+                }
+                if (KeyCheck::CheckWithDelay('M', 1000)) {
+                    //CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 1000;
+                    Command <COMMAND_ADD_SCORE>(CWorld::PlayerInFocus, 1000);
 
-        Events::drawingEvent += [] {
-            gamefont::Print({ Format("m_test %d", m_test) }, 10, 10, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+                    /*CStreaming::RequestModel(MODEL_COLT45, 2);
+                    CStreaming::LoadAllRequestedModels(false);
+                    player->GiveWeapon(WEAPONTYPE_PISTOL, 100, true);
+                    player->SetCurrentWeapon(WEAPONTYPE_PISTOL);
+                    CStreaming::SetModelIsDeletable(MODEL_COLT45);*/
+                    Command<COMMAND_REQUEST_MODEL>(MODEL_COLT45, 2);
+                    Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
+                    if (Command<COMMAND_HAS_MODEL_LOADED>(MODEL_COLT45)) {
+                        Command<COMMAND_GIVE_WEAPON_TO_PLAYER>(CWorld::PlayerInFocus, WEAPONTYPE_PISTOL, 100, true);
+                        Command<COMMAND_SET_CURRENT_PLAYER_WEAPON>(CWorld::PlayerInFocus, WEAPONTYPE_PISTOL);
+                        Command<COMMAND_MARK_MODEL_AS_NO_LONGER_NEEDED>(MODEL_COLT45);
+                    }
+                }
+            }
         };
-
     }
 } test;
 
-int Test::m_test = 0;
+int Test::m_test = 3;
 
 
 //#include "plugin.h"

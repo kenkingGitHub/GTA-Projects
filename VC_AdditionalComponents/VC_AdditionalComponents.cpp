@@ -348,7 +348,7 @@ public:
                             }
                         }
                         // cement
-                        if (vehComps.Get(vehicle).m_pCement && (vehComps.Get(vehicle).cementState == true) && vehicle->m_nVehicleFlags.bIsEngineOn) {
+                        if (vehComps.Get(vehicle).m_pCement && (vehComps.Get(vehicle).cementState == true) && vehicle->m_nVehicleFlags.bEngineOn) {
                             cementAngle += 0.05f;
                             FrameSetRotateYOnly(vehComps.Get(vehicle).m_pCement, cementAngle);
                         }
@@ -681,7 +681,7 @@ public:
 
         Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
 
-            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_nVehicleFlags.bIsEngineOn && vehicle->m_fHealth > 0.1f) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_nVehicleFlags.bEngineOn && vehicle->m_fHealth > 0.1f) {
                 CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
                 eLightsStatus &lightsStatus = turnlightsData.Get(vehicle).lightsStatus;
                 eBlinksStatus &blinksStatus = turnlightsData.Get(vehicle).blinksStatus;
@@ -764,10 +764,10 @@ public:
                         }
                     }
 
-                    if (vehicle->m_nVehicleFlags.bIsEngineOn && vehicle->m_nVehicleFlags.bIsDamaged && turnlightsData.Get(vehicle).turnIgnore == false)
+                    if (vehicle->m_nVehicleFlags.bEngineOn && vehicle->m_nVehicleFlags.bIsDamaged && turnlightsData.Get(vehicle).turnIgnore == false)
                         turnlightsData.Get(vehicle).turnIgnore = true;
                 }
-                else if (vehicle->m_nVehicleFlags.bIsEngineOn && vehicle->m_nVehicleFlags.bIsDamaged && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == true)
+                else if (vehicle->m_nVehicleFlags.bEngineOn && vehicle->m_nVehicleFlags.bIsDamaged && lightsStatus == LIGHTS_OFF && turnlightsData.Get(vehicle).turnIgnore == true)
                     lightsStatus = LIGHTS_BOTH;
 
                 if (CTimer::m_snTimeInMilliseconds & 0x200)

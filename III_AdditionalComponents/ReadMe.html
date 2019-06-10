@@ -1,0 +1,571 @@
+﻿<HTML>
+	<HEAD>
+		<TITLE>Additional Components</TITLE>
+	</HEAD>
+<BODY style="background-color: #dedede; font-family: courier new,courier;" link="#333333" alink="#555555" vlink="#333333">
+<table align="center" style="border-color: #000000; border-width: 1px; width: 970px; text-align: justify;" border="1" cellpadding="5" cellspacing="5">
+<tbody>
+<tr>
+	<td> <div style="text-align: center;"><img src="images/logo.png"></div>	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><span style="color: #ffffff;"><strong>Описание:</strong></span></td>
+</tr>
+<tr>
+	<td> <span style="margin-left:40px;"> Представляю Вашему вниманию плагин "Дополнительные компоненты" для игры </span> Grand Theft Auto III (версии 1.0). Плагин обеспечивает работу автомобильных компонентов, работа которых изначально не была реализована разработчиками игры. Для работы компонентов модель нужно адаптировать под плагин. Как это сделать будет рассказано далее. Некоторые возможности уже были реализованы в виде CLEO скриптов, некоторые будут показаны впервые. Плагин написан на основе&nbsp;<a href="https://github.com/DK22Pac/plugin-sdk" class="bbc_url" title="Внешняя ссылка" rel="nofollow external">plugin-sdk</a> </td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Благодарности:</span></strong></td>
+</tr>
+<tr>
+	<td align="left"><strong> DK22Pac, Seemann, listener, Alien, Den_spb, mfisto, ThirteenAG, Alexander, yelmi, Himmel, il_86, xanser </strong> - это пользователи всемирной паутины, у которых я получил некоторые знания по моделированию и конвертированию, скриптингу и программированию. </td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Список компонентов:</span></strong></td>
+</tr>
+<tr>
+	<td>
+		<ul>
+			<li>сдвижные двери микроавтобуса (минивэна, степвэна)</li>
+			<li>дополнительные стопсигналы</li>
+			<li>багажник с двумя створками</li>
+			<li>мигалки на спецтранспорте</li>
+			<li>поворотники (аварийка)</li>
+			<li>дневные ходовые огни</li>
+			<li>багажник-рольставни</li>
+			<li>тормозные колодки</li>
+			<li>кузов самосвала</li>
+			<li>противотуманки</li>
+			<li>бетономешалка</li>
+			<li>фары up/down</li>
+			<li>дворники</li>
+			<li>люки</li>
+			<li>руль</li>
+		</ul>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><span style="color: #ffffff;"><strong>Управление и принцип работы компонентов:</strong></span></td>
+</tr>
+<tr>
+	<td>
+	<p style="text-align:right;">Номера клавиш можно изменить в файле <em>AdditionalComponents.dat</em></p>
+		<ul>
+			<li><em>руль</em> - работает в автоматическом режиме на всех адаптированных авто с водителем</li>
+			<li><em>дворники</em> - работают в автоматическом режиме на всех адаптированных авто с водителем, включаются при дождливой погоде и выключаются при прекращении дождя, если водитель вышел из авто - дворники продолжают работать</li>
+			<li><em>кузов самосвала</em> - на авто игрока поднять кузов - держать нажатыми клавиши <span style="color:#008000;">Num.</span> + <span style="color:#008000;">Num8</span>, опустить кузов - держать нажатыми клавиши <span style="color:#008000;">Num.</span> + <span style="color:#008000;">Num2</span></li>
+			<li><em>бетономешалка</em> - работает в автоматическом режиме на всех адаптированных авто с работающим двигателем; на авто игрока можно включить и выключить работу бетономешалки нажатием клавиши <span style="color:#008000;">Delete</span></li>
+			<li><em>багажник-рольставни</em> - работает в автоматическом режиме на всех адаптированных авто с водителем также, как стандартные компоненты; на авто игрока багажник открыть и закрыть можно плагином "<a href="https://gta.com.ua/file_gta3_details.phtml?id=560" class="bbc_url" title="">Open component</a>"</li>
+			<li><em>люки</em> - приоткрывающиеся вперёд или назад работают в автоматическом режиме на всех адаптированных авто с водителем (<em>в том числе на авто игрока</em>), приоткрываются при солнечной погоде и закрываются при тумане или дожде; сдвижной люк - работает в автоматическом режиме на всех адаптированных авто с водителем (<em>кроме авто игрока</em>), открывается при солнечной погоде и закрывается при тумане или дожде; на авто игрока такой люк открыть - держать нажатыми клавиши <span style="color:#008000;">Num.</span> + <span style="color:#008000;">Num8</span>, закрыть люк - держать нажатыми клавиши <span style="color:#008000;">Num.</span> + <span style="color:#008000;">Num2</span></li>
+			<li><em>фары up/down</em> - работают в автоматическом режиме на всех адаптированных авто с водителем; в файле <em>AdditionalComponents.dat</em> в секции <em>zr350</em> надо прописать ID модели и значение угла открытия фар в радианах </li>
+			<li><em>противотуманки</em> - работают в автоматическом режиме на всех адаптированных авто; включаются в туманную погоду и выключаются при другой погоде</li>
+			<li><em>аварийка</em> - работает в автоматическом режиме на всех адаптированных авто (<em>кроме авто игрока</em>); включается на повреждённом авто с работающим двигателем, если водитель вышел из авто; на авто игрока включается клавишей <span style="color:#008000;">X</span>; выключается клавишей <span style="color:#008000;">Shift</span></li>
+			<li><em>поворотники</em> - на авто игрока включаются клавишами: <span style="color:#008000;">Z</span> (левый), <span style="color:#008000;">C</span> (правый), <span style="color:#008000;">Shift</span> (выключить)</li>
+			<li><em>вторая створка багажника</em> - работает в автоматическом режиме на всех адаптированных авто; на авто игрока багажник закрыть можно клавишей <span style="color:#008000;">P</span></li>
+			<li><em>сдвижные двери</em> - работают в автоматическом режиме на всех адаптированных авто</li>
+			<li><em>тормозные колодки</em> - работают в автоматическом режиме на всех адаптированных авто</li>
+		</ul>  
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Общие действия при адаптации компонентов:</span></strong></td>
+</tr>
+<tr>
+	<td>
+		<ul>
+			<li>отделить компонент в отдельную деталь</li>
+			<li>обозначить деталь соответствующим названием</li>
+			<li>расположить локальные оси необходимым образом (переместить, вращать)</li>
+			<li>создать вспомогательный дамми (в свойствах выставить <em>Dummy object</em>, для некоторых компонентов создавать вспомогательный дамми не надо)</li>
+			<li>обозначить дамми соответствующим названием (название дамми по-сути не важно, но для того, чтобы не путаться в иерархии рекомендую обозначать соответствующий вспомогательный дамми также, как сам компонент, добавляя перед названием <span style="color:#0000ff;">dummy_</span>)</li>
+			<li>расположить дамми в определённом месте</li>
+			<li>копировать положение локальных осей с компонента на дамми</li>
+			<li>отрыть браузер иерархии</li>
+			<li>вложить компонент в соответствующий дамми</li>
+			<li>вложить дамми в <span style="color:#0000ff;">chassis_dummy</span> (расположение в иерархии относительно других компонентов и дамми не имеет значения)</li>
+		</ul>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Руль:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	отделить руль в отдельную деталь<br>
+	обозначить эту деталь <span style="color:#0000ff;">steerwheel</span><br>
+	переместить локальные оси в центр руля, т.е. в место вращения<br>
+	на виде <em>Справа</em> вращать локальные оси таким образом, чтобы горизонтальная ось стала перпендикулярно детали <span style="color:#0000ff;">steerwheel</span><br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот дамми <span style="color:#0000ff;">dummy_steerwheel</span><br>
+	переместить этот дамми в место вращения руля<br>
+	копировать положение локальных осей с компонента на дамми<br>
+	отрыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">steerwheel</span> в дамми <span style="color:#0000ff;">dummy_steerwheel</span><br>
+	дамми <span style="color:#0000ff;">dummy_steerwheel </span>вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (steerwheel).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Кузов самосвала:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	отделить кузов в отдельную деталь<br>
+	обозначить эту деталь <span style="color:#0000ff;">dumper</span><br>
+	переместить локальные оси в место вращения кузова<br>
+	отрыть браузер иерархии<br>
+	компонент <span style="color:#0000ff;">dumper</span><span style="color:#0000ff;"> </span>вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (dumper).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Багажник-рольставни:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	Стандартный багажник представлен деталями <span style="color:#0000ff;">boot_hi_ok</span> и<span style="color:#0000ff;"> boot_hi_dam</span>, вложенными в дамми <span style="color:#0000ff;">boot_dummy</span>, с ними надо проделать следующие действия:<br>
+	выровнять верхние вершины деталей <span style="color:#0000ff;">boot_hi_ok</span> и <span style="color:#0000ff;">boot_hi_dam</span> относительно остальных (если в верхней части детали имеется изгиб детали)<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (boot_sliding_1).png" width=960"></div><br>
+	переместить дамми <span style="color:#0000ff;">boot_dummy </span>и его локальные оси в верхнюю точку детали <span style="color:#0000ff;">boot_hi_ok</span><br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">boot_dummy</span> на детали<span style="color:#0000ff;"> boot_hi_ok</span> и <span style="color:#0000ff;">boot_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">boot_dummy</span> и переименовать этот дамми в <span style="color:#0000ff;">wing_lr_dummy</span> (если в модели уже есть такой дамми и деталь, то изменить их названия на другие)<br>
+	детали <span style="color:#0000ff;">boot_hi_ok </span>и <span style="color:#0000ff;">boot_hi_dam</span> переименовать соответственно в <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">boot_dummy</span> и переименовать этот вспомогательный дамми в <span style="color:#0000ff;">boot_sliding</span><br>
+	открыть браузер иерархии<br>
+	вложить детали <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span> в дамми <span style="color:#0000ff;">wing_lr_dummy</span><br>
+	дамми <span style="color:#0000ff;">wing_lr_dummy</span> вложить в вспомогательный дамми <span style="color:#0000ff;">boot_sliding</span><br>
+	дамми <span style="color:#0000ff;">boot_sliding</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	в файле коллизии модели изменить ID сфер <span style="color:#0000ff;">boot</span> на ID сфер <span style="color:#0000ff;">wing_lr</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (boot_sliding_2).png" width=960"></div><br>
+		
+	<table style="border: 1px solid #000000; width: 430px; height: 262px;" align="center" border="1" cellpadding="3" cellspacing="3">
+	<tbody>
+	<tr style="background-color: #f8f8f8;" align="center" valign="middle">
+		<td>
+			<span style="color:#008000; text-align: center;">ID сфер коллизии:</span>
+			<p style="text-align: left;">
+			0-ничего<br>
+			1-bonnet - капот<br>
+			2-boot - багажник<br>
+			3-front bumper - передний бампер<br>
+			4-rear bumper - задний бампер<br>
+			5-left front door - левая передняя дверь<br>
+			6-right front door - правая передняя дверь<br>
+			7-left rear door - левая задняя дверь<br>
+			8-right rear door - правая задняя дверь<br>
+			9-left front wing - левое переднее крыло<br>
+			10-right front wing - правое переднее крыло<br>
+			11-left rear wing - левое заднее крыло<br>
+			12-right rear wing - правое заднее крыло<br>
+			17-windcreen - лобовое стекло<br>
+			</p>
+		</td>
+	</tr>
+	</tbody>
+	</table>
+	<br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Бетономешалка:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	отделить бочку бетономешалки в отдельную деталь<br>
+	обозначить эту деталь <span style="color:#0000ff;">cement</span><br>
+	переместить локальные оси детали <span style="color:#0000ff;">cement</span> в место вращения этого компонента<br>
+	на виде <em>Справа</em> вращать локальные оси так, чтобы горизонтальная ось совпала с осью вращения бочки<br>
+	копировать любой стандартный дамми<br>
+	переименовать этот вспомогательный дамми в <span style="color:#0000ff;">dummy_cement </span>(в свойствах выставить <em>Dummy object</em>)<br>
+	переместить этот дамми в место вращения бочки<br>
+	копировать положение локальных осей с детали <span style="color:#0000ff;">cement</span> на вспомогательный дамми <span style="color:#0000ff;">dummy_cement</span><br>
+	открыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">cement</span> в дамми <span style="color:#0000ff;">dummy_cement</span><br>
+	дамми <span style="color:#0000ff;">dummy_cement</span> вложить в<span style="color:#0000ff;"> chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (cement).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Дворники:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	<span style="color:#008000;">а)</span> отделить левый дворник в отдельную деталь<br>
+	обозначить эту деталь <span style="color:#0000ff;">wiper_ol</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	на виде <em>Справа</em> вращать локальные оси детали <span style="color:#0000ff;">wiper_ol</span> так, чтобы горизонтальная локальная ось совпала с осью вращения компонента <span style="color:#0000ff;">wiper_ol</span><br>
+	при необходимости на виде <em>Сверху</em> подправить положение локальных осей<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_ol</span> в место вращения компонента <span style="color:#0000ff;">wiper_ol</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_ol</span> на дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	отделить правый дворник в отдельную деталь<br>
+	обозначить эту деталь <span style="color:#0000ff;">wiper_or</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	на виде <em>Справа</em> вращать локальные оси детали <span style="color:#0000ff;">wiper_or</span> так, чтобы горизонтальная локальная ось совпала с осью вращения компонента <span style="color:#0000ff;">wiper_or</span><br>
+	при необходимости на виде <em>Сверху</em> подправить положение локальных осей<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_or</span> в место вращения компонента <span style="color:#0000ff;">wiper_or</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_or</span> на дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	открыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">wiper_ol</span> в дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	вложить компонент <span style="color:#0000ff;">wiper_or</span> в дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	вложить дамми <span style="color:#0000ff;">dummy_wiper_ol</span> и <span style="color:#0000ff;">dummy_wiper_or</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_1).png" width=960"></div><br>
+	<br>
+	теперь надо проверить правильно ли мы расположили локальные оси<br>
+	каждый дворник должен при вращении проходить максимально близко от лобового стекла и при этом не пересекать поверхность лобового стекла, т.е. не заходить внутрь стекла<br><br>
+	выделить компонент <span style="color:#0000ff;">wiper_or</span>, нажать режим выделенного<br>
+	переключить режим координатных осей в положение <em>Локальные</em><br>
+	на виде <em>User View</em> вращать компонент<span style="color:#0000ff;"> wiper_or</span> на некоторый угол<br>
+	смотреть, чтобы дворник не пересекал поверхность лобового стекла<br>
+	сделать отмену вращения<br>
+	повторить вращение уже на другой угол и так несколько раз, меняя величину угла (до 90 градусов)<br>
+	если дворник проходит достаточно близко к поверхности лобового стекла и при этом не пересекает его, то хорошо<br>
+	в случае пересечения поверхности лобового стекла, надо подправить положение локальных осей компонента <span style="color:#0000ff;">wiper_or</span><br>
+	переключить режим координатных осей в положение <em>Экранные</em><br>
+	на виде <em>Справа</em> (при необходимости и на виде <em>Сверху</em>) подправить (вращением) положение локальных осей компонента <span style="color:#0000ff;">wiper_or</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_or</span> на дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	опять проверить (вращением) компонент <span style="color:#0000ff;">wiper_or</span> в режиме координатных осей <em>Локальные</em> и т.д. до максимального правильного положения (в некоторых случаях может потребоваться правка детали <span style="color:#0000ff;">wiper_or</span> на уровне вершин)<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_2).png" width=960"></div><br>
+	такую же проверку сделать для второго дворника<br><br>
+	
+	<span style="color:#008000;">б)</span> если правый дворник (компонент <span style="color:#0000ff;">wiper_or</span>) должен вращаться в другую сторону, то на виде <em>Справа</em> локальные оси нужно развернуть на 180 градусов, т.е. чтобы направление горизонтальной оси было влево от дворника<br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_or</span> на дамми <span style="color:#0000ff;">dummy_wiper_or</span><br><br>
+	
+	<span style="color:#008000;">в) </span>если в модели три дворника (например, на грузовиках марки МАЗ), то средний дворник обозначается <span style="color:#0000ff;">wiper_om</span>, а вспомогательный дамми для него <span style="color:#0000ff;">dummy_wiper_om</span><br>
+	остальная подготовка такая же<br><br>
+	
+	<span style="color:#008000;">г) </span>если третий дворник находится на багажнике авто (например, модель ВАЗ 2113), то подготовка такая же, но вращать локальные оси детали <span style="color:#0000ff;">wiper_om</span> на виде <em>Справа</em> надо так, чтобы направление горизонтальной оси было от дворника вправо вниз<br>
+	понадобится ещё один вспомогательный дамми<br>
+	копировать дамми <span style="color:#0000ff;">boot_dummy</span><br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">boot_mirage</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	открыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">wiper_om</span> в дамми <span style="color:#0000ff;">dummy_wiper_om</span><br>
+	дамми <span style="color:#0000ff;">dummy_wiper_om</span> вложить в дамми<span style="color:#0000ff;"> boot_mirage</span><br>
+	вложить дамми <span style="color:#0000ff;">boot_mirage</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_3).png" width=960"></div><br><br>
+	
+	<span style="color:#008000;">д) </span>автобусные дворники, тип один<p></p>
+	отделить левую внешнюю часть дворника в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_ol</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_ol</span> в место вращения компонента <span style="color:#0000ff;">wiper_ol</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_ol</span> на дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	отделить левую внутреннюю часть дворника в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_otl</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	отделить левую щётку в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">brush_ol</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	отделить правую внешнюю часть дворника в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_or</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	компонент <span style="color:#0000ff;">wiper_or</span> должен вращаться в другую сторону, следовательно на виде <em>Справа</em> локальные оси нужно развернуть на 180 градусов, т.е. чтобы направление горизонтальной оси было влево от дворника<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_or</span> в место вращения компонента<span style="color:#0000ff;"> wiper_or</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_or</span> на дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	отделить правую внутреннюю часть дворника в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_otr</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	компонент <span style="color:#0000ff;">wiper_otr</span> должен вращаться в другую сторону, следовательно на виде <em>Справа</em> локальные оси нужно развернуть на 180 градусов, т.е. чтобы направление горизонтальной оси было влево от дворника<br>
+	отделить левую щётку в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">brush_or</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	компонент <span style="color:#0000ff;">brush_or</span> должен вращаться в другую сторону, следовательно на виде <em>Справа</em> локальные оси нужно развернуть на 180 градусов, т.е. чтобы направление горизонтальной оси было влево от дворника<br>
+	открыть браузер иерархии<br>
+	вложить компоненты <span style="color:#0000ff;">wiper_ol</span> и <span style="color:#0000ff;">wiper_otl</span> в дамми <span style="color:#0000ff;">dummy_wiper_ol</span><br>
+	вложить компоненты <span style="color:#0000ff;">wiper_or</span> и <span style="color:#0000ff;">wiper_otr</span> в дамми <span style="color:#0000ff;">dummy_wiper_or</span><br>
+	в некоторых конструкциях дворников такого типа компоненты <span style="color:#0000ff;">wiper_otl</span> и <span style="color:#0000ff;">wiper_otr</span> могут отсутствовать - это допускается<br>
+	вложить компонент<span style="color:#0000ff;"> brush_ol</span> в компонент <span style="color:#0000ff;">wiper_ol</span><br>
+	вложить компонент <span style="color:#0000ff;">brush_or</span> в компонент <span style="color:#0000ff;">wiper_or</span><br>
+	вложить дамми <span style="color:#0000ff;">dummy_wiper_ol</span> и<span style="color:#0000ff;"> dummy_wiper_or</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_4).png" width=960"></div><br><br>
+	
+	<span style="color:#008000;">е) </span>автобусные дворники, тип два <p></p>
+	отделить левый дворник в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_tl</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_tl</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_tl</span> в место вращения компонента<span style="color:#0000ff;"> wiper_tl</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_tl</span> на дамми <span style="color:#0000ff;">dummy_wiper_tl</span><br>
+	отделить правый дворник в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">wiper_tr</span><br>
+	переместить локальные оси в место вращения этого компонента<br>
+	компонент <span style="color:#0000ff;">wiper_tr</span> должен вращаться в другую сторону, следовательно на виде <em>Справа</em> локальные оси нужно развернуть на 180 градусов, т.е. чтобы направление горизонтальной оси было влево от дворника<br>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_wiper_tr</span><br>
+	переместить этот дамми <span style="color:#0000ff;">dummy_wiper_tr</span> в место вращения компонента<span style="color:#0000ff;"> wiper_tr</span><br>
+	копировать положение локальных осей с компонента <span style="color:#0000ff;">wiper_tr</span> на дамми <span style="color:#0000ff;">dummy_wiper_tr</span><br>
+	вложить компонент <span style="color:#0000ff;">wiper_tl</span> в дамми <span style="color:#0000ff;">dummy_wiper_tl</span><br>
+	вложить компонент <span style="color:#0000ff;">wiper_tr</span> в дамми <span style="color:#0000ff;">dummy_wiper_tr</span><br>
+	вложить дамми <span style="color:#0000ff;">dummy_wiper_tl</span> и <span style="color:#0000ff;">dummy_wiper_tr</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_5).png" width=960"></div><br>
+	если выше находится правый дворник, то надо поменять обозначения дворников и их вспомогательных дамми, остальная подготовка такая же<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (wiper_6).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Люки:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	<span style="color:#008000;">а)</span> сдвижной люк<br>
+	отделить люк в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">hatch_s_hi</span><br>
+	локальные оси детали <span style="color:#0000ff;">hatch_s_hi</span> сбросить в центр координат<br>
+	открыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">hatch_s_hi</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (hatch_1).png" width=960"></div><br>
+	<br><span style="color:#008000;">б)</span> приоткрывающиеся вперёд (назад) люки<br>
+	отделить каждый из таких люков в отдельную деталь и обозначить каждый из люков соответствующим названием<br>
+	обозначение люков:<br>
+	<span style="color:#0000ff;">hatch_af_hi</span><br>
+	<span style="color:#0000ff;">hatch_ab_hi</span><br>
+	<span style="color:#0000ff;">hatch_bb_hi</span><br>
+	<span style="color:#0000ff;">hatch_bb_hi</span><br>
+	<span style="color:#0000ff;">hatch_cf_hi</span><br>
+	<span style="color:#0000ff;">hatch_cb_hi</span><br>
+	<br>где<br>
+	_a, _b, _c - это первый, второй, третий<br>
+	f - приоткрывается вперёд<br>
+	b - приоткрывается назад<br>
+	<br>локальные оси каждого из люков переместить в место вращения этого компонента<br>
+	открыть браузер иерархии<br>
+	вложить имеющиеся компоненты <span style="color:#0000ff;">hatch_XX_hi</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (hatch_2).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Фары up/down:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	отделить фары в отдельную деталь, обозначить эту деталь <span style="color:#0000ff;">lights_up</span><br>
+	локальные оси детали <span style="color:#0000ff;">lights_up</span> переместить в место вращения этого компонента<br>
+	открыть браузер иерархии<br>
+	вложить компонент <span style="color:#0000ff;">lights_up</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	в файле <em>AdditionalComponents.dat</em> в секции<em> zr350</em> прописать ID модели с такими фарами и значение угла открытия фар в <a href="https://yandex.kz/search/?lr=162&amp;clid=2270453&amp;win=286&amp;msid=1506776763.52763.22896.12846&amp;text=%D0%BF%D0%B5%D1%80%D0%B5%D0%B2%D0%BE%D0%B4%20%D0%B3%D1%80%D0%B0%D0%B4%D1%83%D1%81%D0%B0%20%D0%B2%20%D1%80%D0%B0%D0%B4%D0%B8%D0%B0%D0%BD" class="bbc_url" title="Внешняя ссылка" rel="nofollow external"><span style="color:#ff0000;">радианах</span></a><br>
+	<br>пример:<span style="color:#ff0000;"></span><br>
+	91, 0.7<br>
+	92, 0.61<br>
+	где 92 - это ID модели, 0.61 - значение угла 35 градусов записанное в радианах<br>
+	&nbsp; &nbsp; 91 - это ID модели, 0.7 - значение угла 40 градусов записанное в радианах<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (lights_up_down).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Оптика:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>)<br>
+	расположить в месте нахождения поворотника (противотуманки)<br>
+	обозначить соответстующим названием (смотри далее)<br>
+	повторить для остальных поворотников (противотуманок)<br><p></p>
+	Обозначения дамми поворотников:<br>
+	<p></p>
+	а) поворотники на компонентах, которые не повреждаются и не отваливаются:<br>
+	левый передний - turn_lf<br>
+	левый передний боковой - turn_lm<br>
+	левый задний - turn_lb<br>
+	левый задний красный - turnr_lb<br>
+	левый задний боковой (верхний) - turn_ln<br>
+	правый передний - turn_rf<br>
+	правый передний боковой - turn_rm<br>
+	правый задний - turn_rb<br>
+	правый задний красный - turnr_rb<br>
+	правый задний боковой (верхний) - turn_rn<br>
+	<p></p>
+	б) поворотники на компонентах wing, которые при повреждении отваливаются:<br>
+	левый передний на компоненте wing_lf - turn_wlf<br>
+	левый передний боковой на компоненте wing_lf - turn_wlm<br>
+	левый задний на компоненте wing_lr - turn_wlr<br>
+	левый задний красный на компоненте wing_lr - turnr_wlr<br>
+	правый передний на компоненте wing_rf - turn_wrf<br>
+	правый передний боковой на компоненте wing_rf - turn_wrm<br>
+	правый задний на компоненте wing_rr - turn_wrr<br>
+	правый задний красный на компоненте wing_rr - turnr_wrr<br>
+	<p></p>
+	в) поворотники на компоненте передний бампер, который при повреждении отваливается:<br>
+	левый - turn_blf<br>
+	правый - turn_brf<br>
+	<p></p>
+	г) поворотники на компоненте задний бампер, который при повреждении отваливается:<br>
+	левый - turn_blr<br>
+	правый - turn_brr<br>
+	левый красный - turnr_blr<br>
+	правый красный - turnr_brr<br>
+	<p></p>
+	Обозначения дамми противотуманок:<br>
+	<p></p>
+	а) противотуманки на компонентах, которые не повреждаются и не отваливаются:<br>
+	левая противотуманка - fog_l<br>
+	правая противотуманка - fog_r<br>
+	<p></p>
+	б) на компоненте передний бампер, который при повреждении отваливается:<br>
+	левая противотуманка на компоненте bump_front - fog_lb<br>
+	правая противотуманка на компоненте bump_front - fog_rb<br>
+	<p></p>
+	в) противотуманки (или дополнительные фары) в экстрах:<br>
+	fogex_l<br>
+	fogex_r<br>
+	fogex_lm<br>
+	fogex_rm<br>
+	<p></p>
+	Поддерживается работа до четырёх фар в экстрах. Сами фары (НЕ ЭТИ ДАММИ) должны быть обязательно в экстре номер <span style="color:#ff0000;">5 или (5 и 6)</span>. Экстр должно быть <span style="color:#ff0000;">5 или 6</span>. Обязательно в файле <em>default.IDE</em> выставить значение <span style="color:#ff0000;">3fff</span> флага <em>Comprules</em> (либо <span style="color:#ff0000;">2ff0</span> для моделей, у которых в дождь есть крыша-экстра). Такие фары (противотуманки) будут работать на адаптированных моделях в дождливую и туманную погоду (с флагом <span style="color:rgb(255,0,0);">2ff0 </span>только, если модель была добавлена в трафик, когда идёт дождь).<br>
+	<p></p>
+	Обозначения дамми дневных ходовых огней:<br>
+	day_l<br>
+	day_r<br>
+	<p></p>
+	Обозначения дамми мигалкок на спецтранспорте (эвакуатор и т.д.):<br> 
+	blink_l<br>
+	blink_r<br>
+	blink_lm<br>
+	blink_rm<br>
+	<p></p>
+	Обозначения дамми дополнительных стопсигналов:<br>
+	break_l<br>
+	break_r<br>
+	<p></p>
+	открыть браузер иерархии<br>
+	все дамми поворотников, противотуманок и другой оптики вложить в chassis_dummy<br>
+	<p></p>
+	для удобства можно копировать любой стандартный дамми (в свойствах выставить <em>Dummy object</em>, локальные оси сбросить в ноль)<br>
+	обозначить этот дамми turn (название не имеет значения)<br>
+	вложить все дамми поворотников, противотуманок и другой оптики в дамми turn<br>
+	дамми turn вложить в chassis_dummy<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (turn signals).png" width=960"></div><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Багажник с двумя створками:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	<span style="color:#008000;">а) </span>вертикальное расположение створок<p></p>
+	правая створка будет обозначена стандарным компонентом с дамми <span style="color:#0000ff;">boot_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">boot_hi_ok</span> и <span style="color:#0000ff;">boot_hi_dam</span><br>
+	ось вращения багажника (этой створки) будет другой, поэтому на виде <em>Сзади</em> повернуть локальные оси дамми <span style="color:#0000ff;">boot_dummy</span> вправо на 90 градусов<br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">boot_dummy</span> на детали <span style="color:#0000ff;">boot_hi_ok</span> и <span style="color:#0000ff;">boot_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">boot_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br> 
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">boot_r</span><br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">boot_dummy</span> на дамми <span style="color:#0000ff;">boot_r</span><br>
+	сделать ещё одну копию <span style="color:#0000ff;">boot_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br> 
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">dummy_boot_r</span><br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">boot_dummy</span> на дамми <span style="color:#0000ff;">dummy_boot_r</span><br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">boot_dummy</span> в дамми <span style="color:#0000ff;">boot_r</span><br>
+	вложить дамми <span style="color:#0000ff;">boot_r</span> в дамми <span style="color:#0000ff;">dummy_boot_r</span><br>
+	вложить дамми <span style="color:#0000ff;">dummy_boot_r</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<p></p>
+	левая створка будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_lr_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	переместить локальные оси дамми <span style="color:#0000ff;">wing_lr_dummy</span> в место вращения этого компонента (левой створки)<br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">wing_lr_dummy</span> на детали <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_lr_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">boot_l</span><br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">wing_lr_dummy</span> на дамми <span style="color:#0000ff;">boot_l</span><br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_lr_dummy</span> в дамми <span style="color:#0000ff;">boot_l</span><br>
+	дамми <span style="color:#0000ff;">boot_l</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	чтобы в игре не было проблем со стёклами, можно их отделить в отдельные детали, переименовать и вложить в соответствующие целые и повреждённые детали<br> 
+	(допускается левую створку непосредственно обозначить <span style="color:#0000ff;">boot_l</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_lr</span>, но тогда эта створка не будет повреждаться и отваливаться при повреждениях)<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (dual trunk).png" width=960"></div><br>
+	
+	<span style="color:#008000;">б) </span>горизонтальное расположение створок<p></p>
+	верхняя створка будет обозначена стандарным компонентом с дамми <span style="color:#0000ff;">boot_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">boot_hi_ok</span> и <span style="color:#0000ff;">boot_hi_dam</span><br>
+	<p></p>
+	нижняя створка будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_lr_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	переместить локальные оси дамми <span style="color:#0000ff;">wing_lr_dummy</span> в место вращения этого компонента (нижней створки)<br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">wing_lr_dummy</span> на детали <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_lr_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">boot_b</span><br>
+	копировать положение локальных осей с дамми <span style="color:#0000ff;">wing_lr_dummy</span> на дамми <span style="color:#0000ff;">boot_b</span><br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_lr_dummy</span> в дамми <span style="color:#0000ff;">boot_b</span><br>
+	дамми <span style="color:#0000ff;">boot_b</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	(допускается нижнюю створку непосредственно обозначить <span style="color:#0000ff;">boot_b</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_lr</span>, но тогда эта створка не будет повреждаться и отваливаться при повреждениях)<br><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Сдвижные двери:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	<span style="color:#008000;">а)</span> сдвижные двери микроавтобуса и минивэна<p></p>
+	левая сдвижная дверь будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_lf_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_lf_hi_ok</span> и <span style="color:#0000ff;">wing_lf_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_lf_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">door_mlr</span><br>
+	локальные оси дамми <span style="color:#0000ff;">door_mlr</span> сбросить в ноль<br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_lf_dummy</span> в дамми <span style="color:#0000ff;">door_mlr</span><br>
+	дамми <span style="color:#0000ff;">door_mlr</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	чтобы в игре не было проблем со стёклами, можно их отделить в отдельные детали, переименовать и вложить в соответствующие целые и повреждённые детали<br> 
+	(допускается левую дверь непосредственно обозначить <span style="color:#0000ff;">door_mlr</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_lf</span>, но тогда эта дверь не будет повреждаться и отваливаться при повреждениях, локальные оси сбросить в ноль)<br>
+	<p></p>
+	правая сдвижная дверь будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_rf_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_rf_hi_ok</span> и <span style="color:#0000ff;">wing_rf_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_rf_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">door_mrr</span><br>
+	локальные оси дамми <span style="color:#0000ff;">door_mrr</span> сбросить в ноль<br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_rf_dummy</span> в дамми <span style="color:#0000ff;">door_mrr</span><br>
+	дамми <span style="color:#0000ff;">door_mrr</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	чтобы в игре не было проблем со стёклами, можно их отделить в отдельные детали, переименовать и вложить в соответствующие целые и повреждённые детали<br> 
+	(допускается правую дверь непосредственно обозначить <span style="color:#0000ff;">door_mrr</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_rf</span>, но тогда эта дверь не будет повреждаться и отваливаться при повреждениях, локальные оси сбросить в ноль)<br>
+	<br><div style="text-align: center;"><img src="images/Additional Components (doors).png" width=960"></div><br>
+	<span style="color:#008000;">б)</span> сдвижные двери степвэна<p></p>
+	левая сдвижная дверь будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_lr_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_lr_hi_ok</span> и <span style="color:#0000ff;">wing_lr_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_lr_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">door_slf</span><br>
+	локальные оси дамми <span style="color:#0000ff;">door_slf</span> сбросить в ноль<br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_lr_dummy</span> в дамми <span style="color:#0000ff;">door_slf</span><br>
+	дамми <span style="color:#0000ff;">door_slf</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	чтобы в игре не было проблем со стёклами, можно их отделить в отдельные детали, переименовать и вложить в соответствующие целые и повреждённые детали<br> 
+	(допускается левую дверь непосредственно обозначить <span style="color:#0000ff;">door_slf</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_lr</span>, но тогда эта дверь не будет повреждаться и отваливаться при повреждениях, локальные оси сбросить в ноль)<br>
+	<p></p>
+	правая сдвижная дверь будет обозначена стандартным компонентом с дамми <span style="color:#0000ff;">wing_rr_dummy</span> и вложенными в него деталями <span style="color:#0000ff;">wing_rr_hi_ok</span> и <span style="color:#0000ff;">wing_rr_hi_dam</span><br>
+	сделать копию дамми <span style="color:#0000ff;">wing_rr_dummy</span> (в свойствах выставить <em>Dummy object</em>)<br>
+	обозначить этот вспомогательный дамми <span style="color:#0000ff;">door_srf</span><br>
+	локальные оси дамми <span style="color:#0000ff;">door_srf</span> сбросить в ноль<br>
+	отрыть браузер иерархии<br>
+	вложить дамми <span style="color:#0000ff;">wing_rr_dummy</span> в дамми <span style="color:#0000ff;">door_srf</span><br>
+	дамми <span style="color:#0000ff;">door_srf</span> вложить в <span style="color:#0000ff;">chassis_dummy</span><br>
+	чтобы в игре не было проблем со стёклами, можно их отделить в отдельные детали, переименовать и вложить в соответствующие целые и повреждённые детали<br> 
+	(допускается правую дверь непосредственно обозначить <span style="color:#0000ff;">door_srf</span> без вспомогательных дамми и стандартной детали <span style="color:#0000ff;">wing_rr</span>, но тогда эта дверь не будет повреждаться и отваливаться при повреждениях, локальные оси сбросить в ноль)<br><br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="center" valign="middle">
+	<td><strong><span style="color: #ffffff;">Тормозные колодки:</span></strong></td>
+</tr>
+<tr>
+	<td>
+	отделить тормозные колодки в отдельные детали<br>
+	обозначить эти детали <span style="color:#0000ff;">hub_XX</span><br>
+	где _XX в названии каждой тормозной колодки будет приставка с соответствующего колеса (_lf, _rf, _lm, _rm, _lb, _rb)<br>
+	копировать локальные оси с каждого дамми соответствующего колеса на соответствующую тормозную колодку<br>
+	открыть браузер иерархии<br>
+	вложить имеющиеся компоненты <span style="color:#0000ff;">hub_XX</span> в <span style="color:#0000ff;">chassis_dummy</span><br>
+	<br>
+	</td>
+</tr>
+
+<tr style="background-color: #505050;" align="right" valign="middle">
+	<td><strong><span style="color: #ffffff;">© kenking, 2019</span></strong></td>
+</tr>
+
+</tbody>
+</table>
+</body></html>
