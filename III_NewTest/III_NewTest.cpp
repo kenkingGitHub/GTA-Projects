@@ -2,40 +2,7 @@
 #include "CSprite.h"
 #include "CFont.h"
 #include "CModelInfo.h"
-
-
-
-struct CZoneInfo {
-    unsigned __int16 carDensity;
-    unsigned __int16 carPoorfamily;
-    unsigned __int16 carRichfamily;
-    unsigned __int16 carExecutive;
-    unsigned __int16 carWorker;
-    unsigned __int16 carSpecial;
-    unsigned __int16 carBig;
-    unsigned __int16 carCops;
-    unsigned __int16 carLeone;
-    unsigned __int16 carTriad;
-    unsigned __int16 carDiablo;
-    unsigned __int16 carYakuza;
-    unsigned __int16 carYardie;
-    unsigned __int16 carColombian;
-    unsigned __int16 carHood;
-    unsigned __int16 carForelli;
-    unsigned __int16 carSindacco;
-    unsigned __int16 pedDensity;
-    unsigned __int16 copDensity;
-    unsigned __int16 pedLeone;
-    unsigned __int16 pedTriad;
-    unsigned __int16 pedDiablo;
-    unsigned __int16 pedYakuza;
-    unsigned __int16 pedYardie;
-    unsigned __int16 pedColombian;
-    unsigned __int16 pedHood;
-    unsigned __int16 pedForelli;
-    unsigned __int16 pedSindacco;
-    unsigned __int16 pedgrp;
-};
+#include "CZoneInfo.h"
 
 void __cdecl GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
     ((void(__cdecl *)(CVector*, CZoneInfo*))0x4B6FB0)(point, info);

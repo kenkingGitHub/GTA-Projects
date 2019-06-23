@@ -16,10 +16,8 @@
 #include "CGangs.h"
 #include "cMusicManager.h"
 #include "cAudioManager.h"
-
 #include "CRunningScript.h"
 #include "CTheScripts.h"
-
 
 #define m_MODEL_POLICE 156
 
@@ -31,17 +29,16 @@ using namespace plugin;
 
 class Test {
 public:
-    
-    /*static void __cdecl LoadInitialVehicles() {
-        int modelIndex; 
+    static unsigned int CurrentSirenModel;
 
-        CStreaming::ms_numVehiclesLoaded = 0;
-        CStreaming::ms_lastVehicleDeleted = 0;
-        if (CModelInfo::GetModelInfo("taxi", &modelIndex))
-            CStreaming::RequestModel(modelIndex, 1);
-        if (CModelInfo::GetModelInfo("police", &modelIndex))
-            CStreaming::RequestModel(modelIndex, 1);
-    }*/
+    static int __stdcall GetPoliceModel(unsigned int model) {
+        if (model == MODEL_POLICE || model == m_MODEL_POLICE)
+            return MODEL_POLICE;
+        else if (model == MODEL_TAXI || model == 102)
+            return MODEL_TAXI;
+        return model;
+    }
+    static void Patch_5373D7();
 
     static CPed * __cdecl /*CPopulation::*/AddPedInCar(CVehicle *vehicle)  {
         int modelIndex; 
@@ -397,6 +394,29 @@ public:
         return result;
     }
 
+    static bool __cdecl IsCarSprayable(CAutomobile *car)  {
+        bool result; 
+
+        switch (car->m_nModelIndex)  {
+        case MODEL_FIRETRUK:
+        case MODEL_AMBULAN:
+        case MODEL_POLICE:
+        case MODEL_ENFORCER:
+        case MODEL_BUS:
+        case MODEL_RHINO:
+        case MODEL_BARRACKS:
+        case MODEL_DODO:
+        case MODEL_COACH:
+        case m_MODEL_POLICE:
+            result = FALSE;
+            break;
+        default:
+            result = TRUE;
+            break;
+        }
+        return result;
+    }
+
     //static int __cdecl ChoosePoliceCarModel() {
     //    int result = MODEL_POLICE;
     //    CPlayerPed *player = FindPlayerPed();
@@ -443,7 +463,7 @@ public:
         CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
         if (player->m_bInVehicle) {
             unsigned int model = player->m_pVehicle->m_nModelIndex;
-            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || model == 90)
+            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || model == 102)
                 isTaxiModel = true;
         }
         script->UpdateCompareFlag(isTaxiModel);
@@ -466,12 +486,9 @@ public:
         }
         script->UpdateCompareFlag(inModel);
     }
-        
+     
 
     Test() {
-        //patch::RedirectJump(0x40ADF0, LoadInitialVehicles);
-
-        
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
         patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
         patch::RedirectJump(0x4181F0, ChoosePoliceCarModel);
@@ -480,6 +497,7 @@ public:
         patch::RedirectJump(0x57E4B0, PlayerInCar);
         patch::RedirectJump(0x56C3C0, UsesSirenAudio);
         patch::RedirectJump(0x56C3F0, UsesSirenSwitching);
+        patch::RedirectJump(0x426700, IsCarSprayable);
 
         //patch::RedirectJump(0x4F5800, AddPedInCar);
 
@@ -489,22 +507,28 @@ public:
         patch::RedirectCall(0x43DA19, OpcodeIsPlayerInModel);
         patch::Nop(0x43DA1E, 0x40); // или сделать jump на 0x43DA5E
         
-
-        /*Events::gameProcessEvent += [] {
-            CVehicle *vehicle = FindPlayerVehicle();
-            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-                KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('N', 1000)) {
-                    automobile->SetModelIndex(automobile->m_nModelIndex);
-                    automobile->SetupModelNodes();
-                }
-            }
-        };*/
+        patch::RedirectJump(0x5373D7, Patch_5373D7);
+        
     }
-
 }test;
+
+unsigned int Test::CurrentSirenModel;
+
+void __declspec(naked) Test::Patch_5373D7() {
+    __asm {
+        movsx eax, word ptr[ebp + 0x5C]
+        pushad
+        push eax
+        call GetPoliceModel 
+        mov CurrentSirenModel, eax
+        popad
+        mov eax, CurrentSirenModel
+        lea edx, [eax - 0x61]
+        mov edi, 0x5373DE
+        jmp edi
+    }
+}
+
 
 
 //#include "plugin.h"
