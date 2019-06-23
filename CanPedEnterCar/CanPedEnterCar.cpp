@@ -1,198 +1,772 @@
-#include <plugin.h>
-#include "common.h"
-#include "CModelInfo.h"
-#include "CTxdStore.h"
+#include "plugin.h"
+#include "CWanted.h"
+#include "CStreaming.h"
+#include "CWorld.h"
+#include "CVehicleModelInfo.h"
 #include "eVehicleModel.h"
-#include "CSprite2d.h"
+#include "ePedModel.h"
+#include "CModelInfo.h"
 #include "extensions\KeyCheck.h"
-#include "CFileLoader.h"
+#include "CWeaponInfo.h"
+#include "ePedType.h"
+#include "CAnimManager.h"
+#include "CZoneInfo.h"
+#include "CGangInfo.h"
+#include "CPopulation.h"
+#include "CGangs.h"
+#include "cMusicManager.h"
+#include "cAudioManager.h"
 
-char *gString = (char *)0x711B40;
+#include "CRunningScript.h"
+#include "CTheScripts.h"
+
+
+#define m_MODEL_POLICE 156
+
+void __cdecl /*CTheZones::*/GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
+    ((void(__cdecl *)(CVector*, CZoneInfo*))0x4B6FB0)(point, info);
+};
 
 using namespace plugin;
 
-class VehicleTexture {
+class Test {
 public:
-    //static RwTexture *pMyTexture;
-    static RwTexture *myTexture;
-    static RwTexture *texture;
+    
+    /*static void __cdecl LoadInitialVehicles() {
+        int modelIndex; 
 
-    static RwTexDictionary *m_txd;
-    static RwTexture *m_textureLogo;
-    static RwTexture *m_textureTest;
-
-    static float ScreenCoord(float a) {
-        return static_cast<int>(a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
-    }
-
-    //static void Draw() {
-
-    //    static TxdDef *myTxd;
-    //    
-    //    KeyCheck::Update();
-    //    //if (KeyCheck::CheckWithDelay('J', 1000)) {
-    //    //    if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
-    //    //        myTxd = nullptr;
-    //    //    else {
-    //    //        myTxd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
-    //    //        RwTexture *texture = RwTexDictionaryFindNamedTexture(myTxd->m_pRwDictionary, "remap");
-    //    //        if (texture) {
-    //    //            if (texture->dict) {
-    //    //                texture->dict = 0;
-    //    //                texture->lInDictionary.prev = texture->lInDictionary.next;
-    //    //                texture->lInDictionary.next = texture->lInDictionary.prev;
-    //    //            }
-    //    //            //texture = RwTextureRead("test", 0);
-    //    //            //RwTextureDestroy(texture);
-    //    //            //RwTexDictionaryAddTexture(myTxd->m_pRwDictionary, myTexture);
-    //    //        }
-    //    //    }
-    //    //}
-
-    //    if (KeyCheck::CheckWithDelay('N', 1000)) {
-    //        //CVehicle *vehicle = FindPlayerVehicle();
-    //        //if (vehicle) {
-    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
-    //            if (myTexture) {
-    //                RpMaterial **materialPrim;
-    //                materialPrim = &vehModel->m_apMaterialsPrimary[13];
-    //                RpMaterial *material;
-    //                //int i = 13;
-    //                while (true) {
-    //                    material = *materialPrim;
-    //                    if (!*materialPrim)
-    //                        break;
-    //                    if (myTexture)
-    //                        RpMaterialSetTexture(material, myTexture);
-    //                    ++materialPrim; //++i;
-    //                }
-    //            }
-    //        //}
-    //    }
-    //    
-    //    if (KeyCheck::CheckWithDelay('B', 1000)) {
-    //        //CVehicle *vehicle = FindPlayerVehicle();
-    //        //if (vehicle) {
-    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
-    //            RpMaterial **materialPrim;
-    //            materialPrim = &vehModel->m_apMaterialsPrimary[0];
-    //            RpMaterial *material;
-    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
-    //            if (txd) {
-    //                RwTexture *remaptexture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "remap");
-    //                if (remaptexture) {
-    //                    int i = 0;
-    //                    while (i < 13) {
-    //                        material = *materialPrim;
-    //                        if (!*materialPrim)
-    //                            break;
-    //                        RpMaterialSetTexture(material, remaptexture);
-    //                        ++materialPrim; ++i;
-    //                    }
-    //                }
-    //            }
-    //        //}
-    //    }
-
-
-    //    CPed *player = FindPlayerPed();
-    //    //CVehicle *veh = FindPlayerVehicle();
-    //    //if (veh && veh->m_nModelIndex == MODEL_IDAHO) {
-    //    if (player) {
-    //        //if (!myTexture) {
-    //        //    //sprintf(gString, "image\\%s.bmp", "mytest");
-    //        //    //RwImage *image = RtBMPImageRead(gString);
-    //        //    RwImage *image = RtBMPImageRead("image\\mytest.bmp");
-    //        //    if (image) {
-    //        //        RwInt32 width, height, depth, flags;
-    //        //        RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-    //        //        RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-    //        //        RwRasterSetFromImage(raster, image);
-    //        //        myTexture = RwTextureCreate(raster);
-    //        //        RwTextureSetName(myTexture, "mytest");
-    //        //        RwImageDestroy(image);
-    //        //    }
-    //        //}
-
-    //        //TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex]->m_nTxdIndex);
-    //        if (!texture) {
-    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
-    //            if (txd) {
-    //                texture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "test");
-    //            }
-    //        }
-    //        
-    //        if (texture) {
-    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
-    //            //CSprite2d::DrawRect(CRect(RsGlobal.maximumWidth / 2 - 128, 200.0f, RsGlobal.maximumWidth / 2 + 128, 264.0f), CRGBA(255, 255, 255, 255));
-    //            //CSprite2d::SetVertices(CRect(RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 130), RsGlobal.maximumHeight - 122, RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 210), RsGlobal.maximumHeight - 42), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-    //            CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
-    //        }
-    //        
-    //        /*if (myTexture) {
-    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, myTexture->raster);
-    //            CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(300.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
-    //        }*/
-
-    //    }
-    //}
-
-    /*static void DrawLogo() {
-        CPed *player = FindPlayerPed();
-        if (player) {
-            if (m_textureTest) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
-                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
-            }
-            if (m_textureLogo) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
-                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
-            }
-        }
+        CStreaming::ms_numVehiclesLoaded = 0;
+        CStreaming::ms_lastVehicleDeleted = 0;
+        if (CModelInfo::GetModelInfo("taxi", &modelIndex))
+            CStreaming::RequestModel(modelIndex, 1);
+        if (CModelInfo::GetModelInfo("police", &modelIndex))
+            CStreaming::RequestModel(modelIndex, 1);
     }*/
 
-    VehicleTexture() {
-        Events::initRwEvent += [] {
-            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\testlogo.txd"));
-            m_textureLogo = GetFirstTexture(m_txd);
-            m_textureTest = RwTexDictionaryFindNamedTexture(m_txd, "test");
-        };
+    static CPed * __cdecl /*CPopulation::*/AddPedInCar(CVehicle *vehicle)  {
+        int modelIndex; 
+        int gangType; 
+        int index; 
+        unsigned int v4; 
+        CVehicleModelInfo *vehicleInfo; 
+        CPed *ped; 
+        CWeaponInfo *weaponInfo; 
+        unsigned int pedType;
+        int _modelIndex; 
+        char v13; 
+        CVector posn; 
+        CZoneInfo zoneInfo; 
+        CVector pos; 
+        CPedModelInfo *pedInfo;
+        
 
-        //Events::drawingEvent += Draw;
-        //Events::menuDrawingEvent += Draw;
-        //Events::menuDrawingEvent += DrawLogo;
-        //Events::drawHudEvent += DrawLogo;
-
-        Events::drawingEvent += [] {
-            if (m_textureTest) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
-                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+        _modelIndex = MODEL_MALE01;
+        v13 = 1;
+        pos = FindPlayerCoors();
+        posn = vehicle->m_matrix.pos;
+        /*CTheZones::*/GetZoneInfoForTimeOfDay(&pos, &zoneInfo);
+        switch (vehicle->m_nModelIndex) {
+        case m_MODEL_POLICE:
+        case MODEL_POLICE:
+            modelIndex = MODEL_COP;
+            pedType = PEDTYPE_COP;
+            break;
+        case MODEL_ENFORCER:
+            modelIndex = MODEL_SWAT;
+            pedType = PEDTYPE_COP;
+            break;
+        case MODEL_FBICAR:
+            modelIndex = MODEL_FBI;
+            pedType = PEDTYPE_COP;
+            break;
+        case MODEL_RHINO:
+        case MODEL_BARRACKS:
+            modelIndex = MODEL_ARMY;
+            pedType = PEDTYPE_COP;
+            break;
+        case MODEL_AMBULAN:
+            modelIndex = MODEL_MEDIC;
+            pedType = PEDTYPE_MEDIC;
+            break;
+        case MODEL_FIRETRUK:
+            modelIndex = MODEL_FIREMAN;
+            pedType = PEDTYPE_FIRE;
+            break;
+        case MODEL_TAXI:
+        case MODEL_CABBIE:
+        case MODEL_BORGNINE:
+            if ((unsigned __int16)rand() >= 16383u) {
+                _modelIndex = MODEL_TAXI_D;
+                goto LABEL_11;
             }
-            if (m_textureLogo) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
-                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
-                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            pedType = PEDTYPE_CIVMALE;
+            modelIndex = MODEL_TAXI_D;
+            break;
+        default:
+        LABEL_11:
+            gangType = 0;
+            v13 = 0;
+            index = 0;
+            while (CGangs::Gang[index].m_nVehicleModel != vehicle->m_nModelIndex) {
+                ++gangType;
+                ++index;
+                if (gangType >= 9)
+                    goto LABEL_15;
             }
-        };
-
-        Events::shutdownRwEvent += [] {
-            RwTexDictionaryDestroy(m_txd);
-        };
+            pedType = gangType + 7;
+            modelIndex = CPopulation::ChooseGangOccupation(gangType);
+        LABEL_15:
+            if (gangType == 9) {
+                v4 = 15;
+                vehicleInfo = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+                do
+                {
+                    modelIndex = CPopulation::ChooseCivilianOccupation(zoneInfo.pedgrp);
+                    if (modelIndex == -1)
+                        modelIndex = _modelIndex;
+                    pedInfo = reinterpret_cast<CPedModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex]);
+                    if (pedInfo->m_nCarsCanDriveMask & (1 << vehicleInfo->m_nVehicleClass))
+                        break;
+                } while (v4-- >= 1);
+                if (v4 == -1)
+                    modelIndex = _modelIndex;
+                pedType = pedInfo->m_nPedtype;
+            }
+            break;
+        }
+        if (!v13 && !pedInfo->GetRwObject()) {
+            modelIndex = _modelIndex;
+            pedType = pedInfo->m_nPedtype;
+        }
+        ped = CPopulation::AddPed((ePedType)pedType, modelIndex, posn);
+        ped->m_nFlags.bUsesCollision = 0;
+        if (pedType != PEDTYPE_COP) {
+            ped->SetCurrentWeapon(WEAPONTYPE_COLT45);
+            weaponInfo = CWeaponInfo::GetWeaponInfo(ped->m_aWeapons[ped->m_nWepSlot].m_nType);
+            ped->RemoveWeaponModel(weaponInfo->m_nModelId);
+        }
+        
+        ped->m_pVehicleAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, 0, 111, 100.0);
+        ped->StopNonPartialAnims();
+        return ped;
     }
-} vehTexture;
 
-//RwTexture *VehicleTexture::pMyTexture;
-RwTexture *VehicleTexture::myTexture = nullptr;
-RwTexture *VehicleTexture::texture = nullptr;
+    static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
+        bool result; 
 
-RwTexDictionary *VehicleTexture::m_txd;
-RwTexture *VehicleTexture::m_textureLogo;
-RwTexture *VehicleTexture::m_textureTest;
+        switch (_this->m_nModelIndex) {
+        case MODEL_FBICAR:
+        case MODEL_POLICE:
+        case MODEL_ENFORCER:
+        case MODEL_PREDATOR:
+        case MODEL_RHINO:
+        case MODEL_BARRACKS:
+        case m_MODEL_POLICE:
+            result = TRUE;
+            break;
+        default:
+            result = FALSE;
+            break;
+        }
+        return result;
+    }
+
+    static void __cdecl AddPoliceCarOccupants(CVehicle *vehicle) {
+        if (!vehicle->m_nVehicleFlags.b25) {
+            vehicle->m_nVehicleFlags.b25 = 1;// vehicle->m_nVehicleFlags.bOccupantsHaveBeenGenerated = 1;
+            int _random = plugin::Random(0, 2);
+            switch (vehicle->m_nModelIndex) {
+            case m_MODEL_POLICE:
+                vehicle->SetUpDriver();
+                if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1)
+                    vehicle->SetupPassenger(_random);
+                break;
+            case MODEL_POLICE:
+            case MODEL_RHINO:
+            case MODEL_BARRACKS:
+                vehicle->SetUpDriver();
+                if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1)
+                    vehicle->SetupPassenger(0);
+                break;
+            case MODEL_FBICAR:
+            case MODEL_ENFORCER:
+                vehicle->SetUpDriver();
+                vehicle->SetupPassenger(0);
+                vehicle->SetupPassenger(1);
+                vehicle->SetupPassenger(2);
+                break;
+            default:
+                return;
+            }
+        }
+    }
+
+    static int __cdecl ChoosePoliceCarModel() {
+        CPlayerPed *player; 
+        int result;
+
+        player = FindPlayerPed();
+        if (player) {
+            if (player->m_pWanted->AreSwatRequired()
+                && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
+                && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
+            {
+                int _random = plugin::Random(0, 10);
+                /*if (_random == 0)
+                result = MODEL_POLICE;*/
+                if (_random < 5)
+                    result = MODEL_ENFORCER;
+                else {
+                    unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
+                    CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
+                    CStreaming::LoadAllRequestedModels(false);
+                    if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
+                        if (!(oldFlags & GAME_REQUIRED)) {
+                            CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
+                            CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
+                        }
+                        result = m_MODEL_POLICE;
+                    }
+                    else
+                        result = MODEL_POLICE;
+                }
+            }
+            else
+            {
+                if (player->m_pWanted->AreFbiRequired()
+                    && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == LOADSTATE_LOADED
+                    && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
+                {
+                    result = MODEL_FBICAR;
+                }
+                else
+                {
+                    if (player->m_pWanted->AreArmyRequired()
+                        && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == LOADSTATE_LOADED
+                        && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
+                        && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
+                    {
+                        int __random = plugin::Random(0, 10);
+                        if (__random < 7)
+                            result = MODEL_BARRACKS;
+                        else
+                            result = MODEL_RHINO;
+                    }
+                    else
+                    {
+                        result = MODEL_POLICE;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static bool __fastcall UsesPoliceRadio(cMusicManager *_this, int, CVehicle *vehicle) {
+        bool result; 
+
+        switch (vehicle->m_nModelIndex) {
+        case MODEL_FBICAR:
+        case MODEL_POLICE:
+        case MODEL_ENFORCER:
+        case MODEL_PREDATOR:
+        case MODEL_RHINO:
+        case MODEL_BARRACKS:
+        case m_MODEL_POLICE:
+            result = TRUE;
+            break;
+        default:
+            result = FALSE;
+            break;
+        }
+        return result;
+    }
+
+    static bool __fastcall UsesSiren(CVehicle *_this, int, int vehicleModel) {
+        bool result; 
+
+        switch (vehicleModel) {
+        case MODEL_FIRETRUK:
+        case MODEL_AMBULAN:
+        case MODEL_FBICAR:
+        case MODEL_MRWHOOP:
+        case MODEL_POLICE:
+        case MODEL_ENFORCER:
+        case MODEL_PREDATOR:
+        case m_MODEL_POLICE:
+            result = TRUE;
+            break;
+        default:
+            result = FALSE;
+            break;
+        }
+        return result;
+    }
+
+    static bool __fastcall PlayerInCar(cMusicManager *_this) {
+        int action; 
+        bool result; 
+        CVehicle *vehicle; 
+
+        if (FindPlayerVehicle())
+        {
+            action = FindPlayerPed()->m_nState;
+            if (action != 51 && action != 54 && action != 56)
+            {
+                vehicle = FindPlayerVehicle();
+                if (vehicle)
+                {
+                    if (vehicle->m_nState == 5)
+                    {
+                        result = FALSE;
+                    }
+                    else
+                    {
+                        switch (vehicle->m_nModelIndex)
+                        {
+                        case MODEL_FIRETRUK:
+                        case MODEL_AMBULAN:
+                        case MODEL_MRWHOOP:
+                        case MODEL_PREDATOR:
+                        case MODEL_TRAIN:
+                        case MODEL_SPEEDER:
+                        case MODEL_REEFER:
+                        case MODEL_GHOST:
+                        case m_MODEL_POLICE:
+                            result = FALSE;
+                            break;
+                        default:
+                            goto LABEL_11;
+                        }
+                    }
+                }
+                else
+                {
+                LABEL_11:
+                    result = TRUE;
+                }
+            }
+            else
+            {
+                result = FALSE;
+            }
+        }
+        else
+        {
+            result = FALSE;
+        }
+        return result;
+    }
+
+
+    static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index)  {
+        bool result; 
+
+        switch (index) {
+        case 7:
+        case 16:
+        case 17:
+        case 26:
+        case 27:
+        case 30:
+        case 66:
+            result = TRUE;
+            break;
+        default:
+            result = FALSE;
+            break;
+        }
+        return result;
+    }
+
+    static bool __fastcall UsesSirenSwitching(cAudioManager *_this, int, int index) {
+        bool result; 
+
+        switch (index) {
+        case 16:
+        case 26:
+        case 27:
+        case 30:
+        case 66:
+            result = TRUE;
+            break;
+        default:
+            result = FALSE;
+            break;
+        }
+        return result;
+    }
+
+    //static int __cdecl ChoosePoliceCarModel() {
+    //    int result = MODEL_POLICE;
+    //    CPlayerPed *player = FindPlayerPed();
+    //    if (player) {
+    //        if (/*player->m_pWanted->AreSwatRequired() &&*/ CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED) {
+    //            if (rand() & 2)
+    //                result = MODEL_POLICE;
+    //            else {
+    //                unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
+    //                CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
+    //                CStreaming::LoadAllRequestedModels(false);
+    //                if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
+    //                    if (!(oldFlags & GAME_REQUIRED)) {
+    //                        CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
+    //                        CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
+    //                    }
+    //                    result = m_MODEL_POLICE;
+    //                }
+    //            }
+    //        }
+    //       /* else  {
+    //            if (player->m_pWanted->AreFbiRequired() && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == 1) {
+    //                result = MODEL_FBICAR;
+    //            }
+    //            else {
+    //                if (player->m_pWanted->AreArmyRequired() && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == 1) {
+    //                    if ((unsigned __int16)rand() < 16383u)
+    //                        result = MODEL_BARRACKS;
+    //                    else
+    //                        result = MODEL_RHINO;
+    //                }
+    //                else  
+    //                    result = MODEL_POLICE;
+    //            }
+    //        }*/
+    //    }
+    //    return result;
+    //}
+
+    static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
+        script->CollectParameters(&script->m_nIp, 1);
+        bool isTaxiModel = false;
+        
+        CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
+        if (player->m_bInVehicle) {
+            unsigned int model = player->m_pVehicle->m_nModelIndex;
+            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || model == 90)
+                isTaxiModel = true;
+        }
+        script->UpdateCompareFlag(isTaxiModel);
+    }
+
+   
+    static void __fastcall OpcodeIsPlayerInModel(CRunningScript *script) {
+        script->CollectParameters(&script->m_nIp, 2);
+        bool inModel = false;
+
+        CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
+        if (player->m_bInVehicle) {
+            unsigned int model = player->m_pVehicle->m_nModelIndex;
+            if (model == CTheScripts::ScriptParams[1].uParam)
+                inModel = true;
+            else if (model == m_MODEL_POLICE && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
+                inModel = true;
+            //else if (model == MODEL_PEREN && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
+                //inModel = true;
+        }
+        script->UpdateCompareFlag(inModel);
+    }
+        
+
+    Test() {
+        //patch::RedirectJump(0x40ADF0, LoadInitialVehicles);
+
+        
+        patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
+        patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
+        patch::RedirectJump(0x4181F0, ChoosePoliceCarModel);
+        patch::RedirectJump(0x57E6A0, UsesPoliceRadio);
+        patch::RedirectJump(0x552200, UsesSiren);
+        patch::RedirectJump(0x57E4B0, PlayerInCar);
+        patch::RedirectJump(0x56C3C0, UsesSirenAudio);
+        patch::RedirectJump(0x56C3F0, UsesSirenSwitching);
+
+        //patch::RedirectJump(0x4F5800, AddPedInCar);
+
+        patch::RedirectCall(0x446A93, OpcodePlayerDrivingTaxiVehicle);
+        patch::Nop(0x446A98, 0x4C); // или сделать jump на 0x446AE4
+
+        patch::RedirectCall(0x43DA19, OpcodeIsPlayerInModel);
+        patch::Nop(0x43DA1E, 0x40); // или сделать jump на 0x43DA5E
+        
+
+        /*Events::gameProcessEvent += [] {
+            CVehicle *vehicle = FindPlayerVehicle();
+            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+                KeyCheck::Update();
+                if (KeyCheck::CheckWithDelay('N', 1000)) {
+                    automobile->SetModelIndex(automobile->m_nModelIndex);
+                    automobile->SetupModelNodes();
+                }
+            }
+        };*/
+    }
+
+}test;
+
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
+//#include "TxdDef.h"
+//#include "CFileLoader.h"
+//#include "CTxdStore.h"
+//#include "CModelInfo.h"
+//#include "CGameLogic.h"
+//#include "CDirectory.h"
+//#include "CStreaming.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static TxdDef *m_txd;
+//    static RwTexDictionary *m_dictionary;
+//
+//    Test() {
+//        Events::drawingEvent += [] {
+//            if (CGameLogic::ActivePlayers) {
+//                if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
+//                    m_txd = nullptr;
+//                else 
+//                    m_txd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
+//                    
+//                gamefont::Print({
+//                    Format("116 ID %d", CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nType]),
+//                    Format("m_MODEL_POLICE ID %d", CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[m_MODEL_POLICE]->m_nObjectDataIndex])
+//                }, 10, 250, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+//
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('B', 1000)) {
+//                    if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
+//                        m_txd = nullptr;
+//                    else {
+//                        m_txd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
+//                        
+//                        //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                        //CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police4");
+//                        //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                        
+//                        //CMessages::AddMessageJumpQ(L"OK", 2000, 0);
+//
+//                        //m_dictionary = CFileLoader::LoadTexDictionary(GAME_PATH("txd\\mpolice.txd"));
+//                        //if (m_dictionary) {
+//                        //    CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                        //    CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police4");
+//                        //    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                        //    //RwTexDictionarySetCurrent(m_txd->m_pRwDictionary);
+//                        //    //CFileLoader::AddTexDictionaries(m_txd->m_pRwDictionary, m_dictionary);
+//                        //    //RwTexDictionaryDestroy(m_dictionary);
+//                        //    //m_txd->m_pRwDictionary = m_dictionary;
+//                        //    CMessages::AddMessageJumpQ(L"OK", 2000, 0);
+//                        //}
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+//
+//TxdDef *Test::m_txd = nullptr;
+//RwTexDictionary *Test::m_dictionary = nullptr;
+
+//#include <plugin.h>
+//#include "common.h"
+//#include "CModelInfo.h"
+//#include "CTxdStore.h"
+//#include "eVehicleModel.h"
+//#include "CSprite2d.h"
+//#include "extensions\KeyCheck.h"
+//#include "CFileLoader.h"
+//
+//char *gString = (char *)0x711B40;
+//
+//using namespace plugin;
+//
+//class VehicleTexture {
+//public:
+//    //static RwTexture *pMyTexture;
+//    static RwTexture *myTexture;
+//    static RwTexture *texture;
+//
+//    static RwTexDictionary *m_txd;
+//    static RwTexture *m_textureLogo;
+//    static RwTexture *m_textureTest;
+//
+//    static float ScreenCoord(float a) {
+//        return static_cast<int>(a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
+//    }
+//
+//    //static void Draw() {
+//
+//    //    static TxdDef *myTxd;
+//    //    
+//    //    KeyCheck::Update();
+//    //    //if (KeyCheck::CheckWithDelay('J', 1000)) {
+//    //    //    if (CTxdStore::ms_pTxdPool->m_byteMap[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex].bEmpty)
+//    //    //        myTxd = nullptr;
+//    //    //    else {
+//    //    //        myTxd = &CTxdStore::ms_pTxdPool->m_pObjects[CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex];
+//    //    //        RwTexture *texture = RwTexDictionaryFindNamedTexture(myTxd->m_pRwDictionary, "remap");
+//    //    //        if (texture) {
+//    //    //            if (texture->dict) {
+//    //    //                texture->dict = 0;
+//    //    //                texture->lInDictionary.prev = texture->lInDictionary.next;
+//    //    //                texture->lInDictionary.next = texture->lInDictionary.prev;
+//    //    //            }
+//    //    //            //texture = RwTextureRead("test", 0);
+//    //    //            //RwTextureDestroy(texture);
+//    //    //            //RwTexDictionaryAddTexture(myTxd->m_pRwDictionary, myTexture);
+//    //    //        }
+//    //    //    }
+//    //    //}
+//
+//    //    if (KeyCheck::CheckWithDelay('N', 1000)) {
+//    //        //CVehicle *vehicle = FindPlayerVehicle();
+//    //        //if (vehicle) {
+//    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
+//    //            if (myTexture) {
+//    //                RpMaterial **materialPrim;
+//    //                materialPrim = &vehModel->m_apMaterialsPrimary[13];
+//    //                RpMaterial *material;
+//    //                //int i = 13;
+//    //                while (true) {
+//    //                    material = *materialPrim;
+//    //                    if (!*materialPrim)
+//    //                        break;
+//    //                    if (myTexture)
+//    //                        RpMaterialSetTexture(material, myTexture);
+//    //                    ++materialPrim; //++i;
+//    //                }
+//    //            }
+//    //        //}
+//    //    }
+//    //    
+//    //    if (KeyCheck::CheckWithDelay('B', 1000)) {
+//    //        //CVehicle *vehicle = FindPlayerVehicle();
+//    //        //if (vehicle) {
+//    //            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[91]);
+//    //            RpMaterial **materialPrim;
+//    //            materialPrim = &vehModel->m_apMaterialsPrimary[0];
+//    //            RpMaterial *material;
+//    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
+//    //            if (txd) {
+//    //                RwTexture *remaptexture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "remap");
+//    //                if (remaptexture) {
+//    //                    int i = 0;
+//    //                    while (i < 13) {
+//    //                        material = *materialPrim;
+//    //                        if (!*materialPrim)
+//    //                            break;
+//    //                        RpMaterialSetTexture(material, remaptexture);
+//    //                        ++materialPrim; ++i;
+//    //                    }
+//    //                }
+//    //            }
+//    //        //}
+//    //    }
+//
+//
+//    //    CPed *player = FindPlayerPed();
+//    //    //CVehicle *veh = FindPlayerVehicle();
+//    //    //if (veh && veh->m_nModelIndex == MODEL_IDAHO) {
+//    //    if (player) {
+//    //        //if (!myTexture) {
+//    //        //    //sprintf(gString, "image\\%s.bmp", "mytest");
+//    //        //    //RwImage *image = RtBMPImageRead(gString);
+//    //        //    RwImage *image = RtBMPImageRead("image\\mytest.bmp");
+//    //        //    if (image) {
+//    //        //        RwInt32 width, height, depth, flags;
+//    //        //        RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
+//    //        //        RwRaster *raster = RwRasterCreate(width, height, depth, flags);
+//    //        //        RwRasterSetFromImage(raster, image);
+//    //        //        myTexture = RwTextureCreate(raster);
+//    //        //        RwTextureSetName(myTexture, "mytest");
+//    //        //        RwImageDestroy(image);
+//    //        //    }
+//    //        //}
+//
+//    //        //TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex]->m_nTxdIndex);
+//    //        if (!texture) {
+//    //            TxdDef *txd = CTxdStore::ms_pTxdPool->GetAt(CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex);
+//    //            if (txd) {
+//    //                texture = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "test");
+//    //            }
+//    //        }
+//    //        
+//    //        if (texture) {
+//    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
+//    //            //CSprite2d::DrawRect(CRect(RsGlobal.maximumWidth / 2 - 128, 200.0f, RsGlobal.maximumWidth / 2 + 128, 264.0f), CRGBA(255, 255, 255, 255));
+//    //            //CSprite2d::SetVertices(CRect(RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 130), RsGlobal.maximumHeight - 122, RsGlobal.maximumWidth - (RsGlobal.maximumWidth - 210), RsGlobal.maximumHeight - 42), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//    //            CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//    //        }
+//    //        
+//    //        /*if (myTexture) {
+//    //            RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, myTexture->raster);
+//    //            CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(300.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//    //            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//    //        }*/
+//
+//    //    }
+//    //}
+//
+//    /*static void DrawLogo() {
+//        CPed *player = FindPlayerPed();
+//        if (player) {
+//            if (m_textureTest) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
+//                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//            if (m_textureLogo) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
+//                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//        }
+//    }*/
+//
+//    VehicleTexture() {
+//        Events::initRwEvent += [] {
+//            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("txd\\mpolice.txd"));
+//            m_textureLogo = GetFirstTexture(m_txd);
+//            m_textureTest = RwTexDictionaryFindNamedTexture(m_txd, "test");
+//        };
+//
+//        //Events::drawingEvent += Draw;
+//        //Events::menuDrawingEvent += Draw;
+//        //Events::menuDrawingEvent += DrawLogo;
+//        //Events::drawHudEvent += DrawLogo;
+//
+//        Events::drawingEvent += [] {
+//            if (m_textureTest) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureTest->raster);
+//                CSprite2d::SetVertices(CRect(ScreenCoord(120.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(200.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//            if (m_textureLogo) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, m_textureLogo->raster);
+//                CSprite2d::SetVertices(CRect(ScreenCoord(220.0f), RsGlobal.maximumHeight - ScreenCoord(115.0f), ScreenCoord(640.0f), RsGlobal.maximumHeight - ScreenCoord(35.0f)), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), 0);
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//        };
+//
+//        Events::shutdownRwEvent += [] {
+//            RwTexDictionaryDestroy(m_txd);
+//        };
+//    }
+//} vehTexture;
+//
+////RwTexture *VehicleTexture::pMyTexture;
+//RwTexture *VehicleTexture::myTexture = nullptr;
+//RwTexture *VehicleTexture::texture = nullptr;
+//
+//RwTexDictionary *VehicleTexture::m_txd;
+//RwTexture *VehicleTexture::m_textureLogo;
+//RwTexture *VehicleTexture::m_textureTest;
 
 
 //#include "plugin.h"
@@ -317,7 +891,6 @@ RwTexture *VehicleTexture::m_textureTest;
 //        };
 //    }
 //} test;
-
 
 //#include "plugin.h"
 //#include "CModelInfo.h"
