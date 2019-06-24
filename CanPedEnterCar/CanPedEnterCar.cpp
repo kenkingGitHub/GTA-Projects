@@ -2,155 +2,52 @@
 #include "CWanted.h"
 #include "CStreaming.h"
 #include "CWorld.h"
-#include "CVehicleModelInfo.h"
+//#include "CVehicleModelInfo.h"
 #include "eVehicleModel.h"
 #include "ePedModel.h"
-#include "CModelInfo.h"
-#include "extensions\KeyCheck.h"
-#include "CWeaponInfo.h"
-#include "ePedType.h"
-#include "CAnimManager.h"
-#include "CZoneInfo.h"
-#include "CGangInfo.h"
-#include "CPopulation.h"
-#include "CGangs.h"
+//#include "CModelInfo.h"
+//#include "extensions\KeyCheck.h"
+//#include "CWeaponInfo.h"
+//#include "ePedType.h"
+//#include "CAnimManager.h"
+//#include "CZoneInfo.h"
+//#include "CGangInfo.h"
+//#include "CPopulation.h"
+//#include "CGangs.h"
 #include "cMusicManager.h"
 #include "cAudioManager.h"
-#include "CRunningScript.h"
+//#include "CRunningScript.h"
 #include "CTheScripts.h"
 
 #define m_MODEL_POLICE 156
-
-void __cdecl /*CTheZones::*/GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
-    ((void(__cdecl *)(CVector*, CZoneInfo*))0x4B6FB0)(point, info);
-};
 
 using namespace plugin;
 
 class Test {
 public:
-    static unsigned int CurrentSirenModel;
+    static unsigned int CurrentSpecialModel;
+    static unsigned int CurrentPoliceModel;
 
-    static int __stdcall GetPoliceModel(unsigned int model) {
+    static int __stdcall GetSpecialModel(unsigned int model) {
         if (model == MODEL_POLICE || model == m_MODEL_POLICE)
             return MODEL_POLICE;
         else if (model == MODEL_TAXI || model == 102)
             return MODEL_TAXI;
         return model;
     }
-    static void Patch_5373D7();
-
-    static CPed * __cdecl /*CPopulation::*/AddPedInCar(CVehicle *vehicle)  {
-        int modelIndex; 
-        int gangType; 
-        int index; 
-        unsigned int v4; 
-        CVehicleModelInfo *vehicleInfo; 
-        CPed *ped; 
-        CWeaponInfo *weaponInfo; 
-        unsigned int pedType;
-        int _modelIndex; 
-        char v13; 
-        CVector posn; 
-        CZoneInfo zoneInfo; 
-        CVector pos; 
-        CPedModelInfo *pedInfo;
-        
-
-        _modelIndex = MODEL_MALE01;
-        v13 = 1;
-        pos = FindPlayerCoors();
-        posn = vehicle->m_matrix.pos;
-        /*CTheZones::*/GetZoneInfoForTimeOfDay(&pos, &zoneInfo);
-        switch (vehicle->m_nModelIndex) {
-        case m_MODEL_POLICE:
-        case MODEL_POLICE:
-            modelIndex = MODEL_COP;
-            pedType = PEDTYPE_COP;
-            break;
-        case MODEL_ENFORCER:
-            modelIndex = MODEL_SWAT;
-            pedType = PEDTYPE_COP;
-            break;
-        case MODEL_FBICAR:
-            modelIndex = MODEL_FBI;
-            pedType = PEDTYPE_COP;
-            break;
-        case MODEL_RHINO:
-        case MODEL_BARRACKS:
-            modelIndex = MODEL_ARMY;
-            pedType = PEDTYPE_COP;
-            break;
-        case MODEL_AMBULAN:
-            modelIndex = MODEL_MEDIC;
-            pedType = PEDTYPE_MEDIC;
-            break;
-        case MODEL_FIRETRUK:
-            modelIndex = MODEL_FIREMAN;
-            pedType = PEDTYPE_FIRE;
-            break;
-        case MODEL_TAXI:
-        case MODEL_CABBIE:
-        case MODEL_BORGNINE:
-            if ((unsigned __int16)rand() >= 16383u) {
-                _modelIndex = MODEL_TAXI_D;
-                goto LABEL_11;
-            }
-            pedType = PEDTYPE_CIVMALE;
-            modelIndex = MODEL_TAXI_D;
-            break;
-        default:
-        LABEL_11:
-            gangType = 0;
-            v13 = 0;
-            index = 0;
-            while (CGangs::Gang[index].m_nVehicleModel != vehicle->m_nModelIndex) {
-                ++gangType;
-                ++index;
-                if (gangType >= 9)
-                    goto LABEL_15;
-            }
-            pedType = gangType + 7;
-            modelIndex = CPopulation::ChooseGangOccupation(gangType);
-        LABEL_15:
-            if (gangType == 9) {
-                v4 = 15;
-                vehicleInfo = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-                do
-                {
-                    modelIndex = CPopulation::ChooseCivilianOccupation(zoneInfo.pedgrp);
-                    if (modelIndex == -1)
-                        modelIndex = _modelIndex;
-                    pedInfo = reinterpret_cast<CPedModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex]);
-                    if (pedInfo->m_nCarsCanDriveMask & (1 << vehicleInfo->m_nVehicleClass))
-                        break;
-                } while (v4-- >= 1);
-                if (v4 == -1)
-                    modelIndex = _modelIndex;
-                pedType = pedInfo->m_nPedtype;
-            }
-            break;
-        }
-        if (!v13 && !pedInfo->GetRwObject()) {
-            modelIndex = _modelIndex;
-            pedType = pedInfo->m_nPedtype;
-        }
-        ped = CPopulation::AddPed((ePedType)pedType, modelIndex, posn);
-        ped->m_nFlags.bUsesCollision = 0;
-        if (pedType != PEDTYPE_COP) {
-            ped->SetCurrentWeapon(WEAPONTYPE_COLT45);
-            weaponInfo = CWeaponInfo::GetWeaponInfo(ped->m_aWeapons[ped->m_nWepSlot].m_nType);
-            ped->RemoveWeaponModel(weaponInfo->m_nModelId);
-        }
-        
-        ped->m_pVehicleAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, 0, 111, 100.0);
-        ped->StopNonPartialAnims();
-        return ped;
+    
+    static int __stdcall GetPoliceModel(unsigned int model) {
+        if (model == MODEL_POLICE || model == m_MODEL_POLICE)
+            return MODEL_POLICE;
+        return model;
     }
+
+    static void Patch_5373D7();
+    static void Patch_4F5857();
 
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
         bool result; 
-
+        
         switch (_this->m_nModelIndex) {
         case MODEL_FBICAR:
         case MODEL_POLICE:
@@ -199,10 +96,9 @@ public:
     }
 
     static int __cdecl ChoosePoliceCarModel() {
-        CPlayerPed *player; 
         int result;
 
-        player = FindPlayerPed();
+        CPlayerPed *player = FindPlayerPed();
         if (player) {
             if (player->m_pWanted->AreSwatRequired()
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
@@ -236,8 +132,7 @@ public:
                 {
                     result = MODEL_FBICAR;
                 }
-                else
-                {
+                else {
                     if (player->m_pWanted->AreArmyRequired()
                         && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == LOADSTATE_LOADED
                         && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
@@ -250,9 +145,7 @@ public:
                             result = MODEL_RHINO;
                     }
                     else
-                    {
                         result = MODEL_POLICE;
-                    }
                 }
             }
         }
@@ -303,24 +196,16 @@ public:
     static bool __fastcall PlayerInCar(cMusicManager *_this) {
         int action; 
         bool result; 
-        CVehicle *vehicle; 
 
-        if (FindPlayerVehicle())
-        {
+        if (FindPlayerVehicle()) {
             action = FindPlayerPed()->m_nState;
-            if (action != 51 && action != 54 && action != 56)
-            {
-                vehicle = FindPlayerVehicle();
-                if (vehicle)
-                {
+            if (action != 51 && action != 54 && action != 56) {
+                CVehicle *vehicle = FindPlayerVehicle();
+                if (vehicle) {
                     if (vehicle->m_nState == 5)
-                    {
                         result = FALSE;
-                    }
-                    else
-                    {
-                        switch (vehicle->m_nModelIndex)
-                        {
+                    else {
+                        switch (vehicle->m_nModelIndex) {
                         case MODEL_FIRETRUK:
                         case MODEL_AMBULAN:
                         case MODEL_MRWHOOP:
@@ -337,29 +222,24 @@ public:
                         }
                     }
                 }
-                else
-                {
+                else {
                 LABEL_11:
                     result = TRUE;
                 }
             }
             else
-            {
                 result = FALSE;
-            }
         }
         else
-        {
             result = FALSE;
-        }
+        
         return result;
     }
-
-
+    
     static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index)  {
         bool result; 
 
-        switch (index) {
+        switch (index) { // eVehicleIndex
         case 7:
         case 16:
         case 17:
@@ -379,7 +259,7 @@ public:
     static bool __fastcall UsesSirenSwitching(cAudioManager *_this, int, int index) {
         bool result; 
 
-        switch (index) {
+        switch (index) { // eVehicleIndex
         case 16:
         case 26:
         case 27:
@@ -416,45 +296,6 @@ public:
         }
         return result;
     }
-
-    //static int __cdecl ChoosePoliceCarModel() {
-    //    int result = MODEL_POLICE;
-    //    CPlayerPed *player = FindPlayerPed();
-    //    if (player) {
-    //        if (/*player->m_pWanted->AreSwatRequired() &&*/ CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED) {
-    //            if (rand() & 2)
-    //                result = MODEL_POLICE;
-    //            else {
-    //                unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
-    //                CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
-    //                CStreaming::LoadAllRequestedModels(false);
-    //                if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
-    //                    if (!(oldFlags & GAME_REQUIRED)) {
-    //                        CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
-    //                        CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
-    //                    }
-    //                    result = m_MODEL_POLICE;
-    //                }
-    //            }
-    //        }
-    //       /* else  {
-    //            if (player->m_pWanted->AreFbiRequired() && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == 1) {
-    //                result = MODEL_FBICAR;
-    //            }
-    //            else {
-    //                if (player->m_pWanted->AreArmyRequired() && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == 1 && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == 1) {
-    //                    if ((unsigned __int16)rand() < 16383u)
-    //                        result = MODEL_BARRACKS;
-    //                    else
-    //                        result = MODEL_RHINO;
-    //                }
-    //                else  
-    //                    result = MODEL_POLICE;
-    //            }
-    //        }*/
-    //    }
-    //    return result;
-    //}
 
     static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
         script->CollectParameters(&script->m_nIp, 1);
@@ -499,8 +340,6 @@ public:
         patch::RedirectJump(0x56C3F0, UsesSirenSwitching);
         patch::RedirectJump(0x426700, IsCarSprayable);
 
-        //patch::RedirectJump(0x4F5800, AddPedInCar);
-
         patch::RedirectCall(0x446A93, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x446A98, 0x4C); // или сделать jump на 0x446AE4
 
@@ -508,24 +347,42 @@ public:
         patch::Nop(0x43DA1E, 0x40); // или сделать jump на 0x43DA5E
         
         patch::RedirectJump(0x5373D7, Patch_5373D7);
-        
+        patch::RedirectJump(0x4F5857, Patch_4F5857);
     }
 }test;
 
-unsigned int Test::CurrentSirenModel;
+unsigned int Test::CurrentSpecialModel;
+unsigned int Test::CurrentPoliceModel;
 
 void __declspec(naked) Test::Patch_5373D7() {
     __asm {
         movsx eax, word ptr[ebp + 0x5C]
         pushad
         push eax
-        call GetPoliceModel 
-        mov CurrentSirenModel, eax
+        call GetSpecialModel
+        mov CurrentSpecialModel, eax
         popad
-        mov eax, CurrentSirenModel
+        mov eax, CurrentSpecialModel
         lea edx, [eax - 0x61]
         mov edi, 0x5373DE
         jmp edi
+    }
+}
+
+void __declspec(naked) Test::Patch_4F5857() {
+    __asm {
+        movsx   eax, word ptr[ebx + 5Ch]
+        pushad
+        push eax
+        call GetPoliceModel
+        mov CurrentPoliceModel, eax
+        popad
+        mov eax, CurrentPoliceModel
+        pop     ecx
+        pop     ecx
+        sub     eax, 61h
+        mov edx, 0x4F5860
+        jmp edx
     }
 }
 
