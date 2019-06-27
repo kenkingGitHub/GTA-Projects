@@ -36,7 +36,7 @@ public:
             return MODEL_TAXI;
         return model;
     }
-    
+
     static int __stdcall GetPoliceModel(unsigned int model) {
         if (model == MODEL_POLICE || model == m_MODEL_POLICE)
             return MODEL_POLICE;
@@ -47,8 +47,8 @@ public:
     static void Patch_4F5857();
 
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
-        bool result; 
-        
+        bool result;
+
         switch (_this->m_nModelIndex) {
         case MODEL_FBICAR:
         case MODEL_POLICE:
@@ -154,7 +154,7 @@ public:
     }
 
     static bool __fastcall UsesPoliceRadio(cMusicManager *_this, int, CVehicle *vehicle) {
-        bool result; 
+        bool result;
 
         switch (vehicle->m_nModelIndex) {
         case MODEL_FBICAR:
@@ -174,7 +174,7 @@ public:
     }
 
     static bool __fastcall UsesSiren(CVehicle *_this, int, int vehicleModel) {
-        bool result; 
+        bool result;
 
         switch (vehicleModel) {
         case MODEL_FIRETRUK:
@@ -195,8 +195,8 @@ public:
     }
 
     static bool __fastcall PlayerInCar(cMusicManager *_this) {
-        int action; 
-        bool result; 
+        int action;
+        bool result;
 
         if (FindPlayerVehicle()) {
             action = FindPlayerPed()->m_nState;
@@ -233,12 +233,12 @@ public:
         }
         else
             result = FALSE;
-        
+
         return result;
     }
-    
-    static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index)  {
-        bool result; 
+
+    static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index) {
+        bool result;
 
         switch (index) { // eVehicleIndex
         case 7:
@@ -258,7 +258,7 @@ public:
     }
 
     static bool __fastcall UsesSirenSwitching(cAudioManager *_this, int, int index) {
-        bool result; 
+        bool result;
 
         switch (index) { // eVehicleIndex
         case 16:
@@ -275,10 +275,10 @@ public:
         return result;
     }
 
-    static bool __cdecl IsCarSprayable(CAutomobile *car)  {
-        bool result; 
+    static bool __cdecl IsCarSprayable(CAutomobile *car) {
+        bool result;
 
-        switch (car->m_nModelIndex)  {
+        switch (car->m_nModelIndex) {
         case MODEL_FIRETRUK:
         case MODEL_AMBULAN:
         case MODEL_POLICE:
@@ -301,7 +301,7 @@ public:
     static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
         script->CollectParameters(&script->m_nIp, 1);
         bool isTaxiModel = false;
-        
+
         CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
         if (player->m_bInVehicle) {
             unsigned int model = player->m_pVehicle->m_nModelIndex;
@@ -311,7 +311,7 @@ public:
         script->UpdateCompareFlag(isTaxiModel);
     }
 
-   
+
     static void __fastcall OpcodeIsPlayerInModel(CRunningScript *script) {
         script->CollectParameters(&script->m_nIp, 2);
         bool inModel = false;
@@ -324,11 +324,11 @@ public:
             else if (model == m_MODEL_POLICE && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
                 inModel = true;
             //else if (model == m_MODEL_AMBULAN && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
-                //inModel = true;
+            //inModel = true;
         }
         script->UpdateCompareFlag(inModel);
     }
-     
+
 
     Test() {
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
@@ -346,7 +346,7 @@ public:
 
         patch::RedirectCall(0x43DA19, OpcodeIsPlayerInModel);
         patch::Nop(0x43DA1E, 0x40); // или сделать jump на 0x43DA5E
-        
+
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
     }
@@ -650,7 +650,6 @@ void __declspec(naked) Test::Patch_4F5857() {
 //RwTexture *VehicleTexture::m_textureLogo;
 //RwTexture *VehicleTexture::m_textureTest;
 
-
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"
 //#include "common.h"
@@ -804,3 +803,425 @@ void __declspec(naked) Test::Patch_4F5857() {
 //        patch::RedirectJump(0x4CF8F0, AddWeapon);
 //    }
 //} test;
+
+//#include <plugin.h>
+//#include "CSprite.h"
+//#include "CFont.h"
+//#include "CModelInfo.h"
+//#include "CZoneInfo.h"
+//#include "extensions\KeyCheck.h"
+//#include "CStreaming.h"
+//#include "eVehicleModel.h"
+//#include "ePedModel.h"
+//#include "CMessages.h"
+//#include "CWorld.h"
+//#include "CCarAI.h"
+//#include "CPathFind.h"
+//
+//#define m_MODEL_POLICE 156
+//
+//void __cdecl GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
+//    ((void(__cdecl *)(CVector*, CZoneInfo*))0x4B6FB0)(point, info);
+//};
+//
+//int __cdecl ChooseModel(CZoneInfo *info, CVector *point, int *vehicleClass) {
+//    return ((int(__cdecl *)(CZoneInfo*, CVector*, int *))0x417EC0)(info, point, vehicleClass);
+//};
+//
+//bool __cdecl /*CCarCtrl::*/GenerateOneEmergencyServicesCar(int vehicleModelIndex, CVector point) {
+//    return ((bool(__cdecl *)(int, CVector))0x41FE50)(vehicleModelIndex, point);
+//};
+//
+//
+//using namespace plugin;
+//
+//class DistanceExample {
+//public:
+//    class DistanceInfo {
+//    public:
+//        // данные нашего класса
+//        float distance; // пройденна€ дистанци€
+//        bool startedPositionRecording; // если уже начали отслеживать позицию
+//        CVector lastPosition; // последн€€ позици€
+//
+//        DistanceInfo(CVehicle *vehicle) {
+//            //  онтсруктор нашего класса. ƒолжен быть об€зательно обь€влен. ѕринимает один параметр -
+//            // транспорт, к которому "прицепл€етс€" этот класс.
+//            // Ётот конструктор будет вызван на этапе конструировани€ CVehicle (CVehicle::CVehicle).
+//            // ѕри этом, обращатьс€ к каким-либо членам CVehicle запрещено (обьект CVehicle ещЄ не построен до конца).
+//            distance = 0.0f; // устанавливаем начальное значение
+//            startedPositionRecording = false;
+//        }
+//    };
+//
+//    DistanceExample() {
+//        static VehicleExtendedData<DistanceInfo> VehDistance; // Ќаше расширение
+//
+//        Events::vehicleRenderEvent += [](CVehicle *vehicle) {
+//            DistanceInfo &info = VehDistance.Get(vehicle); // ѕолучаем наши данные дл€ этого транспорта
+//            if (info.startedPositionRecording) // если info.lastPosition не "пустой"
+//                info.distance += DistanceBetweenPoints(info.lastPosition, vehicle->GetPosition()); // добавл€ем рассто€ние
+//            else
+//                info.startedPositionRecording = true;
+//            info.lastPosition = vehicle->GetPosition();
+//        };
+//
+//        Events::drawingEvent += [] {
+//            CPlayerPed *player = FindPlayerPed();
+//            if (player) {
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 1000)) {
+//                    //unsigned char oldFlags = CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nFlags;
+//                    CStreaming::RequestModel(MODEL_AMBULAN, MISSION_REQUIRED);
+//                    CStreaming::RequestModel(MODEL_MEDIC, 1);
+//                    if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nLoadState == LOADSTATE_LOADED
+//                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
+//                    {
+//                        /*if (!(oldFlags & GAME_REQUIRED)) {
+//                        CStreaming::SetModelIsDeletable(MODEL_AMBULAN);
+//                        CStreaming::SetModelTxdIsDeletable(MODEL_AMBULAN);
+//                        }*/
+//
+//                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(MODEL_AMBULAN, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 50.0f, 0.0f))))
+//                            //CCarCtrl::LastTimeAmbulanceCreated = CTimer::m_snTimeInMilliseconds;
+//                            CMessages::AddMessageJumpQ(L"AmbulanceCreate", 2000, 0);
+//                    }
+//                }
+//
+//                if (KeyCheck::CheckWithDelay('N', 1000)) {
+//                    unsigned char oldFlags = CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nFlags;
+//                    CStreaming::RequestModel(m_MODEL_POLICE, MISSION_REQUIRED);
+//                    CStreaming::RequestModel(MODEL_MEDIC, 1);
+//                    if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED
+//                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
+//                    {
+//                        if (!(oldFlags & GAME_REQUIRED)) {
+//                            CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
+//                            CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
+//                        }
+//
+//                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(m_MODEL_POLICE, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 50.0f, 0.0f))))
+//                            CMessages::AddMessageJumpQ(L"Create", 2000, 0);
+//                    }
+//                }
+//
+//            }
+//
+//
+//            //for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//            //    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//            //    if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->GetIsOnScreen()) {
+//            //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+//            //        CVector &posn = vehicle->GetPosition();
+//            //        CZoneInfo info; int vehicleClass = 17; int model;
+//            //        GetZoneInfoForTimeOfDay(&posn, &info);
+//            //        model = ChooseModel(&info, &posn, &vehicleClass);
+//            //        
+//            //        RwV3d rwp = { posn.x, posn.y, posn.z + 1.0f };
+//            //        RwV3d screenCoors; float w, h;
+//            //        if (CSprite::CalcScreenCoors(rwp, &screenCoors, &w, &h, true) && w > 10.0f) {
+//            //            CFont::SetScale(w * 0.015f, h * 0.03f);
+//            //            CFont::SetColor(CRGBA(255, 255, 255, 255));
+//            //            CFont::SetJustifyOn();
+//            //            CFont::SetFontStyle(0);
+//            //            CFont::SetPropOn();
+//            //            //CFont::SetWrapx(600.0f);
+//            //            wchar_t text[64];
+//            //            //swprintf(text, L"%.2f", VehDistance.Get(vehicle).distance);
+//            //            if (vehicleClass == 17)
+//            //                swprintf(text, L"%d, %d", vehicleClass, model);
+//            //            //swprintf(text, L"%d", info.carCops);
+//            //            CFont::PrintString(screenCoors.x, screenCoors.y, text);
+//            //        }
+//            //    }
+//            //}
+//        };
+//    }
+//} example;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CModelInfo.h"
+//#include "CFont.h"
+//#include "CStreaming.h"
+//#include "CTxdStore.h"
+//
+//#include "CCamera.h"
+//
+//#include "common.h"
+//#include <map>
+//
+//
+//RpMaterial* SetTextureCB(RpMaterial *material, void *data) {
+//    return ((RpMaterial*(__cdecl *)(RpMaterial*, void*))0x528B10)(material, data);
+//}
+//
+//using namespace plugin;
+//
+//class VehicleTextures {
+//public:
+//    VehicleTextures() {
+//        static CdeclEvent<AddressList<0x4A7A7B, H_CALL, 0x4A7ABE, H_CALL, 0x4A7AFE, H_CALL, 0x4A7B71, H_CALL, 0x5290E4, H_CALL>,
+//            PRIORITY_BEFORE, ArgPickN<CEntity*, 0>, void(CEntity*)> myOnRenderOneNonRoad;
+//
+//        static std::map<RpMaterial*, RwTexture *> originalTextures;
+//
+//        myOnRenderOneNonRoad.before += [](CEntity *entity) {
+//            if (KeyPressed('M') && entity == FindPlayerVehicle()) {
+//                CVehicle *vehicle = reinterpret_cast<CVehicle *>(entity);
+//                RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic *atomic, void *data) {
+//                    RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
+//                        //if (originalTextures.find(material) == originalTextures.end())
+//                        if (originalTextures.find(material) == originalTextures.end()) 
+//                            originalTextures[material] = material->texture;
+//                                                    
+//                        //if (!strcmp(material->texture->name, "remap"))
+//                        //if (!strcmp(originalTextures[material]->name, "remap"))
+//                            //RpMaterialSetTexture(material, *reinterpret_cast<RwTexture **>(0x648F2C));
+//                            material->texture = *reinterpret_cast<RwTexture **>(0x648F2C);
+//                        return material;
+//                    }, nullptr);
+//                    return atomic;
+//                }, nullptr);
+//            }
+//        };
+//
+//        myOnRenderOneNonRoad.after += [](CEntity *) {
+//            if (originalTextures.size() > 0) {
+//                for (auto &i : originalTextures)
+//                    i.first->texture = i.second;
+//                originalTextures.clear();
+//            }
+//        };
+//    }
+//} vehicleTextures;
+
+//class MyPlugin {
+//public:
+//    MyPlugin() {
+//
+//        Events::drawingEvent += [] {
+//            CFont::SetScale(0.5f, 1.0f);
+//            CFont::SetColor(CRGBA(255, 255, 255, 255));
+//            CFont::SetJustifyOn();
+//            CFont::SetFontStyle(0);
+//            CFont::SetPropOn();
+//            CFont::SetWrapx(600.0f);
+//            wchar_t text[64];
+//            swprintf(text, L"TxdIndex %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[4001]->m_nTxdIndex, CModelInfo::ms_modelInfoPtrs[90]->m_nTxdIndex);
+//            CFont::PrintString(10.0f, 80.0f, text);
+//
+//            unsigned char oldFlags = CStreaming::ms_aInfoForModel[116].m_nFlags;
+//            swprintf(text, L"Flag %d : %d : %d", oldFlags, CStreaming::ms_aInfoForModel[4001].m_nFlags, CStreaming::ms_aInfoForModel[90].m_nFlags);
+//            CFont::PrintString(10.0f, 110.0f, text);
+//
+//            swprintf(text, L"LoadState %d : %d : %d", CStreaming::ms_aInfoForModel[116].m_nLoadState, CStreaming::ms_aInfoForModel[4001].m_nLoadState, CStreaming::ms_aInfoForModel[90].m_nLoadState);
+//            CFont::PrintString(10.0f, 140.0f, text);
+//
+//            swprintf(text, L"NumRefs %d : %d : %d", CTxdStore::GetNumRefs(35), CTxdStore::GetNumRefs(78), CTxdStore::GetNumRefs(736));
+//            CFont::PrintString(10.0f, 170.0f, text);
+//
+//            swprintf(text, L"RefCount %d : %d : %d", CModelInfo::ms_modelInfoPtrs[116]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[4001]->m_nRefCount, CModelInfo::ms_modelInfoPtrs[90]->m_nRefCount);
+//            CFont::PrintString(10.0f, 210.0f, text);
+//
+//            /*swprintf(text, L"ValueScript %.2f", TheCamera.m_fCarZoomValueScript);
+//            CFont::PrintString(10.0f, 250.0f, text);
+//            swprintf(text, L"ZoomIndicator %.2f", TheCamera.m_fCarZoomIndicator);
+//            CFont::PrintString(10.0f, 280.0f, text);
+//            swprintf(text, L"ZoomValue %.2f", TheCamera.m_fCarZoomValue);
+//            CFont::PrintString(10.0f, 310.0f, text);
+//            swprintf(text, L"ValueSmooth %.2f", TheCamera.m_fCarZoomValueSmooth);
+//            CFont::PrintString(10.0f, 340.0f, text);*/
+//
+//            //swprintf(text, L"numModelsReq %d", CStreaming::ms_numModelsRequested);
+//            /*swprintf(text, L"bUse %d", TheCamera.m_bUseScriptZoomValueCar);
+//            CFont::PrintString(10.0f, 380.0f, text);*/
+//        };
+//
+//        Events::gameProcessEvent += [] {
+//            //int index;
+//
+//            /*CPed *player = FindPlayerPed();
+//            if (player)
+//                player->m_nFlags.bBulletProof = 1;*/
+//
+//            KeyCheck::Update();
+//            //if (KeyCheck::CheckWithDelay('Y', 500)) {
+//            //    //TheCamera.m_asCams[TheCamera.m_nActiveCam].
+//            //    TheCamera.m_fCarZoomValueScript = 5.0f;
+//            //    TheCamera.m_fCarZoomIndicator = 1.0f;
+//            //    TheCamera.m_fCarZoomValue = 1.0f;
+//            //    //TheCamera.m_fCarZoomValueSmooth = 7.0f;
+//            //    TheCamera.m_bUseScriptZoomValueCar = 1;
+//            //}
+//            //if (KeyCheck::CheckWithDelay('U', 500)) {
+//            //    TheCamera.m_fCarZoomValueScript = 0.0f;
+//            //    TheCamera.m_bUseScriptZoomValueCar = 0;
+//            //    TheCamera.m_fCarZoomIndicator = 1.0f;
+//            //    TheCamera.m_fCarZoomValue = 0.5f;
+//            //    TheCamera.m_fCarZoomValueSmooth = 0.5f;
+//            //    //TheCamera.m_bUseScriptZoomValueCar = 1;
+//            //}
+//            //if (KeyCheck::CheckWithDelay('I', 500)) {
+//            //    TheCamera.m_bInATunnelAndABigVehicle = 1;
+//            //}
+//            //if (KeyCheck::CheckWithDelay('P', 500)) {
+//            //    TheCamera.m_bInATunnelAndABigVehicle = 0;
+//            //}
+//            
+//            //if (KeyCheck::CheckWithDelay('N', 200)) {
+//            //    CVehicle* vehicle = FindPlayerVehicle();
+//            //    if (vehicle) {
+//            //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+//            //        RpMaterial **materialPrim;
+//            //        materialPrim = vehModel->m_apMaterialsPrimary;
+//            //        RpMaterial *material;
+//            //        material = *materialPrim;
+//            //        RpMaterialSetTexture(material, *reinterpret_cast<RwTexture **>(0x648F2C));
+//            //        //vehModel->m_nTxdIndex = CTxdStore::FindTxdSlot("police2");
+//            //        //vehModel->SetTexDictionary("police2");
+//            //        //CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//            //        //vehicle->SetModelIndex(vehicle->m_nModelIndex);
+//            //    }
+//            //}
+//            
+//            //unsigned char oldLoadState;
+//            if (KeyCheck::CheckWithDelay(99, 1000)) {
+//                /*index = CTxdStore::FindTxdSlot("police4");
+//                if (index != -1) {
+//                    CTxdStore::AddTxdSlot("police4");
+//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                }*/
+//                
+//                
+//                //oldLoadState = CStreaming::ms_aInfoForModel[116].m_nLoadState;
+//
+//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police4");
+//                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(98, 1000)) {
+//                /*index = CTxdStore::FindTxdSlot("police3");
+//                if (index != -1) {
+//                    CTxdStore::AddTxdSlot("police3");
+//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                    
+//                }*/
+//
+//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police3");
+//                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(97, 1000)) {
+//                /*index = CTxdStore::FindTxdSlot("police2");
+//                if (index != -1) {
+//                    CTxdStore::AddTxdSlot("police2");
+//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                    
+//                }*/
+//
+//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police2");
+//                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+//            }
+//            if (KeyCheck::CheckWithDelay(96, 1000)) {
+//                /*index = CTxdStore::FindTxdSlot("police");
+//                if (index != -1) {
+//                    CTxdStore::AddTxdSlot("police");
+//                    CModelInfo::ms_modelInfoPtrs[116]->m_nTxdIndex = index;
+//                    CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                }*/
+//
+//                //CModelInfo::ms_modelInfoPtrs[116]->ClearTexDictionary();
+//                CModelInfo::ms_modelInfoPtrs[116]->SetTexDictionary("police");
+//                CStreaming::ms_aInfoForModel[116].m_nLoadState = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nFlags = 0;
+//                //CStreaming::ms_aInfoForModel[116].m_nLoadState = oldLoadState;
+//            }
+//        };
+//
+//
+//
+//        /*Events::shutdownRwEvent += [] {
+//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police2"));
+//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police3"));
+//            CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("police4"));
+//            CModelInfo::ms_modelInfoPtrs[116]->RemoveTexDictionaryRef();
+//        };*/
+//
+//    }
+//} myPlugin;
+
+//#include "plugin.h"
+//#include "CModelInfo.h"
+//#include "extensions\KeyCheck.h"
+//#include "CWorld.h"
+//#include "CVehicleModelInfo.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static CVehicle* GetVehicle(CPed *player) {
+//        CVehicle* result = nullptr;
+//        CEntity *outEntity[10] = { nullptr };
+//        short outCount = 0;
+//        int index = 0;
+//        float radius = 20.0f;
+//        float distance = 0.0f;
+//        CWorld::FindObjectsInRange(player->GetPosition(), 20.0, 1, &outCount, 10, outEntity, 0, 1, 0, 0, 0);
+//        if (outCount > 0) {
+//            do
+//            {
+//                CVehicle *vehicle = (CVehicle *)outEntity[index];
+//                if (vehicle) {
+//                    if (player->m_pVehicle && player->m_bInVehicle) {
+//                        result = player->m_pVehicle; break;
+//                    }
+//                    else {
+//                        distance = DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition());
+//                        if (distance < radius) {
+//                            radius = distance; result = vehicle;
+//                        }
+//                    }
+//                }
+//                ++index;
+//            } while (index < outCount);
+//        }
+//        return result;
+//    }
+//
+//    static void Color() {
+//CPed *player = FindPlayerPed();
+//if (player) {
+//    KeyCheck::Update();
+//    if (KeyCheck::CheckWithDelay('N', 200)) {
+//        CVehicle* vehicle = GetVehicle(player);
+//        if (vehicle) {
+//            CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+//            unsigned char pPrim, pSec;
+//            vehModel->ChooseVehicleColour(pPrim, pSec);
+//            for (int i = 0; i < 8 && pPrim == vehicle->m_nPrimaryColor && pSec == vehicle->m_nSecondaryColor; ++i) {
+//                vehModel->ChooseVehicleColour(pPrim, pSec);
+//            }
+//            vehicle->m_nPrimaryColor = pPrim;
+//            vehicle->m_nSecondaryColor = pSec;
+//        }
+//    }
+//}
+//    }
+//
+//    Test() {
+//        Events::gameProcessEvent += Color;
+//    }
+//
+//}test;

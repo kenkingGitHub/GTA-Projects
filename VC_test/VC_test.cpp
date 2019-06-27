@@ -123,7 +123,6 @@ int Test::m_test = 3;
 //
 //int Test::blip;
 
-
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"
 //#include "CModelInfo.h"
@@ -198,7 +197,6 @@ int Test::m_test = 3;
 //    }
 //} myPlugin;
 
-
 //#include "plugin.h"
 //#include "CPed.h"
 //#include "extensions\KeyCheck.h"
@@ -241,7 +239,6 @@ int Test::m_test = 3;
 //        };
 //    }
 //} test;
-
 
 //#include "plugin.h"
 //#include "CPed.h"

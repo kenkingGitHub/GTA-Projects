@@ -14,9 +14,8 @@
     <ProjectGuid>{B212DDA4-2A8E-45B2-914D-7BEEB31D06B1}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>III_NewTest</RootNamespace>
+    <RootNamespace>III_test</RootNamespace>
     <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
-    <ProjectName>III_test_old</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTA3 Release|Win32'" Label="Configuration">
@@ -45,13 +44,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTA3 Release|Win32'">
     <OutDir>D:\Games\Grand Theft Auto III\</OutDir>
     <IntDir>$(ProjectDir).obj\GTA3\Release\</IntDir>
-    <TargetName>III_NewTest</TargetName>
+    <TargetName>III_test</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTA3 zDebug|Win32'">
     <OutDir>D:\Games\Grand Theft Auto III\</OutDir>
     <IntDir>$(ProjectDir).obj\GTA3\Debug\</IntDir>
-    <TargetName>III_NewTest_d</TargetName>
+    <TargetName>III_test_d</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GTA3 Release|Win32'">
@@ -97,7 +96,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="III_NewTest.cpp" />
+    <ClCompile Include="III_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
