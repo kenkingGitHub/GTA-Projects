@@ -3,6 +3,16 @@
 #include "CFont.h"
 #include "CModelInfo.h"
 #include "CZoneInfo.h"
+#include "extensions\KeyCheck.h"
+#include "CStreaming.h"
+#include "eVehicleModel.h"
+#include "ePedModel.h"
+#include "CMessages.h"
+#include "CWorld.h"
+#include "CCarAI.h"
+#include "CPathFind.h"
+
+#define m_MODEL_POLICE 156
 
 void __cdecl GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
     ((void(__cdecl *)(CVector*, CZoneInfo*))0x4B6FB0)(point, info);
@@ -11,6 +21,11 @@ void __cdecl GetZoneInfoForTimeOfDay(CVector *point, CZoneInfo *info) {
 int __cdecl ChooseModel(CZoneInfo *info, CVector *point, int *vehicleClass) {
     return ((int(__cdecl *)(CZoneInfo*, CVector*, int *))0x417EC0)(info, point, vehicleClass);
 };
+
+bool __cdecl /*CCarCtrl::*/GenerateOneEmergencyServicesCar(int vehicleModelIndex, CVector point) {
+    return ((bool(__cdecl *)(int, CVector))0x41FE50)(vehicleModelIndex, point);
+};
+
 
 using namespace plugin;
 
@@ -46,33 +61,74 @@ public:
         };
 
         Events::drawingEvent += [] {
-            for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->GetIsOnScreen()) {
-                    CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
-                    CVector &posn = vehicle->GetPosition();
-                    CZoneInfo info; int vehicleClass = 17; int model;
-                    GetZoneInfoForTimeOfDay(&posn, &info);
-                    model = ChooseModel(&info, &posn, &vehicleClass);
-                    
-                    RwV3d rwp = { posn.x, posn.y, posn.z + 1.0f };
-                    RwV3d screenCoors; float w, h;
-                    if (CSprite::CalcScreenCoors(rwp, &screenCoors, &w, &h, true) && w > 10.0f) {
-                        CFont::SetScale(w * 0.015f, h * 0.03f);
-                        CFont::SetColor(CRGBA(255, 255, 255, 255));
-                        CFont::SetJustifyOn();
-                        CFont::SetFontStyle(0);
-                        CFont::SetPropOn();
-                        //CFont::SetWrapx(600.0f);
-                        wchar_t text[64];
-                        //swprintf(text, L"%.2f", VehDistance.Get(vehicle).distance);
-                        if (vehicleClass == 17)
-                            swprintf(text, L"%d, %d", vehicleClass, model);
-                        //swprintf(text, L"%d", info.carCops);
-                        CFont::PrintString(screenCoors.x, screenCoors.y, text);
+            CPlayerPed *player = FindPlayerPed();
+            if (player) {
+                KeyCheck::Update();
+                if (KeyCheck::CheckWithDelay('M', 1000)) {
+                    //unsigned char oldFlags = CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nFlags;
+                    CStreaming::RequestModel(MODEL_AMBULAN, MISSION_REQUIRED);
+                    CStreaming::RequestModel(MODEL_MEDIC, 1);
+                    if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nLoadState == LOADSTATE_LOADED
+                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
+                    {
+                        /*if (!(oldFlags & GAME_REQUIRED)) {
+                        CStreaming::SetModelIsDeletable(MODEL_AMBULAN);
+                        CStreaming::SetModelTxdIsDeletable(MODEL_AMBULAN);
+                        }*/
+
+                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(MODEL_AMBULAN, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 50.0f, 0.0f))))
+                            //CCarCtrl::LastTimeAmbulanceCreated = CTimer::m_snTimeInMilliseconds;
+                            CMessages::AddMessageJumpQ(L"AmbulanceCreate", 2000, 0);
                     }
                 }
+
+                if (KeyCheck::CheckWithDelay('N', 1000)) {
+                    unsigned char oldFlags = CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nFlags;
+                    CStreaming::RequestModel(m_MODEL_POLICE, MISSION_REQUIRED);
+                    CStreaming::RequestModel(MODEL_MEDIC, 1);
+                    if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED
+                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
+                    {
+                        if (!(oldFlags & GAME_REQUIRED)) {
+                        CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
+                        CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
+                        }
+
+                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(m_MODEL_POLICE, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 50.0f, 0.0f))))
+                            CMessages::AddMessageJumpQ(L"Create", 2000, 0);
+                    }
+                }
+                
             }
+            
+            
+            //for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+            //    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+            //    if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->GetIsOnScreen()) {
+            //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+            //        CVector &posn = vehicle->GetPosition();
+            //        CZoneInfo info; int vehicleClass = 17; int model;
+            //        GetZoneInfoForTimeOfDay(&posn, &info);
+            //        model = ChooseModel(&info, &posn, &vehicleClass);
+            //        
+            //        RwV3d rwp = { posn.x, posn.y, posn.z + 1.0f };
+            //        RwV3d screenCoors; float w, h;
+            //        if (CSprite::CalcScreenCoors(rwp, &screenCoors, &w, &h, true) && w > 10.0f) {
+            //            CFont::SetScale(w * 0.015f, h * 0.03f);
+            //            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            //            CFont::SetJustifyOn();
+            //            CFont::SetFontStyle(0);
+            //            CFont::SetPropOn();
+            //            //CFont::SetWrapx(600.0f);
+            //            wchar_t text[64];
+            //            //swprintf(text, L"%.2f", VehDistance.Get(vehicle).distance);
+            //            if (vehicleClass == 17)
+            //                swprintf(text, L"%d, %d", vehicleClass, model);
+            //            //swprintf(text, L"%d", info.carCops);
+            //            CFont::PrintString(screenCoors.x, screenCoors.y, text);
+            //        }
+            //    }
+            //}
         };
     }
 } example;

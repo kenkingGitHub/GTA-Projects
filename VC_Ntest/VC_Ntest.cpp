@@ -549,3 +549,43 @@ int Test::m_test = 3;
 //        };
 //    }
 //} particleTest;
+
+//#include "plugin.h"
+//#include "game_vc\common.h"
+//#include <map>
+//
+//using namespace plugin;
+//
+//class VehicleTextures {
+//public:
+//    VehicleTextures() {
+//        static CdeclEvent<AddressList<0x4C9ED1, H_CALL, 0x4C9F23, H_CALL, 0x4CA10D, H_CALL, 0x5813D1, H_CALL>,
+//            PRIORITY_BEFORE, ArgPickN<CEntity*, 0>, void(CEntity*)> myOnRenderOneNonRoad;
+//
+//        static std::map<RpMaterial*, RwTexture *> originalTextures;
+//
+//        myOnRenderOneNonRoad.before += [](CEntity *entity) {
+//            if (KeyPressed('Z') && entity == FindPlayerVehicle()) {
+//                CVehicle *vehicle = reinterpret_cast<CVehicle *>(entity);
+//                RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic *atomic, void *data) {
+//                    RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
+//                        if (originalTextures.find(material) == originalTextures.end())
+//                            originalTextures[material] = material->texture;
+//                        material->texture = *reinterpret_cast<RwTexture **>(0x77FA58);
+//                        return material;
+//                    }, nullptr);
+//                    return atomic;
+//                }, nullptr);
+//            }
+//        };
+//
+//        myOnRenderOneNonRoad.after += [](CEntity *) {
+//            if (originalTextures.size() > 0) {
+//                for (auto &i : originalTextures)
+//                    i.first->texture = i.second;
+//                originalTextures.clear();
+//            }
+//        };
+//    }
+//} vehicleTextures;
+
