@@ -1,14 +1,10 @@
-/*
-Plugin-SDK (Grand Theft Auto) source file
-Authors: GTA Community. See more here
-https://github.com/DK22Pac/plugin-sdk
-Do not delete this comment block. Respect others' work!
-*/
-#include "plugin_vc.h"
+#include "plugin.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
-#include "game_vc\eVehicleModel.h"
+#include "eVehicleModel.h"
+#include "CTheScripts.h"
+#include "CWorld.h"
 
 using namespace plugin;
 
@@ -21,17 +17,26 @@ public:
         return taxiIds;
     }
 
-    static bool __stdcall CheckIfTaxiModel(unsigned int id) {
-        return id == MODEL_TAXI || id == MODEL_CABBIE || id == MODEL_ZEBRA || id == MODEL_KAUFMAN || GetTaxiModels().find(id) != GetTaxiModels().end();
-    }
-
-    static int __stdcall GetTranslatedTaxiModel(unsigned int model) {
-        if (CheckIfTaxiModel(model))
+    static int __stdcall GetTaxiModel(unsigned int model) {
+        if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
         return model;
     }
 
     static void Patch_58BE1F();
+
+    static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
+        script->CollectParameters(&script->m_nIp, 1);
+        bool isTaxiModel = false;
+
+        CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
+        if (player->m_bInVehicle) {
+            unsigned int model = player->m_pVehicle->m_nModelIndex;
+            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_ZEBRA || model == MODEL_KAUFMAN || GetTaxiModels().find(model) != GetTaxiModels().end())
+                isTaxiModel = true;
+        }
+        script->UpdateCompareFlag(isTaxiModel);
+    }
 
     MyTaxiModel() {
         std::ifstream stream(PLUGIN_PATH("taxi.dat"));
@@ -41,9 +46,9 @@ public:
             if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                 GetTaxiModels().insert(std::stoi(line));
         }
-        patch::SetUChar(0x456044, 0x51); // push edi
-        patch::RedirectCall(0x456045, CheckIfTaxiModel); // call
-        patch::RedirectJump(0x45604D, reinterpret_cast<void *>(0x456066)); // jump
+
+        patch::RedirectCall(0x45600E, OpcodePlayerDrivingTaxiVehicle);
+        patch::Nop(0x456013, 0x5B); // или сделать jump на 0x45606E
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
     }
 } myTaxiModel;
@@ -55,7 +60,7 @@ void __declspec(naked) MyTaxiModel::Patch_58BE1F() {
         movsx eax, word ptr[ebp + 0x5C]
         pushad
         push eax
-        call GetTranslatedTaxiModel // MODEL_TAXI
+        call GetTaxiModel
         mov CurrentTaxiModel, eax
         popad
         mov eax, CurrentTaxiModel

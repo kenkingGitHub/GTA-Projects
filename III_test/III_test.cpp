@@ -18,6 +18,10 @@
 #include "cAudioManager.h"
 //#include "CRunningScript.h"
 #include "CTheScripts.h"
+#include <unordered_set>
+#include <string>
+#include <fstream>
+
 
 #define m_MODEL_POLICE 156
 #define m_MODEL_AMBULAN 157
@@ -29,10 +33,15 @@ public:
     static unsigned int CurrentSpecialModel;
     static unsigned int CurrentPoliceModel;
 
+    static std::unordered_set<unsigned int> &GetTaxiModels() {
+        static std::unordered_set<unsigned int> taxiIds;
+        return taxiIds;
+    }
+
     static int __stdcall GetSpecialModel(unsigned int model) {
         if (model == MODEL_POLICE || model == m_MODEL_POLICE)
             return MODEL_POLICE;
-        else if (model == MODEL_TAXI || model == 102)
+        else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
         return model;
     }
@@ -305,7 +314,7 @@ public:
         CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
         if (player->m_bInVehicle) {
             unsigned int model = player->m_pVehicle->m_nModelIndex;
-            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || model == 102)
+            if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || GetTaxiModels().find(model) != GetTaxiModels().end())
                 isTaxiModel = true;
         }
         script->UpdateCompareFlag(isTaxiModel);
@@ -331,6 +340,14 @@ public:
 
 
     Test() {
+        std::ifstream stream(PLUGIN_PATH("taxi.dat"));
+        if (!stream.is_open())
+            return;
+        for (std::string line; getline(stream, line); ) {
+            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                GetTaxiModels().insert(std::stoi(line));
+        }
+
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
         patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
         patch::RedirectJump(0x4181F0, ChoosePoliceCarModel);
