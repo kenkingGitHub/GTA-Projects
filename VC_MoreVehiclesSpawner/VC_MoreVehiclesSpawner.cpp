@@ -8,7 +8,7 @@
 #include "CSprite2d.h"
 #include "CStreaming.h"
 #include "CBoat.h"
-#include "CHeli.h"
+//#include "CHeli.h"
 #include "CBike.h"
 #include "CWorld.h"
 #include "CTheScripts.h"
