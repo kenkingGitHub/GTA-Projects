@@ -21,12 +21,55 @@
 #include <unordered_set>
 #include <string>
 #include <fstream>
-
+#include "CTheCarGenerators.h"
 
 #define m_MODEL_POLICE 156
 #define m_MODEL_AMBULAN 157
 
 using namespace plugin;
+
+class MyCarGenerator {
+public:
+    MyCarGenerator() {
+        static CdeclEvent<AddressList<0x582E6C, H_CALL, 0x48C7CC, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> myOnInitGame;
+        
+        static float fCarGenAngleOne, fCarGenAngleTwo, fCarGenAngleThree;
+        fCarGenAngleOne = fCarGenAngleTwo = fCarGenAngleThree = 0.0f;
+        static CVector vCarGenPositionOne = { 1148.76f, -690.0f, 14.0f };
+        static CVector vCarGenPositionTwo = { 347.0f, -1170.25f, 22.0f };
+        static CVector vCarGenPositionThree = { -1261.84f, - 21.49f, 58.5f };
+
+        myOnInitGame += [] {
+            if (CTheCarGenerators::NumOfCarGenerators < 160) {
+                bool alreadyRegisteredOne, alreadyRegisteredTwo, alreadyRegisteredThree;
+                alreadyRegisteredOne = alreadyRegisteredTwo = alreadyRegisteredThree = false;
+                for (int i = 0; i < CTheCarGenerators::NumOfCarGenerators; i++) {
+                    CCarGenerator &carGenOne = CTheCarGenerators::CarGeneratorArray[i];
+                    if (carGenOne.m_nEnabled && DistanceBetweenPoints(vCarGenPositionOne, carGenOne.m_vecPos) < 1.0f && carGenOne.m_fAngle == fCarGenAngleOne && carGenOne.m_nModelId == m_MODEL_POLICE)
+                        alreadyRegisteredOne = true;
+                    CCarGenerator &carGenTwo = CTheCarGenerators::CarGeneratorArray[i];
+                    if (carGenTwo.m_nEnabled && DistanceBetweenPoints(vCarGenPositionTwo, carGenTwo.m_vecPos) < 1.0f && carGenTwo.m_fAngle == fCarGenAngleTwo && carGenTwo.m_nModelId == m_MODEL_POLICE)
+                        alreadyRegisteredTwo = true;
+                    CCarGenerator &carGenThree = CTheCarGenerators::CarGeneratorArray[i];
+                    if (carGenThree.m_nEnabled && DistanceBetweenPoints(vCarGenPositionThree, carGenThree.m_vecPos) < 1.0f && carGenThree.m_fAngle == fCarGenAngleThree && carGenThree.m_nModelId == m_MODEL_POLICE)
+                        alreadyRegisteredThree = true;
+                }
+                if (!alreadyRegisteredOne) {
+                    unsigned int carGenOneId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionOne.x, vCarGenPositionOne.y, vCarGenPositionOne.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenOneId].SwitchOn();
+                }
+                if (!alreadyRegisteredTwo) {
+                    unsigned int carGenTwoId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionTwo.x, vCarGenPositionTwo.y, vCarGenPositionTwo.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenTwoId].SwitchOn();
+                }
+                if (!alreadyRegisteredThree) {
+                    unsigned int carGenThreeId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionThree.x, vCarGenPositionThree.y, vCarGenPositionThree.z, 173.23f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenThreeId].SwitchOn();
+                }
+            }
+        };
+    }
+} instance;
 
 class Test {
 public:
