@@ -12,8 +12,6 @@
 #include "CTheScripts.h"
 #include "eVehicleModel.h"
 
-#include "CMessages.h"
-
 using namespace plugin;
 
 class MoreVehiclesSpawner {
@@ -51,11 +49,6 @@ public:
                 CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
                 if (vehicle->m_nVehicleClass != VEHICLE_BOAT)
                     reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-
-                static char message[256];
-                snprintf(message, 256, "Class: %d", reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleClass);
-                CMessages::AddMessageJumpQ(message, 5000, false);
-
             }
         }
     }
@@ -93,7 +86,7 @@ public:
                         if (modelId < 5500) {
                             int modelType = CModelInfo::IsVehicleModelType(modelId);
                             if (modelType != -1) {
-                                if (modelType == 0 || modelType == 1) {
+                                if (modelType == VEHICLE_AUTOMOBILE || modelType == VEHICLE_BOAT) {
                                     SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 4.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 1.5707964f);
                                     errorMessageBuffer.clear(); // убираем надпись об ошибке (если она была на экране)
                                 }

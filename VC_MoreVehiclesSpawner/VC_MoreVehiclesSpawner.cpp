@@ -8,6 +8,8 @@
 #include "CSprite2d.h"
 #include "CStreaming.h"
 #include "CBoat.h"
+#include "CHeli.h"
+#include "CBike.h"
 #include "CWorld.h"
 #include "CTheScripts.h"
 #include "eVehicleModel.h"
@@ -32,16 +34,27 @@ public:
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
             }
             CVehicle *vehicle = nullptr;
-            if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType)
+            switch (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType) {
+            /*case VEHICLE_HELI:
+                vehicle = new CHeli(modelIndex, 1);
+                break;*/
+            case VEHICLE_BIKE:
+                vehicle = new CBike(modelIndex, 1);
+                reinterpret_cast<CBike *>(vehicle)->m_nDamageFlags |= 0x10;
+                break;
+            case VEHICLE_BOAT:
                 vehicle = new CBoat(modelIndex, 1);
-            else
+                break;
+            default:
                 vehicle = new CAutomobile(modelIndex, 1);
+                break;
+            }
             if (vehicle) {
                 // Размещаем транспорт в игровом мире
                 vehicle->SetPosition(position);
-                vehicle->SetOrientation(0.0f, 0.0f, orientation);
+                vehicle->m_placement.SetOrientation(0.0f, 0.0f, orientation);
                 vehicle->m_nState = 4;
-                if (modelIndex == MODEL_RCBANDIT)
+                if (modelIndex == MODEL_RCBANDIT || modelIndex == MODEL_RCBARON || modelIndex == MODEL_RCRAIDER || modelIndex == MODEL_RCGOBLIN)
                     vehicle->m_nLockStatus = CARLOCK_LOCKED;
                 else
                     vehicle->m_nLockStatus = CARLOCK_UNLOCKED;
@@ -83,15 +96,15 @@ public:
                 if (KeyCheck::CheckJustDown(45)) { 
                     if (typedBuffer.size() > 0) {
                         unsigned int modelId = std::stoi(typedBuffer);
-                        if (modelId < 5500) {
+                        if (modelId < 6500) {
                             int modelType = CModelInfo::IsVehicleModelType(modelId);
                             if (modelType != -1) {
-                                if (modelType == 0 || modelType == 1) {
+                                if (modelType == VEHICLE_AUTOMOBILE || modelType == VEHICLE_BOAT || modelType == VEHICLE_BIKE) {
                                     SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 4.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 1.5707964f);
                                     errorMessageBuffer.clear(); 
                                 }
                                 else
-                                    errorMessage = "Can't spawn a train, heli and plane";
+                                    errorMessage = "Can't spawn a heli and plane";
                             }
                             else
                                 errorMessage = "This model is not a vehicle!";
@@ -116,7 +129,7 @@ public:
             CFont::SetScale(0.8f, 1.9f);
             CFont::SetColor(CRGBA(255, 255, 255, 255));
             CFont::SetJustifyOn();
-            CFont::SetFontStyle(0);
+            CFont::SetFontStyle(1);
             CFont::SetPropOn();
             CFont::SetWrapx(300.0f);
             CFont::PrintString(15.0f, 15.0f, "Model ID:");
