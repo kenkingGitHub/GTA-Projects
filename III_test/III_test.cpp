@@ -2,74 +2,67 @@
 #include "CWanted.h"
 #include "CStreaming.h"
 #include "CWorld.h"
-//#include "CVehicleModelInfo.h"
 #include "eVehicleModel.h"
 #include "ePedModel.h"
-//#include "CModelInfo.h"
-//#include "extensions\KeyCheck.h"
-//#include "CWeaponInfo.h"
-//#include "ePedType.h"
-//#include "CAnimManager.h"
-//#include "CZoneInfo.h"
-//#include "CGangInfo.h"
-//#include "CPopulation.h"
-//#include "CGangs.h"
+#include "eVehicleIndex.h"
 #include "cMusicManager.h"
 #include "cAudioManager.h"
-//#include "CRunningScript.h"
 #include "CTheScripts.h"
+#include "CTheCarGenerators.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
-#include "CTheCarGenerators.h"
+
+#include "CMessages.h"
+//#include "extensions\KeyCheck.h"
 
 #define m_MODEL_POLICE 156
 #define m_MODEL_AMBULAN 157
 
 using namespace plugin;
 
-class MyCarGenerator {
-public:
-    MyCarGenerator() {
-        static CdeclEvent<AddressList<0x582E6C, H_CALL, 0x48C7CC, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> myOnInitGame;
-        
-        static float fCarGenAngleOne, fCarGenAngleTwo, fCarGenAngleThree;
-        fCarGenAngleOne = fCarGenAngleTwo = fCarGenAngleThree = 0.0f;
-        static CVector vCarGenPositionOne = { 1148.76f, -690.0f, 14.0f };
-        static CVector vCarGenPositionTwo = { 347.0f, -1170.25f, 22.0f };
-        static CVector vCarGenPositionThree = { -1261.84f, - 21.49f, 58.5f };
-
-        myOnInitGame += [] {
-            if (CTheCarGenerators::NumOfCarGenerators < 160) {
-                bool alreadyRegisteredOne, alreadyRegisteredTwo, alreadyRegisteredThree;
-                alreadyRegisteredOne = alreadyRegisteredTwo = alreadyRegisteredThree = false;
-                for (int i = 0; i < CTheCarGenerators::NumOfCarGenerators; i++) {
-                    CCarGenerator &carGenOne = CTheCarGenerators::CarGeneratorArray[i];
-                    if (carGenOne.m_nEnabled && DistanceBetweenPoints(vCarGenPositionOne, carGenOne.m_vecPos) < 1.0f && carGenOne.m_fAngle == fCarGenAngleOne && carGenOne.m_nModelId == m_MODEL_POLICE)
-                        alreadyRegisteredOne = true;
-                    CCarGenerator &carGenTwo = CTheCarGenerators::CarGeneratorArray[i];
-                    if (carGenTwo.m_nEnabled && DistanceBetweenPoints(vCarGenPositionTwo, carGenTwo.m_vecPos) < 1.0f && carGenTwo.m_fAngle == fCarGenAngleTwo && carGenTwo.m_nModelId == m_MODEL_POLICE)
-                        alreadyRegisteredTwo = true;
-                    CCarGenerator &carGenThree = CTheCarGenerators::CarGeneratorArray[i];
-                    if (carGenThree.m_nEnabled && DistanceBetweenPoints(vCarGenPositionThree, carGenThree.m_vecPos) < 1.0f && carGenThree.m_fAngle == fCarGenAngleThree && carGenThree.m_nModelId == m_MODEL_POLICE)
-                        alreadyRegisteredThree = true;
-                }
-                if (!alreadyRegisteredOne) {
-                    unsigned int carGenOneId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionOne.x, vCarGenPositionOne.y, vCarGenPositionOne.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenOneId].SwitchOn();
-                }
-                if (!alreadyRegisteredTwo) {
-                    unsigned int carGenTwoId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionTwo.x, vCarGenPositionTwo.y, vCarGenPositionTwo.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenTwoId].SwitchOn();
-                }
-                if (!alreadyRegisteredThree) {
-                    unsigned int carGenThreeId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionThree.x, vCarGenPositionThree.y, vCarGenPositionThree.z, 173.23f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenThreeId].SwitchOn();
-                }
-            }
-        };
-    }
-} instance;
+//class MyCarGenerator {
+//public:
+//    MyCarGenerator() {
+//        static CdeclEvent<AddressList<0x582E6C, H_CALL, 0x48C7CC, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> myOnInitGame;
+//        
+//        static float fCarGenAngleOne, fCarGenAngleTwo, fCarGenAngleThree;
+//        fCarGenAngleOne = fCarGenAngleTwo = fCarGenAngleThree = 0.0f;
+//        static CVector vCarGenPositionOne = { 1148.76f, -690.0f, 14.0f };
+//        static CVector vCarGenPositionTwo = { 347.0f, -1170.25f, 22.0f };
+//        static CVector vCarGenPositionThree = { -1261.84f, - 21.49f, 58.5f };
+//
+//        myOnInitGame += [] {
+//            if (CTheCarGenerators::NumOfCarGenerators < 160) {
+//                bool alreadyRegisteredOne, alreadyRegisteredTwo, alreadyRegisteredThree;
+//                alreadyRegisteredOne = alreadyRegisteredTwo = alreadyRegisteredThree = false;
+//                for (int i = 0; i < CTheCarGenerators::NumOfCarGenerators; i++) {
+//                    CCarGenerator &carGenOne = CTheCarGenerators::CarGeneratorArray[i];
+//                    if (carGenOne.m_nEnabled && DistanceBetweenPoints(vCarGenPositionOne, carGenOne.m_vecPos) < 1.0f && carGenOne.m_fAngle == fCarGenAngleOne && carGenOne.m_nModelId == m_MODEL_POLICE)
+//                        alreadyRegisteredOne = true;
+//                    CCarGenerator &carGenTwo = CTheCarGenerators::CarGeneratorArray[i];
+//                    if (carGenTwo.m_nEnabled && DistanceBetweenPoints(vCarGenPositionTwo, carGenTwo.m_vecPos) < 1.0f && carGenTwo.m_fAngle == fCarGenAngleTwo && carGenTwo.m_nModelId == m_MODEL_POLICE)
+//                        alreadyRegisteredTwo = true;
+//                    CCarGenerator &carGenThree = CTheCarGenerators::CarGeneratorArray[i];
+//                    if (carGenThree.m_nEnabled && DistanceBetweenPoints(vCarGenPositionThree, carGenThree.m_vecPos) < 1.0f && carGenThree.m_fAngle == fCarGenAngleThree && carGenThree.m_nModelId == m_MODEL_POLICE)
+//                        alreadyRegisteredThree = true;
+//                }
+//                if (!alreadyRegisteredOne) {
+//                    unsigned int carGenOneId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionOne.x, vCarGenPositionOne.y, vCarGenPositionOne.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+//                    CTheCarGenerators::CarGeneratorArray[carGenOneId].SwitchOn();
+//                }
+//                if (!alreadyRegisteredTwo) {
+//                    unsigned int carGenTwoId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionTwo.x, vCarGenPositionTwo.y, vCarGenPositionTwo.z, 0.0f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+//                    CTheCarGenerators::CarGeneratorArray[carGenTwoId].SwitchOn();
+//                }
+//                if (!alreadyRegisteredThree) {
+//                    unsigned int carGenThreeId = CTheCarGenerators::CreateCarGenerator(vCarGenPositionThree.x, vCarGenPositionThree.y, vCarGenPositionThree.z, 173.23f, m_MODEL_POLICE, -1, -1, 0, 0, 0, 0, 10000);
+//                    CTheCarGenerators::CarGeneratorArray[carGenThreeId].SwitchOn();
+//                }
+//            }
+//        };
+//    }
+//} instance;
 
 class Test {
 public:
@@ -157,24 +150,17 @@ public:
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
             {
-                int _random = plugin::Random(0, 10);
-                /*if (_random == 0)
-                result = MODEL_POLICE;*/
-                if (_random < 5)
-                    result = MODEL_ENFORCER;
-                else {
-                    unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
-                    CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
-                    CStreaming::LoadAllRequestedModels(false);
-                    if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
-                        if (!(oldFlags & GAME_REQUIRED)) {
-                            CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
-                            CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
-                        }
+                int _random = plugin::Random(0, 2);
+                switch (_random) { 
+                case 0: result = MODEL_POLICE; break;
+                case 1:
+                    if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED)
                         result = m_MODEL_POLICE;
-                    }
                     else
                         result = MODEL_POLICE;
+                    break;
+                case 2: result = MODEL_ENFORCER; break;
+                default: result = MODEL_POLICE;  break;
                 }
             }
             else
@@ -293,13 +279,13 @@ public:
         bool result;
 
         switch (index) { // eVehicleIndex
-        case 7:
-        case 16:
-        case 17:
-        case 26:
-        case 27:
-        case 30:
-        case 66:
+        case VEHICLE_FIRETRUK:
+        case VEHICLE_AMBULAN:
+        case VEHICLE_FBICAR:
+        case VEHICLE_POLICE:
+        case VEHICLE_ENFORCER:
+        case VEHICLE_PREDATOR:
+        case VEHICLE_156:
             result = TRUE;
             break;
         default:
@@ -313,11 +299,11 @@ public:
         bool result;
 
         switch (index) { // eVehicleIndex
-        case 16:
-        case 26:
-        case 27:
-        case 30:
-        case 66:
+        case VEHICLE_AMBULAN:
+        case VEHICLE_POLICE:
+        case VEHICLE_ENFORCER:
+        case VEHICLE_PREDATOR:
+        case VEHICLE_156:
             result = TRUE;
             break;
         default:
@@ -362,8 +348,7 @@ public:
         }
         script->UpdateCompareFlag(isTaxiModel);
     }
-
-
+    
     static void __fastcall OpcodeIsPlayerInModel(CRunningScript *script) {
         script->CollectParameters(&script->m_nIp, 2);
         bool inModel = false;
@@ -381,6 +366,24 @@ public:
         script->UpdateCompareFlag(inModel);
     }
 
+    //
+    static void __fastcall SetModelIndex(CEntity *_this, int, unsigned int modelIndex) {
+        if (modelIndex == MODEL_POLICE) {
+            int _random = plugin::Random(0, 3);
+            if (_random < 2) {
+                if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) 
+                    _this->m_nModelIndex = m_MODEL_POLICE;
+                else
+                    _this->m_nModelIndex = modelIndex;
+            }
+            else
+                _this->m_nModelIndex = modelIndex;
+        }
+        else
+            _this->m_nModelIndex = modelIndex;
+        _this->CreateRwObject();
+    }
+
 
     Test() {
         std::ifstream stream(PLUGIN_PATH("taxi.dat"));
@@ -390,6 +393,8 @@ public:
             if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                 GetTaxiModels().insert(std::stoi(line));
         }
+
+        patch::RedirectJump(0x473E70, SetModelIndex);//
 
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
         patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
@@ -409,6 +414,25 @@ public:
 
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
+
+        Events::gameProcessEvent += [] {
+            if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_NOT_LOADED) {
+                unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
+                CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
+                CStreaming::LoadAllRequestedModels(false);
+                if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
+                    if (!(oldFlags & GAME_REQUIRED)) {
+                        CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
+                        CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
+                    }
+                    CVehicle *vehicle = nullptr;
+                    vehicle = new CAutomobile(m_MODEL_POLICE, 1);
+                }
+            }
+            static char message[256];
+            snprintf(message, 256, "LoadState ID 156 = %d", CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState);
+            CMessages::AddMessageJumpQ(message, 1000, false);
+        };
     }
 }test;
 
@@ -447,7 +471,7 @@ void __declspec(naked) Test::Patch_4F5857() {
     }
 }
 
-
+// end
 
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"
