@@ -32,12 +32,16 @@ public:
             return MODEL_POLICE;
         else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
+        else if (model == MODEL_AMBULAN || model == m_MODEL_AMBULAN)
+            return MODEL_AMBULAN;
         return model;
     }
 
     static int __stdcall GetPoliceModel(unsigned int model) {
         if (model == MODEL_POLICE || model == m_MODEL_POLICE)
             return MODEL_POLICE;
+        else if (model == MODEL_AMBULAN || model == m_MODEL_AMBULAN)
+            return MODEL_AMBULAN;
         return model;
     }
 
@@ -171,6 +175,7 @@ public:
         case MODEL_ENFORCER:
         case MODEL_PREDATOR:
         case m_MODEL_POLICE:
+        case m_MODEL_AMBULAN:
             result = TRUE;
             break;
         default:
@@ -202,6 +207,7 @@ public:
                         case MODEL_REEFER:
                         case MODEL_GHOST:
                         case m_MODEL_POLICE:
+                        case m_MODEL_AMBULAN:
                             result = FALSE;
                             break;
                         default:
@@ -234,6 +240,7 @@ public:
         case VEHICLE_ENFORCER:
         case VEHICLE_PREDATOR:
         case VEHICLE_156:
+        case VEHICLE_157:
             result = TRUE;
             break;
         default:
@@ -252,6 +259,7 @@ public:
         case VEHICLE_ENFORCER:
         case VEHICLE_PREDATOR:
         case VEHICLE_156:
+        case VEHICLE_157:
             result = TRUE;
             break;
         default:
@@ -275,6 +283,7 @@ public:
         case MODEL_DODO:
         case MODEL_COACH:
         case m_MODEL_POLICE:
+        case m_MODEL_AMBULAN:
             result = FALSE;
             break;
         default:
@@ -308,13 +317,12 @@ public:
                 inModel = true;
             else if (model == m_MODEL_POLICE && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
                 inModel = true;
-            //else if (model == m_MODEL_AMBULAN && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
-            //inModel = true;
+            else if (model == m_MODEL_AMBULAN && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
+            inModel = true;
         }
         script->UpdateCompareFlag(inModel);
     }
 
-    //
     static void __fastcall SetModelIndex(CEntity *_this, int, unsigned int modelIndex) {
         if (modelIndex == MODEL_POLICE) {
             int _random = plugin::Random(0, 3);
@@ -327,11 +335,35 @@ public:
             else
                 _this->m_nModelIndex = modelIndex;
         }
+        else if (modelIndex == MODEL_AMBULAN) {
+            int _random = plugin::Random(0, 3);
+            if (_random < 2) {
+                if (CStreaming::ms_aInfoForModel[m_MODEL_AMBULAN].m_nLoadState == LOADSTATE_LOADED)
+                    _this->m_nModelIndex = m_MODEL_AMBULAN;
+                else
+                    _this->m_nModelIndex = modelIndex;
+            }
+            else
+                _this->m_nModelIndex = modelIndex;
+        }
         else
             _this->m_nModelIndex = modelIndex;
         _this->CreateRwObject();
     }
 
+    static bool LoadModel(int model) {
+        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
+        CStreaming::RequestModel(model, GAME_REQUIRED);
+        CStreaming::LoadAllRequestedModels(false);
+        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(model);
+                CStreaming::SetModelTxdIsDeletable(model);
+            }
+            return true;
+        }
+        return false;
+    }
 
     AddSpecialCars() {
         std::ifstream stream(PLUGIN_PATH("taxi.dat"));
@@ -365,16 +397,15 @@ public:
 
         Events::gameProcessEvent += [] {
             if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_NOT_LOADED) {
-                unsigned char oldFlags = CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nFlags;
-                CStreaming::RequestModel(m_MODEL_POLICE, GAME_REQUIRED);
-                CStreaming::LoadAllRequestedModels(false);
-                if (CStreaming::ms_aInfoForModel[m_MODEL_POLICE].m_nLoadState == LOADSTATE_LOADED) {
-                    if (!(oldFlags & GAME_REQUIRED)) {
-                        CStreaming::SetModelIsDeletable(m_MODEL_POLICE);
-                        CStreaming::SetModelTxdIsDeletable(m_MODEL_POLICE);
-                    }
-                    CVehicle *vehicle = nullptr;
-                    vehicle = new CAutomobile(m_MODEL_POLICE, 1);
+                if (LoadModel(m_MODEL_POLICE)) {
+                    CVehicle *police = nullptr;
+                    police = new CAutomobile(m_MODEL_POLICE, 1);
+                }
+            }
+            if (CStreaming::ms_aInfoForModel[m_MODEL_AMBULAN].m_nLoadState == LOADSTATE_NOT_LOADED) {
+                if (LoadModel(m_MODEL_AMBULAN)) {
+                    CVehicle *ambulan = nullptr;
+                    ambulan = new CAutomobile(m_MODEL_AMBULAN, 1);
                 }
             }
         };
