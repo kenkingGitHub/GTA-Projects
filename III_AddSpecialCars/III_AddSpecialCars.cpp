@@ -8,15 +8,14 @@
 #include "cMusicManager.h"
 #include "cAudioManager.h"
 #include "CTheScripts.h"
+#include "CCivilianPed.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
 
-#include "CCivilianPed.h"
-
 #define MODEL_POLICE_a 151
 #define MODEL_POLICE_b 152
-#define MODEL_POLICE_c 156
+#define MODEL_POLICE_c 153
 #define MODEL_AMBULAN_a 157
 #define MODEL_COP_a 83
 
@@ -358,31 +357,27 @@ public:
 
     static void __fastcall SetModelIndex(CEntity *_this, int, unsigned int modelIndex) {
         if (modelIndex == MODEL_POLICE) {
-            int _random = plugin::Random(0, 7);
+            int _random = plugin::Random(0, 3);
             switch (_random) {
             case 0:
-            case 1:
                 if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
                     _this->m_nModelIndex = MODEL_POLICE_a;
                 else
                     _this->m_nModelIndex = modelIndex;
                 break;
-            case 2:
-            case 3:
+            case 1:
                 if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
                     _this->m_nModelIndex = MODEL_POLICE_b;
                 else
                     _this->m_nModelIndex = modelIndex;
                 break;
-            case 4:
-            case 5:
+            case 2:
                 if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
                     _this->m_nModelIndex = MODEL_POLICE_c;
                 else
                     _this->m_nModelIndex = modelIndex;
                 break;
-            case 6:
-            case 7:
+            case 3:
             default:
                 _this->m_nModelIndex = modelIndex;
                 break;
@@ -436,6 +431,14 @@ public:
         }
     }
 
+    static void SetPedLoadState(unsigned int modelIndex) {
+        if (LoadModel(modelIndex)) {
+            CCivilianPed *ped = nullptr;
+            ped = new CCivilianPed(PEDTYPE_COP, modelIndex);
+        }
+    }
+
+
     AddSpecialCars() {
         std::ifstream stream(PLUGIN_PATH("taxi.dat"));
         if (!stream.is_open())
@@ -475,12 +478,8 @@ public:
                 SetVehicleLoadState(MODEL_POLICE_c);
             if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
                 SetVehicleLoadState(MODEL_AMBULAN_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) {
-                if (LoadModel(MODEL_COP_a)) {
-                    CCivilianPed *cop_a = nullptr;
-                    cop_a = new CCivilianPed(PEDTYPE_COP, MODEL_COP_a);
-                }
-            }
+            if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
+                SetPedLoadState(MODEL_COP_a);
 
         };
     }
