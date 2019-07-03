@@ -17,7 +17,7 @@
 #define MODEL_POLICE_b 152
 #define MODEL_POLICE_c 153
 #define MODEL_AMBULAN_a 156
-//#define MODEL_FIRETRUK_a 157
+#define MODEL_FIRETRUK_a 157
 #define MODEL_COP_a 83
 #define MODEL_COP_b 84
 #define MODEL_COP_c 85
@@ -29,7 +29,7 @@ public:
     static unsigned int CurrentSpecialModelForSiren;
     static unsigned int CurrentSpecialModelForOccupants;
     static unsigned int RandomPoliceModel;
-    //static unsigned int CurrentFiretrukModel;
+    static unsigned int CurrentFiretrukModel;
 
     static std::unordered_set<unsigned int> &GetTaxiModels() {
         static std::unordered_set<unsigned int> taxiIds;
@@ -43,8 +43,8 @@ public:
             return MODEL_TAXI;
         else if (model == MODEL_AMBULAN || model == MODEL_AMBULAN_a)
             return MODEL_AMBULAN;
-        /*else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
-            return MODEL_FIRETRUK;*/
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
+            return MODEL_FIRETRUK;
         return model;
     }
 
@@ -53,20 +53,56 @@ public:
             return MODEL_POLICE;
         else if (model == MODEL_AMBULAN || model == MODEL_AMBULAN_a)
             return MODEL_AMBULAN;
-        /*else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
-            return MODEL_FIRETRUK;*/
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
+            return MODEL_FIRETRUK;
         return model;
     }
 
-    /*static int __stdcall GetFiretrukModel(unsigned int model) {
+    static int __stdcall GetFiretrukModel(unsigned int model) {
         if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
             return MODEL_FIRETRUK;
         return model;
-    }*/
+    }
 
     static void Patch_5373D7(); // Siren
     static void Patch_4F5857(); // AddPedInCar
-    //static void Patch_531FE8(); // FireTruckControl
+    static void Patch_531FE8(); // FireTruckControl
+
+    // CVehicle::IsVehicleNormal
+    static bool __fastcall IsVehicleNormal(CVehicle *_this) {
+        bool result; 
+
+        result = FALSE;
+        if (_this->m_pDriver && !_this->m_nNumPassengers && _this->m_nState != 5) {
+            if (GetTaxiModels().find(_this->m_nModelIndex) != GetTaxiModels().end())
+                return result;
+            switch (_this->m_nModelIndex) {
+            default:
+                result = TRUE;
+                break;
+            case MODEL_FIRETRUK:
+            case MODEL_FIRETRUK_a:
+            case MODEL_AMBULAN:
+            case MODEL_AMBULAN_a:
+            case MODEL_TAXI:
+            case MODEL_POLICE:
+            case MODEL_POLICE_a:
+            case MODEL_POLICE_b:
+            case MODEL_POLICE_c:
+            case MODEL_ENFORCER:
+            case MODEL_BUS:
+            case MODEL_RHINO:
+            case MODEL_BARRACKS:
+            case MODEL_DODO:
+            case MODEL_COACH:
+            case MODEL_CABBIE:
+            case MODEL_RCBANDIT:
+            case MODEL_BORGNINE:
+                return result;
+            }
+        }
+        return result;
+    }
 
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
@@ -221,7 +257,7 @@ public:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
         case MODEL_AMBULAN_a:
-        //case MODEL_FIRETRUK_a:
+        case MODEL_FIRETRUK_a:
             result = TRUE;
             break;
         default:
@@ -253,11 +289,8 @@ public:
                         case MODEL_SPEEDER:
                         case MODEL_REEFER:
                         case MODEL_GHOST:
-                        case MODEL_POLICE_a:
-                        case MODEL_POLICE_b:
-                        case MODEL_POLICE_c:
                         case MODEL_AMBULAN_a:
-                        //case MODEL_FIRETRUK_a:
+                        case MODEL_FIRETRUK_a:
                             result = FALSE;
                             break;
                         default:
@@ -294,7 +327,7 @@ public:
         case VEHICLE_152:
         case VEHICLE_153:
         case VEHICLE_156:
-        //case VEHICLE_157:
+        case VEHICLE_157:
             result = TRUE;
             break;
         default:
@@ -344,7 +377,7 @@ public:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
         case MODEL_AMBULAN_a:
-        //case MODEL_FIRETRUK_a:
+        case MODEL_FIRETRUK_a:
             result = FALSE;
             break;
         default:
@@ -380,8 +413,8 @@ public:
                 inModel = true;
             else if (model == MODEL_AMBULAN_a && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
                 inModel = true;
-            //else if (model == MODEL_FIRETRUK_a && CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) // Firefighter
-            //    inModel = true;
+            else if (model == MODEL_FIRETRUK_a && CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) // Firefighter
+                inModel = true;
         }
         script->UpdateCompareFlag(inModel);
     }
@@ -429,7 +462,7 @@ public:
             else
                 _this->m_nModelIndex = modelIndex;
         }
-        /*else if (modelIndex == MODEL_FIRETRUK) {
+        else if (modelIndex == MODEL_FIRETRUK) {
             int _random = plugin::Random(0, 3);
             if (_random < 2) {
                 if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_LOADED)
@@ -439,7 +472,7 @@ public:
             }
             else
                 _this->m_nModelIndex = modelIndex;
-        }*/
+        }
         else if (modelIndex == MODEL_COP) {
             int _random = plugin::Random(0, 3);
             switch (_random) {
@@ -521,6 +554,7 @@ public:
         patch::RedirectJump(0x56C3C0, UsesSirenAudio);
         patch::RedirectJump(0x56C3F0, UsesSirenSwitching);
         patch::RedirectJump(0x426700, IsCarSprayable);
+        patch::RedirectJump(0x5527E0, IsVehicleNormal);
 
         patch::RedirectCall(0x446A93, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x446A98, 0x4C); // или сделать jump на 0x446AE4
@@ -530,7 +564,7 @@ public:
 
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
-        //patch::RedirectJump(0x531FE8, Patch_531FE8);
+        patch::RedirectJump(0x531FE8, Patch_531FE8);
 
         Events::gameProcessEvent += [] {
             if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
@@ -541,8 +575,8 @@ public:
                 SetVehicleLoadState(MODEL_POLICE_c);
             if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
                 SetVehicleLoadState(MODEL_AMBULAN_a);
-            /*if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetVehicleLoadState(MODEL_FIRETRUK_a);*/
+            if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                SetVehicleLoadState(MODEL_FIRETRUK_a);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
                 SetPedLoadState(MODEL_COP_a);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_NOT_LOADED)
@@ -556,7 +590,7 @@ public:
 unsigned int AddSpecialCars::CurrentSpecialModelForSiren;
 unsigned int AddSpecialCars::CurrentSpecialModelForOccupants;
 unsigned int AddSpecialCars::RandomPoliceModel = 0;
-//unsigned int AddSpecialCars::CurrentFiretrukModel;
+unsigned int AddSpecialCars::CurrentFiretrukModel;
 
 void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
     __asm {
@@ -590,18 +624,18 @@ void __declspec(naked) AddSpecialCars::Patch_4F5857() { // AddPedInCar
     }
 }
 
-//void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
-//    __asm {
-//        movsx eax, word ptr[ebp + 0x5C]
-//        pushad
-//        push eax
-//        call GetFiretrukModel
-//        mov CurrentFiretrukModel, eax
-//        popad
-//        mov eax, CurrentFiretrukModel
-//        fldz
-//        cmp     eax, 61h
-//        mov ecx, 0x531FF1
-//        jmp ecx
-//    }
-//}
+void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
+    __asm {
+        movsx eax, word ptr[ebp + 0x5C]
+        pushad
+        push eax
+        call GetFiretrukModel
+        mov CurrentFiretrukModel, eax
+        popad
+        mov eax, CurrentFiretrukModel
+        fldz
+        cmp     eax, 61h
+        mov ecx, 0x531FF1
+        jmp ecx
+    }
+}
