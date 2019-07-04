@@ -1,3 +1,58 @@
+#include "plugin.h"
+#include "CMessages.h"
+#include "CWorld.h"
+#include "CStreaming.h"
+#include "CTimer.h"
+#include "ePedModel.h"
+#include "ePedType.h"
+#include "CCivilianPed.h"
+
+using namespace plugin;
+
+class Test {
+public:
+    static bool LoadModel(int model) {
+        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
+        CStreaming::RequestModel(model, GAME_REQUIRED);
+        CStreaming::LoadAllRequestedModels(false);
+        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(model);
+                CStreaming::SetModelTxdIsDeletable(model);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    static CPed *CreatePed(ePedType pedType, unsigned int modelIndex) {
+        CPed *ped = nullptr;
+        if (LoadModel(modelIndex)) {
+            ped = new CCivilianPed(pedType, modelIndex);
+            if (ped) {
+                ped->SetPosition(FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 2.0f, 0.0f)));
+                CWorld::Add(ped);
+            }
+        }
+        return ped;
+    }
+
+    Test() {
+        static int keyPressTime = 0;
+
+        Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
+            if (player) {
+                if (KeyPressed('M') && CTimer::m_snTimeInMilliseconds > (keyPressTime + 5000)) {
+                    keyPressTime = CTimer::m_snTimeInMilliseconds;
+                    CPed *ped = CreatePed(PEDTYPE_CIVFEMALE, MODEL_HFYST);
+                    if (ped)
+                        CMessages::AddMessageJumpQ(L"CreatePed", 1000, 0);;
+                }
+            }
+        };
+    }
+} test;
 
 
 //#include "plugin.h"
