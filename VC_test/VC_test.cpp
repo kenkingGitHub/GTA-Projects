@@ -1,59 +1,95 @@
 #include "plugin.h"
 #include "CMessages.h"
 #include "CWorld.h"
-#include "CStreaming.h"
-#include "CTimer.h"
-#include "ePedModel.h"
-#include "ePedType.h"
-#include "CCivilianPed.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "extensions\KeyCheck.h"
 
 using namespace plugin;
 
 class Test {
 public:
-    static bool LoadModel(int model) {
-        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
-        CStreaming::RequestModel(model, GAME_REQUIRED);
-        CStreaming::LoadAllRequestedModels(false);
-        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
-            if (!(oldFlags & GAME_REQUIRED)) {
-                CStreaming::SetModelIsDeletable(model);
-                CStreaming::SetModelTxdIsDeletable(model);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    static CPed *CreatePed(ePedType pedType, unsigned int modelIndex) {
-        CPed *ped = nullptr;
-        if (LoadModel(modelIndex)) {
-            ped = new CCivilianPed(pedType, modelIndex);
-            if (ped) {
-                ped->SetPosition(FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 2.0f, 0.0f)));
-                CWorld::Add(ped);
-            }
-        }
-        return ped;
-    }
-
     Test() {
-        static int keyPressTime = 0;
 
         Events::gameProcessEvent += [] {
             CPed *player = FindPlayerPed();
             if (player) {
-                if (KeyPressed('M') && CTimer::m_snTimeInMilliseconds > (keyPressTime + 5000)) {
-                    keyPressTime = CTimer::m_snTimeInMilliseconds;
-                    CPed *ped = CreatePed(PEDTYPE_CIVFEMALE, MODEL_HFYST);
-                    if (ped)
-                        CMessages::AddMessageJumpQ(L"CreatePed", 1000, 0);;
+                CVector point = { 241.6f, -1283.0f, 10.9f };
+                if (Command<COMMAND_LOCATE_PLAYER_ANY_MEANS_3D>(CWorld::PlayerInFocus, point.x, point.y, point.z, 2.0, 2.0, 2.0))
+                    CMessages::AddMessageJumpQ(L"Yes", 1000, 1);
+                //
+                static int sphere;
+                KeyCheck::Update();
+                if (KeyCheck::CheckWithDelay('M', 2000)) {
+                    CVector pos = FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f));
+                    Command<COMMAND_ADD_SPHERE>(pos.x, pos.y, pos.z, 2.0, &sphere);
+                    CMessages::AddMessageJumpQ(L"Create", 2000, 1);
+                }
+                if (KeyCheck::CheckWithDelay('N', 2000)) {
+                    Command<COMMAND_REMOVE_SPHERE>(sphere);
+                    CMessages::AddMessageJumpQ(L"Delete", 2000, 1);
                 }
             }
         };
     }
 } test;
 
+
+//#include "plugin.h"
+//#include "CMessages.h"
+//#include "CWorld.h"
+//#include "CStreaming.h"
+//#include "CTimer.h"
+//#include "ePedModel.h"
+//#include "ePedType.h"
+//#include "CCivilianPed.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static bool LoadModel(int model) {
+//        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
+//        CStreaming::RequestModel(model, GAME_REQUIRED);
+//        CStreaming::LoadAllRequestedModels(false);
+//        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
+//            if (!(oldFlags & GAME_REQUIRED)) {
+//                CStreaming::SetModelIsDeletable(model);
+//                CStreaming::SetModelTxdIsDeletable(model);
+//            }
+//            return true;
+//        }
+//        return false;
+//    }
+//
+//    static CPed *CreatePed(ePedType pedType, unsigned int modelIndex) {
+//        CPed *ped = nullptr;
+//        if (LoadModel(modelIndex)) {
+//            ped = new CCivilianPed(pedType, modelIndex);
+//            if (ped) {
+//                ped->SetPosition(FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 2.0f, 0.0f)));
+//                CWorld::Add(ped);
+//            }
+//        }
+//        return ped;
+//    }
+//
+//    Test() {
+//        static int keyPressTime = 0;
+//
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                if (KeyPressed('M') && CTimer::m_snTimeInMilliseconds > (keyPressTime + 5000)) {
+//                    keyPressTime = CTimer::m_snTimeInMilliseconds;
+//                    CPed *ped = CreatePed(PEDTYPE_CIVFEMALE, MODEL_HFYST);
+//                    if (ped)
+//                        CMessages::AddMessageJumpQ(L"CreatePed", 1000, 0);;
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"

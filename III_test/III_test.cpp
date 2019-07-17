@@ -1,46 +1,79 @@
 #include <plugin.h>
 #include "extensions\KeyCheck.h"
-#include "CStreaming.h"
-#include "eVehicleModel.h"
-#include "ePedModel.h"
 #include "CMessages.h"
 
-bool __cdecl /*CCarCtrl::*/GenerateOneEmergencyServicesCar(int vehicleModelIndex, CVector point) {
-    return ((bool(__cdecl *)(int, CVector))0x41FE50)(vehicleModelIndex, point);
-};
-
+//float &m_Distance = *(float *)0x5F07DC;
+//bool b_Counter = false;
 
 using namespace plugin;
 
 class Test {
 public:
     Test() {
-        Events::drawingEvent += [] {
-            gamefont::Print({
-                Format("LANDSTAL LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_LANDSTAL].m_nLoadState),
-                Format("IDAHO LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_IDAHO].m_nLoadState),
-                Format("PEREN LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_PEREN].m_nLoadState),
-                Format("FIRETRUK LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_FIRETRUK].m_nLoadState),
-                Format("BARRACKS LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState)
-            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange); 
-
-            CPlayerPed *player = FindPlayerPed();
-            if (player) {
-                KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('M', 1000)) {
-                    CStreaming::RequestModel(MODEL_AMBULAN, MISSION_REQUIRED);
-                    CStreaming::RequestModel(MODEL_MEDIC, 1);
-                    if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nLoadState == LOADSTATE_LOADED
-                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
-                    {
-                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(MODEL_AMBULAN, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 20.0f, 0.0f))))
-                            CMessages::AddMessageJumpQ(L"AmbulanceCreate", 2000, 0);
-                    }
+        Events::gameProcessEvent += [] {
+            KeyCheck::Update();
+            /*if (KeyCheck::CheckWithDelay('O', 1000)) {
+                if (b_Counter) {
+                    m_Distance = 2.0f; b_Counter = false;
                 }
+                else {
+                    m_Distance = -2.0f; b_Counter = true;
+                }
+            }*/
+            if (KeyCheck::CheckWithDelay('M', 1000)) {
+                //CMessages::AddMessageJumpQ(L"Yes", 2000, 1);
+                static char message[256];
+                snprintf(message, 256, "random %d", plugin::Random(123456, 98765));
+                CMessages::AddMessageJumpQ(message, 5000, false);
             }
         };
     }
 }test;
+
+
+//#include <plugin.h>
+//#include "extensions\KeyCheck.h"
+//#include "CStreaming.h"
+//#include "eVehicleModel.h"
+//#include "ePedModel.h"
+//#include "CMessages.h"
+//
+//bool __cdecl /*CCarCtrl::*/GenerateOneEmergencyServicesCar(int vehicleModelIndex, CVector point) {
+//    return ((bool(__cdecl *)(int, CVector))0x41FE50)(vehicleModelIndex, point);
+//};
+//
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::drawingEvent += [] {
+//            gamefont::Print({
+//                Format("LANDSTAL LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_LANDSTAL].m_nLoadState),
+//                Format("IDAHO LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_IDAHO].m_nLoadState),
+//                Format("PEREN LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_PEREN].m_nLoadState),
+//                Format("FIRETRUK LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_FIRETRUK].m_nLoadState),
+//                Format("BARRACKS LoadState = %d", CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState)
+//            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange); 
+//
+//            CPlayerPed *player = FindPlayerPed();
+//            if (player) {
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 1000)) {
+//                    CStreaming::RequestModel(MODEL_AMBULAN, MISSION_REQUIRED);
+//                    CStreaming::RequestModel(MODEL_MEDIC, 1);
+//                    if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN].m_nLoadState == LOADSTATE_LOADED
+//                        && CStreaming::ms_aInfoForModel[MODEL_MEDIC].m_nLoadState == LOADSTATE_LOADED)
+//                    {
+//                        if (/*CCarCtrl::*/GenerateOneEmergencyServicesCar(MODEL_AMBULAN, FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 20.0f, 0.0f))))
+//                            CMessages::AddMessageJumpQ(L"AmbulanceCreate", 2000, 0);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//}test;
 
 
 //#include "plugin.h"
