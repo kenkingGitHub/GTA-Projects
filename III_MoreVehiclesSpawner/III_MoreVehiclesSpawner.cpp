@@ -12,8 +12,15 @@
 #include "CTheScripts.h"
 #include "eVehicleModel.h"
 
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "CClock.h"
+#include "CMessages.h"
+
 float &m_Distance = *(float *)0x5F07DC;
 bool b_Counter = false;
+bool b_Clock = false;
+unsigned char m_Hours, m_Minutes;
 
 using namespace plugin;
 
@@ -25,7 +32,8 @@ public:
     static unsigned int errorMessageTimer;
     static bool enabled;
 
-    static void SpawnVehicle(unsigned int modelIndex, CVector position, float orientation) {
+    static CVehicle* SpawnVehicle(unsigned int modelIndex, CVector position, float orientation) {
+        CVehicle *vehicle = nullptr;
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[modelIndex].m_nFlags;
         CStreaming::RequestModel(modelIndex, GAME_REQUIRED);
         CStreaming::LoadAllRequestedModels(false);
@@ -34,7 +42,7 @@ public:
                 CStreaming::SetModelIsDeletable(modelIndex);
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
             }
-            CVehicle *vehicle = nullptr;
+            //CVehicle *vehicle = nullptr;
             if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType)
                 vehicle = new CBoat(modelIndex, 1);
             else
@@ -54,11 +62,17 @@ public:
                     reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
             }
         }
+        return vehicle;
     }
 
     static void Update() {
         KeyCheck::Update(); // апдейтим состояния клавиш
         if (FindPlayerPed()) {
+            //
+            if (KeyCheck::CheckJustDown('K')) {
+                Command<COMMAND_SET_CAMERA_BEHIND_PLAYER>();
+                Command<COMMAND_RESTORE_CAMERA_JUMPCUT>();
+            }
             //
             if (KeyCheck::CheckWithDelay('O', 1000)) {
                 if (b_Counter) {
@@ -67,6 +81,20 @@ public:
                 else {
                     m_Distance = -2.0f; b_Counter = true;
                 }
+            }
+            //
+            if (KeyCheck::CheckWithDelay('T', 1000)) {
+                if (b_Clock) {
+                    b_Clock = false; CMessages::AddMessageJumpQ(L"Time go", 2000, 1);
+                }
+                else {
+                    b_Clock = true; CMessages::AddMessageJumpQ(L"Time stop", 2000, 1); 
+                    m_Hours = CClock::ms_nGameClockHours;
+                    m_Minutes = CClock::ms_nGameClockMinutes;
+                }
+            }
+            if (b_Clock) {
+                CClock::ms_nGameClockHours = m_Hours; CClock::ms_nGameClockMinutes = m_Minutes;
             }
             //
             if (KeyCheck::CheckJustDown(VK_TAB)) { // Если нажата Tab - включаем или выключаем консоль
@@ -123,10 +151,15 @@ public:
                             int modelType = CModelInfo::IsVehicleModelType(modelId);
                             if (modelType != -1) {
                                 if (modelType == VEHICLE_AUTOMOBILE || modelType == VEHICLE_BOAT) {
-                                    /*CVector vehiclePos = { -858.0f, -540.0f, 11.0f };
-                                    float vehicleAngle = 0.19f;
-                                    SpawnVehicle(modelId, vehiclePos, vehicleAngle);*/
-                                    SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(1.5f, 6.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 2.36f); // 0.79 2.36
+                                    CVector vehiclePos = { -858.0f, -540.0f, 11.0f };
+                                    float vehicleAngle = 0.38f;
+                                    CVehicle *car = SpawnVehicle(modelId, vehiclePos, vehicleAngle);
+                                    if (car) {
+                                        Command<COMMAND_POINT_CAMERA_AT_POINT>(car->m_matrix.pos.x, car->m_matrix.pos.y, car->m_matrix.pos.z, 2);
+                                        CVector offset = car->TransformFromObjectSpace(CVector((-1.0f) * CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.x - 1.5f, CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.y + 2.0f, CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMax.z));
+                                        Command<COMMAND_SET_FIXED_CAMERA_POSITION>(offset.x, offset.y, car->m_matrix.pos.z + 1.0f, 0.0f, 0.0f, 0.0f);
+                                    }
+                                    //SpawnVehicle(modelId, FindPlayerPed()->TransformFromObjectSpace(CVector(1.5f, 6.0f, 0.0f)), FindPlayerPed()->m_fRotationCur + 2.36f); // 0.79 2.36
                                     errorMessageBuffer.clear();
                                 }
                                 else
