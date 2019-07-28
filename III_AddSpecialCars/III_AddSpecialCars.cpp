@@ -17,9 +17,12 @@
 #define MODEL_POLICE_a 151
 #define MODEL_POLICE_b 152
 #define MODEL_POLICE_c 153
+#define MODEL_POLICE_d 154
+#define MODEL_ENFORCER_a 155
 #define MODEL_AMBULAN_a 156
-#define MODEL_FIRETRUK_a 158
 #define MODEL_FBICAR_a 157
+#define MODEL_FIRETRUK_a 158
+#define MODEL_BARRACKS_a 159
 #define MODEL_COP_a 83
 #define MODEL_COP_b 84
 #define MODEL_COP_c 85
@@ -65,6 +68,8 @@ public:
             return MODEL_FBICAR;
         else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
             return MODEL_FIRETRUK;
+        else if (model == MODEL_BARRACKS || model == MODEL_BARRACKS_a)
+            return MODEL_BARRACKS;
         return model;
     }
 
@@ -103,6 +108,7 @@ public:
             case MODEL_BUS:
             case MODEL_RHINO:
             case MODEL_BARRACKS:
+            case MODEL_BARRACKS_a:
             case MODEL_DODO:
             case MODEL_COACH:
             case MODEL_CABBIE:
@@ -126,6 +132,7 @@ public:
         case MODEL_PREDATOR:
         case MODEL_RHINO:
         case MODEL_BARRACKS:
+        case MODEL_BARRACKS_a:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
@@ -148,6 +155,7 @@ public:
             case MODEL_POLICE:
             case MODEL_RHINO:
             case MODEL_BARRACKS:
+            case MODEL_BARRACKS_a:
                 vehicle->SetUpDriver();
                 if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1)
                     vehicle->SetupPassenger(0);
@@ -242,11 +250,21 @@ public:
                         && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
                         && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
                     {
-                        int RandomArmy = plugin::Random(0, 5);
-                        if (RandomArmy < 4)
-                            result = MODEL_BARRACKS;
-                        else
-                            result = MODEL_RHINO;
+                        int RandomArmy = plugin::Random(0, 4);
+                        switch (RandomArmy) {
+                        case 0: 
+                        case 1:
+                            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_LOADED)
+                                result = MODEL_BARRACKS_a;
+                            else
+                                result = MODEL_BARRACKS;
+                            break;
+                        case 2:
+                        case 3:
+                            result = MODEL_BARRACKS; break;
+                        case 4:
+                            result = MODEL_RHINO; break;
+                        }
                     }
                     else {
                         if (RandomPolice < 2)
@@ -288,6 +306,7 @@ public:
         case MODEL_PREDATOR:
         case MODEL_RHINO:
         case MODEL_BARRACKS:
+        case MODEL_BARRACKS_a:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
@@ -439,6 +458,7 @@ public:
         case MODEL_POLICE_c:
         case MODEL_AMBULAN_a:
         case MODEL_FIRETRUK_a:
+        case MODEL_BARRACKS_a:
             result = FALSE;
             break;
         default:
@@ -474,7 +494,7 @@ public:
                 inModel = true;
             else if (model == MODEL_AMBULAN_a && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
                 inModel = true;
-            else if (model == MODEL_FBICAR_a && CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) // Vigilante
+            else if ((model == MODEL_FBICAR_a || model == MODEL_BARRACKS_a || MODEL_BARRACKS) && CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) // Vigilante
                 inModel = true;
             else if (model == MODEL_FIRETRUK_a && CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) // Firefighter
                 inModel = true;
@@ -540,6 +560,18 @@ public:
         patch::RedirectJump(0x4F5857, Patch_4F5857);
         patch::RedirectJump(0x531FE8, Patch_531FE8);
         
+        // fix ID 154, 155, 159
+        patch::SetUChar(0x52D0B3, 140, true);
+        patch::SetUChar(0x52D0BA, 140, true);
+        patch::SetUChar(0x53315A, 140, true);
+        patch::SetUChar(0x533160, 140, true);
+        patch::SetUChar(0x53425A, 140, true);
+        patch::SetUChar(0x534260, 140, true);
+        patch::SetUChar(0x534246, 140, true);
+        patch::SetUChar(0x533154, 140, true);
+        patch::SetUChar(0x534316, 140, true);
+        patch::SetUChar(0x53431C, 140, true);
+
         static int randomCopTime = 0;
         static unsigned int randomCop = 0;
 
@@ -556,6 +588,8 @@ public:
                 SetVehicleLoadState(MODEL_FBICAR_a);
             if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                 SetVehicleLoadState(MODEL_FIRETRUK_a);
+            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                SetVehicleLoadState(MODEL_BARRACKS_a);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
                 SetPedLoadState(MODEL_COP_a);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_NOT_LOADED)
