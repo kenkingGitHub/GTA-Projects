@@ -1,17 +1,36 @@
 #include <plugin.h>
 #include "extensions\KeyCheck.h"
 #include "CMessages.h"
+#include "CTheScripts.h"
+#include "CWanted.h"
+#include "CWorld.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
+
+int &NumAmbulancesOnDuty = *(int *)0x885BB0;
 
 using namespace plugin;
 
 class Test {
 public:
     Test() {
-        Events::gameProcessEvent += [] {
+        //Events::gameProcessEvent += [] {
+            //KeyCheck::Update();
+            Events::drawingEvent += [] {
+            gamefont::Print({
+                Format("model = %d", patch::GetUChar(0x4C11F2)),
+                Format("NumAmbul = %d", NumAmbulancesOnDuty)
+            }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+            
             KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay('N', 2000)) {
+                if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 6)
+                    CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel++;
+                else
+                    CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel = 0;
+            }
+            
             /*if (KeyCheck::CheckWithDelay('O', 1000)) {
                 if (b_Counter) {
                     m_Distance = 2.0f; b_Counter = false;
@@ -20,6 +39,7 @@ public:
                     m_Distance = -2.0f; b_Counter = true;
                 }
             }*/
+            
             if (KeyCheck::CheckWithDelay('M', 1000)) {
                 //CMessages::AddMessageJumpQ(L"Yes", 2000, 1);
                 static char message[256];

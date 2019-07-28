@@ -1,39 +1,69 @@
 #include "plugin.h"
-#include "CMessages.h"
-#include "CWorld.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
+#include "CTheScripts.h"
 #include "extensions\KeyCheck.h"
+
+unsigned int &OnAMissionFlag = *(unsigned int *)0x978748;
 
 using namespace plugin;
 
 class Test {
 public:
     Test() {
-
-        Events::gameProcessEvent += [] {
+        Events::drawingEvent += [] {
+            gamefont::Print({
+                Format("OnAMissionFlag = %d", CTheScripts::ScriptSpace[OnAMissionFlag])
+            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+           
             CPed *player = FindPlayerPed();
             if (player) {
-                CVector point = { 241.6f, -1283.0f, 10.9f };
-                if (Command<COMMAND_LOCATE_PLAYER_ANY_MEANS_3D>(CWorld::PlayerInFocus, point.x, point.y, point.z, 2.0, 2.0, 2.0))
-                    CMessages::AddMessageJumpQ(L"Yes", 1000, 1);
-                //
-                static int sphere;
                 KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('M', 2000)) {
-                    CVector pos = FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f));
-                    Command<COMMAND_ADD_SPHERE>(pos.x, pos.y, pos.z, 2.0, &sphere);
-                    CMessages::AddMessageJumpQ(L"Create", 2000, 1);
-                }
-                if (KeyCheck::CheckWithDelay('N', 2000)) {
-                    Command<COMMAND_REMOVE_SPHERE>(sphere);
-                    CMessages::AddMessageJumpQ(L"Delete", 2000, 1);
+                if (KeyCheck::CheckWithDelay('M', 1000)) {
+                    if (CTheScripts::ScriptSpace[OnAMissionFlag])
+                        CTheScripts::ScriptSpace[OnAMissionFlag] = 0;
+                    else
+                        CTheScripts::ScriptSpace[OnAMissionFlag] = 1;
                 }
             }
         };
     }
 } test;
 
+
+//#include "plugin.h"
+//#include "CMessages.h"
+//#include "CWorld.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//#include "extensions\KeyCheck.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                CVector point = { 241.6f, -1283.0f, 10.9f };
+//                if (Command<COMMAND_LOCATE_PLAYER_ANY_MEANS_3D>(CWorld::PlayerInFocus, point.x, point.y, point.z, 2.0, 2.0, 2.0))
+//                    CMessages::AddMessageJumpQ(L"Yes", 1000, 1);
+//                //
+//                static int sphere;
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                    CVector pos = FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f));
+//                    Command<COMMAND_ADD_SPHERE>(pos.x, pos.y, pos.z, 2.0, &sphere);
+//                    CMessages::AddMessageJumpQ(L"Create", 2000, 1);
+//                }
+//                if (KeyCheck::CheckWithDelay('N', 2000)) {
+//                    Command<COMMAND_REMOVE_SPHERE>(sphere);
+//                    CMessages::AddMessageJumpQ(L"Delete", 2000, 1);
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "CMessages.h"

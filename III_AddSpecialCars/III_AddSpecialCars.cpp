@@ -9,6 +9,7 @@
 #include "cAudioManager.h"
 #include "CTheScripts.h"
 #include "CCivilianPed.h"
+#include "CTimer.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
@@ -29,15 +30,13 @@ class AddSpecialCars {
 public:
     static unsigned int CurrentSpecialModelForSiren;
     static unsigned int CurrentSpecialModelForOccupants;
-    static unsigned int RandomPoliceModel;
-    static unsigned int RandomPoliceMinLevel;
-    static unsigned int RandomPoliceMaxLevel;
+    static unsigned int RandomPolice;
     static unsigned int CurrentFiretrukModel;
-
+    
     static unsigned int jmp_5373DE;
     static unsigned int jmp_4F5860;
     static unsigned int jmp_531FF1;
-
+    
     static std::unordered_set<unsigned int> &GetTaxiModels() {
         static std::unordered_set<unsigned int> taxiIds;
         return taxiIds;
@@ -78,7 +77,7 @@ public:
     static void Patch_5373D7(); // Siren
     static void Patch_4F5857(); // AddPedInCar
     static void Patch_531FE8(); // FireTruckControl
-
+    
     // CVehicle::IsVehicleNormal
     static bool __fastcall IsVehicleNormal(CVehicle *_this) {
         bool result; 
@@ -183,11 +182,11 @@ public:
         if (player) {
             
             if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel > 1 && CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 4) {
-                if (RandomPoliceMinLevel < 2)
-                    RandomPoliceMinLevel++;
+                if (RandomPolice < 2)
+                    RandomPolice++;
                 else
-                    RandomPoliceMinLevel = 0;
-                switch (RandomPoliceMinLevel) {
+                    RandomPolice = 0;
+                switch (RandomPolice) {
                 case 0: result = MODEL_POLICE; break;
                 case 1:
                     if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
@@ -209,31 +208,15 @@ public:
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
             {
-                if (RandomPoliceMaxLevel < 4)
-                    RandomPoliceMaxLevel++;
-                else
-                    RandomPoliceMaxLevel = 0;
-                switch (RandomPoliceMaxLevel) {
-                case 0: result = MODEL_POLICE; break;
-                case 1:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_a;
-                    else
-                        result = MODEL_POLICE;
-                    break;
-                case 2:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_b;
-                    else
-                        result = MODEL_POLICE;
-                    break;
-                case 3:
+                int RandomSwat = plugin::Random(0, 1);
+                switch (RandomSwat) {
+                case 0:
                     if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
                         result = MODEL_POLICE_c;
                     else
                         result = MODEL_POLICE;
                     break;
-                case 4: result = MODEL_ENFORCER; break;
+                case 1: result = MODEL_ENFORCER; break;
                 default: result = MODEL_POLICE;  break;
                 }
             }
@@ -265,8 +248,28 @@ public:
                         else
                             result = MODEL_RHINO;
                     }
-                    else
-                        result = MODEL_POLICE;
+                    else {
+                        if (RandomPolice < 2)
+                            RandomPolice++;
+                        else
+                            RandomPolice = 0;
+                        switch (RandomPolice) {
+                        case 0: result = MODEL_POLICE; break;
+                        case 1:
+                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
+                                result = MODEL_POLICE_a;
+                            else
+                                result = MODEL_POLICE;
+                            break;
+                        case 2:
+                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
+                                result = MODEL_POLICE_b;
+                            else
+                                result = MODEL_POLICE;
+                            break;
+                        default: result = MODEL_POLICE;  break;
+                        }
+                    }
                 }
             }
         }
@@ -479,92 +482,6 @@ public:
         script->UpdateCompareFlag(inModel);
     }
 
-    // CEntity::SetModelIndex
-    static void __fastcall SetModelIndex(CEntity *_this, int, unsigned int modelIndex) {
-        if (modelIndex == MODEL_POLICE) {
-            if (RandomPoliceModel < 3)
-                RandomPoliceModel++;
-            else
-                RandomPoliceModel = 0;
-            switch (RandomPoliceModel) {
-            case 0:
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_POLICE_a;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 1:
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_POLICE_b;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 2:
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_POLICE_c;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 3:
-            default:
-                _this->m_nModelIndex = modelIndex;
-                break;
-            }
-        }
-        else if (modelIndex == MODEL_AMBULAN) {
-            int _random = plugin::Random(0, 3);
-            if (_random < 2) {
-                if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_AMBULAN_a;
-                else
-                    _this->m_nModelIndex = modelIndex;
-            }
-            else
-                _this->m_nModelIndex = modelIndex;
-        }
-        else if (modelIndex == MODEL_FIRETRUK) {
-            int _random = plugin::Random(0, 3);
-            if (_random < 2) {
-                if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_FIRETRUK_a;
-                else
-                    _this->m_nModelIndex = modelIndex;
-            }
-            else
-                _this->m_nModelIndex = modelIndex;
-        }
-        else if (modelIndex == MODEL_COP) {
-            int _random = plugin::Random(0, 3);
-            switch (_random) {
-            case 0:
-                if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_COP_a;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 1:
-                if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_COP_b;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 2:
-                if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_LOADED)
-                    _this->m_nModelIndex = MODEL_COP_c;
-                else
-                    _this->m_nModelIndex = modelIndex;
-                break;
-            case 3:
-            default:
-                _this->m_nModelIndex = modelIndex;
-                break;
-            }
-        }
-        else
-            _this->m_nModelIndex = modelIndex;
-        _this->CreateRwObject();
-    }
-
     static bool LoadModel(int model) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
         CStreaming::RequestModel(model, GAME_REQUIRED);
@@ -602,8 +519,6 @@ public:
                 GetTaxiModels().insert(std::stoi(line));
         }
 
-        //patch::RedirectJump(0x473E70, SetModelIndex);
-
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
         patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
         patch::RedirectJump(0x4181F0, ChoosePoliceCarModel);
@@ -624,6 +539,9 @@ public:
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
         patch::RedirectJump(0x531FE8, Patch_531FE8);
+        
+        static int randomCopTime = 0;
+        static unsigned int randomCop = 0;
 
         Events::gameProcessEvent += [] {
             if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
@@ -638,21 +556,51 @@ public:
                 SetVehicleLoadState(MODEL_FBICAR_a);
             if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                 SetVehicleLoadState(MODEL_FIRETRUK_a);
-            /*if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
+            if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
                 SetPedLoadState(MODEL_COP_a);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_NOT_LOADED)
                 SetPedLoadState(MODEL_COP_b);
             if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetPedLoadState(MODEL_COP_c);*/
+                SetPedLoadState(MODEL_COP_c);
+            // Random Cop
+            if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 30000)) {
+                randomCopTime = CTimer::m_snTimeInMilliseconds;
+                int modelCop;
+                if (randomCop < 3)
+                    randomCop++;
+                else
+                    randomCop = 0;
+                switch (randomCop) {
+                case 0: modelCop = MODEL_COP; break;
+                case 1:
+                    if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_LOADED)
+                        modelCop = MODEL_COP_a;
+                    else
+                        modelCop = MODEL_COP;
+                    break;
+                case 2:
+                    if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_LOADED)
+                        modelCop = MODEL_COP_b;
+                    else
+                        modelCop = MODEL_COP;
+                    break;
+                case 3:
+                    if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_LOADED)
+                        modelCop = MODEL_COP_c;
+                    else
+                        modelCop = MODEL_COP;
+                    break;
+                default: modelCop = MODEL_COP;  break;
+                }
+                patch::SetChar(0x4C11F2, modelCop, true);
+            }
         };
     }
 }test;
 
 unsigned int AddSpecialCars::CurrentSpecialModelForSiren;
 unsigned int AddSpecialCars::CurrentSpecialModelForOccupants;
-unsigned int AddSpecialCars::RandomPoliceModel = 0;
-unsigned int AddSpecialCars::RandomPoliceMinLevel = 0;
-unsigned int AddSpecialCars::RandomPoliceMaxLevel = 0;
+unsigned int AddSpecialCars::RandomPolice = 0;
 unsigned int AddSpecialCars::CurrentFiretrukModel;
 
 unsigned int AddSpecialCars::jmp_5373DE;
@@ -671,8 +619,6 @@ void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
         lea edx, [eax - 0x61]
         mov jmp_5373DE, 0x5373DE
         jmp jmp_5373DE
-        /*mov edi, 0x5373DE
-        jmp edi*/
     }
 }
 
@@ -690,8 +636,6 @@ void __declspec(naked) AddSpecialCars::Patch_4F5857() { // AddPedInCar
         sub     eax, 61h
         mov jmp_4F5860, 0x4F5860
         jmp jmp_4F5860
-        /*mov edx, 0x4F5860
-        jmp edx*/
     }
 }
 
@@ -708,7 +652,5 @@ void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
         cmp     eax, 61h
         mov jmp_531FF1, 0x531FF1
         jmp jmp_531FF1
-        /*mov ecx, 0x531FF1
-        jmp ecx*/
     }
 }
