@@ -19,8 +19,10 @@ public:
             //KeyCheck::Update();
             Events::drawingEvent += [] {
             gamefont::Print({
-                Format("model = %d", patch::GetUChar(0x4C11F2)),
-                Format("NumAmbul = %d", NumAmbulancesOnDuty)
+                Format("cop = %d", patch::GetUChar(0x4C11F2)),
+                Format("swat = %d", patch::GetUChar(0x4C1241)),
+                Format("fbi = %d", patch::GetUChar(0x4C12A0)),
+                Format("army = %d", patch::GetUChar(0x4C12FC))
             }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             
             KeyCheck::Update();

@@ -10,6 +10,7 @@
 #include "CTheScripts.h"
 #include "CCivilianPed.h"
 #include "CTimer.h"
+#include "CModelInfo.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
@@ -26,6 +27,9 @@
 #define MODEL_COP_a 83
 #define MODEL_COP_b 84
 #define MODEL_COP_c 85
+#define MODEL_SWAT_a 86
+#define MODEL_FBI_a 87
+#define MODEL_ARMY_a 88
 
 using namespace plugin;
 
@@ -46,7 +50,7 @@ public:
     }
 
     static int __stdcall GetSpecialModelForSiren(unsigned int model) {
-        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c)
+        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d)
             return MODEL_POLICE;
         else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
@@ -56,11 +60,13 @@ public:
             return MODEL_FBICAR;
         else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
             return MODEL_FIRETRUK;
+        else if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+            return MODEL_ENFORCER;
         return model;
     }
 
     static int __stdcall GetSpecialModelForOccupants(unsigned int model) {
-        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c)
+        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d)
             return MODEL_POLICE;
         else if (model == MODEL_AMBULAN || model == MODEL_AMBULAN_a)
             return MODEL_AMBULAN;
@@ -70,6 +76,8 @@ public:
             return MODEL_FIRETRUK;
         else if (model == MODEL_BARRACKS || model == MODEL_BARRACKS_a)
             return MODEL_BARRACKS;
+        else if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+            return MODEL_ENFORCER;
         return model;
     }
 
@@ -104,7 +112,9 @@ public:
             case MODEL_POLICE_a:
             case MODEL_POLICE_b:
             case MODEL_POLICE_c:
+            case MODEL_POLICE_d:
             case MODEL_ENFORCER:
+            case MODEL_ENFORCER_a:
             case MODEL_BUS:
             case MODEL_RHINO:
             case MODEL_BARRACKS:
@@ -127,15 +137,17 @@ public:
         switch (_this->m_nModelIndex) {
         case MODEL_FBICAR:
         case MODEL_FBICAR_a:
-        case MODEL_POLICE:
         case MODEL_ENFORCER:
+        case MODEL_ENFORCER_a:
         case MODEL_PREDATOR:
         case MODEL_RHINO:
         case MODEL_BARRACKS:
         case MODEL_BARRACKS_a:
+        case MODEL_POLICE:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
+        case MODEL_POLICE_d:
             result = TRUE;
             break;
         default:
@@ -161,9 +173,10 @@ public:
                     vehicle->SetupPassenger(0);
                 break;
             case MODEL_POLICE_c:
+            case MODEL_POLICE_d:
                 vehicle->SetUpDriver();
+                vehicle->SetupPassenger(0);
                 if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1) {
-                    vehicle->SetupPassenger(0);
                     vehicle->SetupPassenger(1);
                     vehicle->SetupPassenger(2);
                 }
@@ -171,6 +184,7 @@ public:
             case MODEL_FBICAR:
             case MODEL_FBICAR_a:
             case MODEL_ENFORCER:
+            case MODEL_ENFORCER_a:
                 vehicle->SetUpDriver();
                 vehicle->SetupPassenger(0);
                 vehicle->SetupPassenger(1);
@@ -190,7 +204,7 @@ public:
         if (player) {
             
             if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel > 1 && CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 4) {
-                if (RandomPolice < 2)
+                if (RandomPolice < 3)
                     RandomPolice++;
                 else
                     RandomPolice = 0;
@@ -208,6 +222,12 @@ public:
                     else
                         result = MODEL_POLICE;
                     break;
+                case 3:
+                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
+                        result = MODEL_POLICE_c;
+                    else
+                        result = MODEL_POLICE;
+                    break;
                 default: result = MODEL_POLICE;  break;
                 }
             }
@@ -216,15 +236,21 @@ public:
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
             {
-                int RandomSwat = plugin::Random(0, 1);
+                int RandomSwat = plugin::Random(0, 2);
                 switch (RandomSwat) {
                 case 0:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_c;
+                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_d].m_nLoadState == LOADSTATE_LOADED)
+                        result = MODEL_POLICE_d;
                     else
                         result = MODEL_POLICE;
                     break;
-                case 1: result = MODEL_ENFORCER; break;
+                case 1:
+                    if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_LOADED)
+                        result = MODEL_ENFORCER_a;
+                    else
+                        result = MODEL_ENFORCER;
+                    break;
+                case 2: result = MODEL_ENFORCER; break;
                 default: result = MODEL_POLICE;  break;
                 }
             }
@@ -264,10 +290,11 @@ public:
                             result = MODEL_BARRACKS; break;
                         case 4:
                             result = MODEL_RHINO; break;
+                        default: result = MODEL_POLICE;  break;
                         }
                     }
                     else {
-                        if (RandomPolice < 2)
+                        if (RandomPolice < 3)
                             RandomPolice++;
                         else
                             RandomPolice = 0;
@@ -282,6 +309,12 @@ public:
                         case 2:
                             if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
                                 result = MODEL_POLICE_b;
+                            else
+                                result = MODEL_POLICE;
+                            break;
+                        case 3:
+                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
+                                result = MODEL_POLICE_c;
                             else
                                 result = MODEL_POLICE;
                             break;
@@ -301,15 +334,17 @@ public:
         switch (vehicle->m_nModelIndex) {
         case MODEL_FBICAR:
         case MODEL_FBICAR_a:
-        case MODEL_POLICE:
         case MODEL_ENFORCER:
+        case MODEL_ENFORCER_a:
         case MODEL_PREDATOR:
         case MODEL_RHINO:
         case MODEL_BARRACKS:
         case MODEL_BARRACKS_a:
+        case MODEL_POLICE:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
+        case MODEL_POLICE_d:
             result = TRUE;
             break;
         default:
@@ -325,18 +360,20 @@ public:
 
         switch (vehicleModel) {
         case MODEL_FIRETRUK:
+        case MODEL_FIRETRUK_a:
         case MODEL_AMBULAN:
+        case MODEL_AMBULAN_a:
         case MODEL_FBICAR:
         case MODEL_FBICAR_a:
         case MODEL_MRWHOOP:
-        case MODEL_POLICE:
         case MODEL_ENFORCER:
+        case MODEL_ENFORCER_a:
         case MODEL_PREDATOR:
+        case MODEL_POLICE:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
-        case MODEL_AMBULAN_a:
-        case MODEL_FIRETRUK_a:
+        case MODEL_POLICE_d:
             result = TRUE;
             break;
         default:
@@ -361,15 +398,15 @@ public:
                     else {
                         switch (vehicle->m_nModelIndex) {
                         case MODEL_FIRETRUK:
+                        case MODEL_FIRETRUK_a:
                         case MODEL_AMBULAN:
+                        case MODEL_AMBULAN_a:
                         case MODEL_MRWHOOP:
                         case MODEL_PREDATOR:
                         case MODEL_TRAIN:
                         case MODEL_SPEEDER:
                         case MODEL_REEFER:
                         case MODEL_GHOST:
-                        case MODEL_AMBULAN_a:
-                        case MODEL_FIRETRUK_a:
                             result = FALSE;
                             break;
                         default:
@@ -405,6 +442,8 @@ public:
         case VEHICLE_151:
         case VEHICLE_152:
         case VEHICLE_153:
+        case VEHICLE_154:
+        case VEHICLE_155:
         case VEHICLE_156:
         case VEHICLE_157:
         case VEHICLE_158:
@@ -429,6 +468,8 @@ public:
         case VEHICLE_151:
         case VEHICLE_152:
         case VEHICLE_153:
+        case VEHICLE_154:
+        case VEHICLE_155:
         case VEHICLE_156:
             result = TRUE;
             break;
@@ -456,9 +497,11 @@ public:
         case MODEL_POLICE_a:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
+        case MODEL_POLICE_d:
         case MODEL_AMBULAN_a:
         case MODEL_FIRETRUK_a:
         case MODEL_BARRACKS_a:
+        case MODEL_ENFORCER_a:
             result = FALSE;
             break;
         default:
@@ -490,11 +533,11 @@ public:
             unsigned int model = player->m_pVehicle->m_nModelIndex;
             if (model == CTheScripts::ScriptParams[1].uParam)
                 inModel = true;
-            else if ((model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c) && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
+            else if ((model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d
+                || model == MODEL_FBICAR_a || MODEL_ENFORCER_a || model == MODEL_BARRACKS_a || MODEL_BARRACKS) 
+                && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
                 inModel = true;
             else if (model == MODEL_AMBULAN_a && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
-                inModel = true;
-            else if ((model == MODEL_FBICAR_a || model == MODEL_BARRACKS_a || MODEL_BARRACKS) && CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) // Vigilante
                 inModel = true;
             else if (model == MODEL_FIRETRUK_a && CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) // Firefighter
                 inModel = true;
@@ -573,33 +616,70 @@ public:
         patch::SetUChar(0x53431C, 140, true);
 
         static int randomCopTime = 0;
-        static unsigned int randomCop = 0;
+        static unsigned int randomCop = 3;
+        static unsigned int modelCop, modelSwat, modelFbi, modelArmy;
 
         Events::gameProcessEvent += [] {
-            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
-                SetVehicleLoadState(MODEL_POLICE_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_NOT_LOADED) 
-                SetVehicleLoadState(MODEL_POLICE_b);
-            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_NOT_LOADED) 
-                SetVehicleLoadState(MODEL_POLICE_c);
-            if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
-                SetVehicleLoadState(MODEL_AMBULAN_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetVehicleLoadState(MODEL_FBICAR_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetVehicleLoadState(MODEL_FIRETRUK_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetVehicleLoadState(MODEL_BARRACKS_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED) 
-                SetPedLoadState(MODEL_COP_a);
-            if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetPedLoadState(MODEL_COP_b);
-            if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_NOT_LOADED)
-                SetPedLoadState(MODEL_COP_c);
-            // Random Cop
+            if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_POLICE_a);
+            }
+            if (CModelInfo::IsCarModel(MODEL_POLICE_b)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_POLICE_b);
+            }
+            if (CModelInfo::IsCarModel(MODEL_POLICE_c)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_POLICE_c);
+            }
+            if (CModelInfo::IsCarModel(MODEL_POLICE_d)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_d].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_POLICE_d);
+            }
+            if (CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_AMBULAN_a);
+            }
+            if (CModelInfo::IsCarModel(MODEL_FBICAR_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_FBICAR_a);
+            }
+            if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_FIRETRUK_a);
+            }
+            if (CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_BARRACKS_a);
+            }
+            if (CModelInfo::IsPedModel(MODEL_COP_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_COP_a);
+            }
+            if (CModelInfo::IsPedModel(MODEL_COP_b)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_COP_b);
+            }
+            if (CModelInfo::IsPedModel(MODEL_COP_c)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_COP_c);
+            }
+            if (CModelInfo::IsPedModel(MODEL_SWAT_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_SWAT_a);
+            }
+            if (CModelInfo::IsPedModel(MODEL_FBI_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_FBI_a);
+            }
+            if (CModelInfo::IsPedModel(MODEL_ARMY_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetPedLoadState(MODEL_ARMY_a);
+            }
+            // Random Cops
             if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 30000)) {
                 randomCopTime = CTimer::m_snTimeInMilliseconds;
-                int modelCop;
+                // cop
                 if (randomCop < 3)
                     randomCop++;
                 else
@@ -627,6 +707,36 @@ public:
                 default: modelCop = MODEL_COP;  break;
                 }
                 patch::SetChar(0x4C11F2, modelCop, true);
+                // swat
+                if (plugin::Random(0, 1)) {
+                    if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_LOADED)
+                        modelSwat = MODEL_SWAT_a;
+                    else
+                        modelSwat = MODEL_SWAT;
+                }
+                else
+                    modelSwat = MODEL_SWAT;
+                patch::SetChar(0x4C1241, modelSwat, true);
+                // fbi
+                if (plugin::Random(0, 1)) {
+                    if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
+                        modelFbi = MODEL_FBI_a;
+                    else
+                        modelFbi = MODEL_FBI;
+                }
+                else
+                    modelFbi = MODEL_FBI;
+                patch::SetChar(0x4C12A0, modelFbi, true);
+                // army
+                if (plugin::Random(0, 1)) {
+                    if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
+                        modelArmy = MODEL_ARMY_a;
+                    else
+                        modelArmy = MODEL_ARMY;
+                }
+                else
+                    modelArmy = MODEL_ARMY;
+                patch::SetChar(0x4C12FC, modelArmy, true);
             }
         };
     }
