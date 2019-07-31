@@ -531,16 +531,34 @@ public:
         CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
         if (player->m_bInVehicle) {
             unsigned int model = player->m_pVehicle->m_nModelIndex;
-            if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) {
-                if (model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d || model == MODEL_ENFORCER_a || model == MODEL_FBICAR_a || model == MODEL_BARRACKS || model == MODEL_BARRACKS_a) // Vigilante
+            if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER 
+                || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) {
+                switch (model) { // Vigilante
+                case MODEL_POLICE:
+                case MODEL_POLICE_a:
+                case MODEL_POLICE_b:
+                case MODEL_POLICE_c:
+                case MODEL_POLICE_d:
+                case MODEL_ENFORCER:
+                case MODEL_ENFORCER_a:
+                case MODEL_RHINO:
+                case MODEL_FBICAR:
+                case MODEL_FBICAR_a:
+                case MODEL_BARRACKS:
+                case MODEL_BARRACKS_a:
                     inModel = true;
+                    break;
+                default:
+                    inModel = false;
+                    break;
+                }
             }
             else if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
-                if (model == MODEL_AMBULAN_a) // Paramedic
+                if (model == MODEL_AMBULAN_a || model == MODEL_AMBULAN) // Paramedic
                     inModel = true;
             }
             else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
-                if (model == MODEL_FIRETRUK_a) // Firefighter
+                if (model == MODEL_FIRETRUK_a || model == MODEL_FIRETRUK) // Firefighter
                     inModel = true;
             }
             else if (model == CTheScripts::ScriptParams[1].uParam)
