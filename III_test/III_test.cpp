@@ -4,34 +4,98 @@
 #include "CTheScripts.h"
 #include "CWanted.h"
 #include "CWorld.h"
+#include "CStreaming.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
-
-int &NumAmbulancesOnDuty = *(int *)0x885BB0;
+//int &NumAmbulancesOnDuty = *(int *)0x885BB0;
 
 using namespace plugin;
 
 class Test {
 public:
+    static bool LoadModel(int model) {
+        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
+        CStreaming::RequestModel(model, GAME_REQUIRED);
+        CStreaming::LoadAllRequestedModels(false);
+        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(model);
+                CStreaming::SetModelTxdIsDeletable(model);
+            }
+            return true;
+        }
+        return false;
+    }
+
     Test() {
+        static int blip;
         //Events::gameProcessEvent += [] {
             //KeyCheck::Update();
-            Events::drawingEvent += [] {
-            gamefont::Print({
-                Format("cop = %d", patch::GetUChar(0x4C11F2)),
-                Format("swat = %d", patch::GetUChar(0x4C1241)),
-                Format("fbi = %d", patch::GetUChar(0x4C12A0)),
-                Format("army = %d", patch::GetUChar(0x4C12FC))
-            }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-            
+        Events::drawingEvent += [] {
             KeyCheck::Update();
-            if (KeyCheck::CheckWithDelay('N', 2000)) {
+
+            CPlayerPed *player = FindPlayerPed();
+            if (player) {
+                CVector posn = FindPlayerCentreOfWorld(CWorld::PlayerInFocus);
+                CVector pos = player->m_matrix.pos;
+                if (KeyCheck::CheckWithDelay('B', 2000)) {
+                    CVector offset = { 0.0f, 10.0f, 0.0f };
+                    CVector position = player->m_matrix * offset;
+                    //Command<COMMAND_ADD_BLIP_FOR_COORD_OLD>(point.x, point.y, point.z, 1, 3, &blip);
+                    int modelIndex = 156;
+                    if (LoadModel(modelIndex) && LoadModel(5)) {
+                        CVehicle *vehicle = nullptr;
+                        vehicle = new CAutomobile(modelIndex, 1);
+                        if (vehicle) {
+                            // Размещаем транспорт в игровом мире
+                            vehicle->SetPosition(position);
+                            //vehicle->SetOrientation(0.0f, 0.0f, orientation);
+                            vehicle->m_nState = 4;
+                            CWorld::Add(vehicle);
+                            CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
+                            reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
+                            vehicle->SetUpDriver();
+                            //Command<COMMAND_SET_CAR_CRUISE_SPEED>(CPools::GetVehicleRef(vehicle), 25.0f);
+                            //Command<COMMAND_SET_CAR_MISSION>(CPools::GetVehicleRef(vehicle), 11);
+                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 175.0f, -24.0f, 16.0f);
+                            if (plugin::Random(0, 1)) {
+                                vehicle->m_nSirenOrAlarm = true;
+                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                                vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                            }
+                            else {
+                                vehicle->m_nSirenOrAlarm = false;
+                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_STOP_FOR_CARS;
+                                vehicle->m_autoPilot.m_nCruiseSpeed = 10;
+                            }
+
+
+                        }
+                    }
+                }
+                //if (KeyCheck::CheckWithDelay('N', 2000)) 
+                    //Command<COMMAND_REMOVE_BLIP>(blip);
+
+                gamefont::Print({
+                    Format("cop = %d", patch::GetUChar(0x4C11F2)),
+                    Format("swat = %d", patch::GetUChar(0x4C1241)),
+                    Format("fbi = %d", patch::GetUChar(0x4C12A0)),
+                    Format("army = %d", patch::GetUChar(0x4C12FC)),
+                    Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z),
+                    Format("pos = %.2f, %.2f, %.2f", pos.x, pos.y, pos.z)
+                }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+            }
+            
+            
+            /*if (KeyCheck::CheckWithDelay('N', 2000)) {
                 if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 6)
                     CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel++;
                 else
                     CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel = 0;
-            }
+            }*/
             
             /*if (KeyCheck::CheckWithDelay('O', 1000)) {
                 if (b_Counter) {

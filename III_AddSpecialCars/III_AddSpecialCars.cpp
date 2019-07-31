@@ -531,15 +531,19 @@ public:
         CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
         if (player->m_bInVehicle) {
             unsigned int model = player->m_pVehicle->m_nModelIndex;
-            if (model == CTheScripts::ScriptParams[1].uParam)
-                inModel = true;
-            else if ((model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d
-                || model == MODEL_FBICAR_a || MODEL_ENFORCER_a || model == MODEL_BARRACKS_a || MODEL_BARRACKS) 
-                && CTheScripts::ScriptParams[1].uParam == MODEL_POLICE) // Vigilante
-                inModel = true;
-            else if (model == MODEL_AMBULAN_a && CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) // Paramedic
-                inModel = true;
-            else if (model == MODEL_FIRETRUK_a && CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) // Firefighter
+            if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) {
+                if (model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d || model == MODEL_ENFORCER_a || model == MODEL_FBICAR_a || model == MODEL_BARRACKS || model == MODEL_BARRACKS_a) // Vigilante
+                    inModel = true;
+            }
+            else if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
+                if (model == MODEL_AMBULAN_a) // Paramedic
+                    inModel = true;
+            }
+            else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
+                if (model == MODEL_FIRETRUK_a) // Firefighter
+                    inModel = true;
+            }
+            else if (model == CTheScripts::ScriptParams[1].uParam)
                 inModel = true;
         }
         script->UpdateCompareFlag(inModel);
