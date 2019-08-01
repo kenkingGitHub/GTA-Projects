@@ -7,10 +7,12 @@
 #include "CStreaming.h"
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
+#include "CCarAI.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
 //int &NumAmbulancesOnDuty = *(int *)0x885BB0;
+//bool &bReplayEnabled = *(bool *)0x617CAC;
 
 using namespace plugin;
 
@@ -35,6 +37,7 @@ public:
         //Events::gameProcessEvent += [] {
             //KeyCheck::Update();
         Events::drawingEvent += [] {
+            
             KeyCheck::Update();
 
             CPlayerPed *player = FindPlayerPed();
@@ -57,10 +60,11 @@ public:
                             CWorld::Add(vehicle);
                             CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
                             reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                            vehicle->SetUpDriver();
+                            //vehicle->SetUpDriver();
                             //Command<COMMAND_SET_CAR_CRUISE_SPEED>(CPools::GetVehicleRef(vehicle), 25.0f);
                             //Command<COMMAND_SET_CAR_MISSION>(CPools::GetVehicleRef(vehicle), 11);
-                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 175.0f, -24.0f, 16.0f);
+                            CCarAI::AddAmbulanceOccupants(vehicle);
+                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
                             if (plugin::Random(0, 1)) {
                                 vehicle->m_nSirenOrAlarm = true;
                                 vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;

@@ -31,14 +31,16 @@
 #define MODEL_FBI_a 87
 #define MODEL_ARMY_a 88
 
+bool &bReplayEnabled = *(bool *)0x617CAC;
+
 using namespace plugin;
 
 class AddSpecialCars {
 public:
-    static unsigned int CurrentSpecialModelForSiren;
-    static unsigned int CurrentSpecialModelForOccupants;
-    static unsigned int RandomPolice;
-    static unsigned int CurrentFiretrukModel;
+    static unsigned int currentSpecialModelForSiren;
+    static unsigned int currentSpecialModelForOccupants;
+    static unsigned int randomPolice;
+    static unsigned int currentFiretrukModel;
     
     static unsigned int jmp_5373DE;
     static unsigned int jmp_4F5860;
@@ -204,11 +206,11 @@ public:
         if (player) {
             
             if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel > 1 && CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 4) {
-                if (RandomPolice < 3)
-                    RandomPolice++;
+                if (randomPolice < 3)
+                    randomPolice++;
                 else
-                    RandomPolice = 0;
-                switch (RandomPolice) {
+                    randomPolice = 0;
+                switch (randomPolice) {
                 case 0: result = MODEL_POLICE; break;
                 case 1:
                     if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
@@ -236,8 +238,8 @@ public:
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
             {
-                int RandomSwat = plugin::Random(0, 2);
-                switch (RandomSwat) {
+                int randomSwat = plugin::Random(0, 2);
+                switch (randomSwat) {
                 case 0:
                     if (CStreaming::ms_aInfoForModel[MODEL_POLICE_d].m_nLoadState == LOADSTATE_LOADED)
                         result = MODEL_POLICE_d;
@@ -260,8 +262,8 @@ public:
                     && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == LOADSTATE_LOADED
                     && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
                 {
-                    int RandomFbi = plugin::Random(0, 1);
-                    if (RandomFbi) {
+                    int randomFbi = plugin::Random(0, 1);
+                    if (randomFbi) {
                         if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_LOADED)
                             result = MODEL_FBICAR_a;
                         else
@@ -276,8 +278,8 @@ public:
                         && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
                         && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
                     {
-                        int RandomArmy = plugin::Random(0, 4);
-                        switch (RandomArmy) {
+                        int randomArmy = plugin::Random(0, 4);
+                        switch (randomArmy) {
                         case 0: 
                         case 1:
                             if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_LOADED)
@@ -294,11 +296,11 @@ public:
                         }
                     }
                     else {
-                        if (RandomPolice < 3)
-                            RandomPolice++;
+                        if (randomPolice < 3)
+                            randomPolice++;
                         else
-                            RandomPolice = 0;
-                        switch (RandomPolice) {
+                            randomPolice = 0;
+                        switch (randomPolice) {
                         case 0: result = MODEL_POLICE; break;
                         case 1:
                             if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
@@ -642,6 +644,7 @@ public:
         static unsigned int modelCop, modelSwat, modelFbi, modelArmy;
 
         Events::gameProcessEvent += [] {
+            bReplayEnabled = false;
             if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
                 if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetVehicleLoadState(MODEL_POLICE_a);
@@ -764,10 +767,10 @@ public:
     }
 }test;
 
-unsigned int AddSpecialCars::CurrentSpecialModelForSiren;
-unsigned int AddSpecialCars::CurrentSpecialModelForOccupants;
-unsigned int AddSpecialCars::RandomPolice = 0;
-unsigned int AddSpecialCars::CurrentFiretrukModel;
+unsigned int AddSpecialCars::currentSpecialModelForSiren;
+unsigned int AddSpecialCars::currentSpecialModelForOccupants;
+unsigned int AddSpecialCars::randomPolice = 0;
+unsigned int AddSpecialCars::currentFiretrukModel;
 
 unsigned int AddSpecialCars::jmp_5373DE;
 unsigned int AddSpecialCars::jmp_4F5860;
@@ -779,9 +782,9 @@ void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
         pushad
         push eax
         call GetSpecialModelForSiren
-        mov CurrentSpecialModelForSiren, eax
+        mov currentSpecialModelForSiren, eax
         popad
-        mov eax, CurrentSpecialModelForSiren
+        mov eax, currentSpecialModelForSiren
         lea edx, [eax - 0x61]
         mov jmp_5373DE, 0x5373DE
         jmp jmp_5373DE
@@ -794,9 +797,9 @@ void __declspec(naked) AddSpecialCars::Patch_4F5857() { // AddPedInCar
         pushad
         push eax
         call GetSpecialModelForOccupants
-        mov CurrentSpecialModelForOccupants, eax
+        mov currentSpecialModelForOccupants, eax
         popad
-        mov eax, CurrentSpecialModelForOccupants
+        mov eax, currentSpecialModelForOccupants
         pop     ecx
         pop     ecx
         sub     eax, 61h
@@ -811,9 +814,9 @@ void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
         pushad
         push eax
         call GetFiretrukModel
-        mov CurrentFiretrukModel, eax
+        mov currentFiretrukModel, eax
         popad
-        mov eax, CurrentFiretrukModel
+        mov eax, currentFiretrukModel
         fldz
         cmp     eax, 61h
         mov jmp_531FF1, 0x531FF1
