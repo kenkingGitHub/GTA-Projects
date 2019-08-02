@@ -8,16 +8,28 @@
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
 #include "CCarAI.h"
+#include "CModelInfo.h"
+#include "eVehicleModel.h"
+#include "ePedModel.h"
+#include "CFont.h"
+#include "CSprite.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
 //int &NumAmbulancesOnDuty = *(int *)0x885BB0;
 //bool &bReplayEnabled = *(bool *)0x617CAC;
 
+#define MODEL_AMBULAN_a 156
+#define MODEL_FIRETRUK_a 158
+
 using namespace plugin;
 
 class Test {
 public:
+    static CEntity *outEntity;
+    static short outCount;
+    static float offset_Y;
+
     static bool LoadModel(int model) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
         CStreaming::RequestModel(model, GAME_REQUIRED);
@@ -32,64 +44,122 @@ public:
         return false;
     }
 
+    static CVehicle *GetRandomVehicle(CVector const &pos, int modelCar) {
+        std::vector<CVehicle *> vehicles;
+        for (auto vehicle : CPools::ms_pVehiclePool) {
+            if ((vehicle->m_nModelIndex == MODEL_TAXI || vehicle->m_nModelIndex == MODEL_CABBIE) && vehicle->m_pDriver && (DistanceBetweenPoints(vehicle->GetPosition(), pos) > 20.0f)) {
+                offset_Y = (-1.0f * (CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[modelCar]->m_pColModel->m_boundBox.m_vecMax.y + 1.0f;
+                outCount = 0;
+                CWorld::FindObjectsInRange(vehicle->TransformFromObjectSpace(CVector(0.0f, -offset_Y, 0.0f)), 5.0, 1, &outCount, 2, &outEntity, 0, 1, 0, 0, 0);
+                if (outCount == 0)
+                    vehicles.push_back(vehicle);
+            }
+        }
+        return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
+    }
+
     Test() {
-        static int blip;
+        static int spawnCarTime = 0;
         //Events::gameProcessEvent += [] {
             //KeyCheck::Update();
         Events::drawingEvent += [] {
+            //for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+            //    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+            //    if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->GetIsOnScreen()) {
+            //        CVehicleModelInfo *vehModel = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+            //        CVector &posn = vehicle->GetPosition();
+            //        RwV3d rwp = { posn.x, posn.y, posn.z + 1.0f };
+            //        RwV3d screenCoors; float w, h;
+            //        if (CSprite::CalcScreenCoors(rwp, &screenCoors, &w, &h, true) && w > 10.0f) {
+            //            CFont::SetScale(w * 0.015f, h * 0.03f);
+            //            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            //            CFont::SetJustifyOn();
+            //            CFont::SetFontStyle(0);
+            //            CFont::SetPropOn();
+            //            //CFont::SetWrapx(600.0f);
+            //            wchar_t text[64];
+            //            swprintf(text, L"%d", vehicle->m_autoPilot.m_nCarMission);
+            //            CFont::PrintString(screenCoors.x, screenCoors.y, text);
+            //        }
+            //    }
+            //}
             
             KeyCheck::Update();
-
             CPlayerPed *player = FindPlayerPed();
             if (player) {
                 CVector posn = FindPlayerCentreOfWorld(CWorld::PlayerInFocus);
-                CVector pos = player->m_matrix.pos;
-                if (KeyCheck::CheckWithDelay('B', 2000)) {
-                    CVector offset = { 0.0f, 10.0f, 0.0f };
-                    CVector position = player->m_matrix * offset;
-                    //Command<COMMAND_ADD_BLIP_FOR_COORD_OLD>(point.x, point.y, point.z, 1, 3, &blip);
-                    int modelIndex = 156;
-                    if (LoadModel(modelIndex) && LoadModel(5)) {
-                        CVehicle *vehicle = nullptr;
-                        vehicle = new CAutomobile(modelIndex, 1);
-                        if (vehicle) {
-                            // Размещаем транспорт в игровом мире
-                            vehicle->SetPosition(position);
-                            //vehicle->SetOrientation(0.0f, 0.0f, orientation);
-                            vehicle->m_nState = 4;
-                            CWorld::Add(vehicle);
-                            CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
-                            reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                            //vehicle->SetUpDriver();
-                            //Command<COMMAND_SET_CAR_CRUISE_SPEED>(CPools::GetVehicleRef(vehicle), 25.0f);
-                            //Command<COMMAND_SET_CAR_MISSION>(CPools::GetVehicleRef(vehicle), 11);
-                            CCarAI::AddAmbulanceOccupants(vehicle);
-                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
-                            if (plugin::Random(0, 1)) {
-                                vehicle->m_nSirenOrAlarm = true;
-                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
-                                vehicle->m_autoPilot.m_nCruiseSpeed = 25;
-                            }
-                            else {
-                                vehicle->m_nSirenOrAlarm = false;
-                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_STOP_FOR_CARS;
-                                vehicle->m_autoPilot.m_nCruiseSpeed = 10;
-                            }
+                if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
+                    int modelCar, modelPed;
+                    int randomModel = plugin::Random(0, 3);
+                    switch (randomModel) {
+                    case 0:
+                        if (CModelInfo::IsCarModel(MODEL_AMBULAN_a))
+                            modelCar = MODEL_AMBULAN_a;
+                        else
+                            modelCar = MODEL_AMBULAN;
+                        modelPed = MODEL_MEDIC;
+                        break;
+                    case 1:
+                        if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a))
+                            modelCar = MODEL_FIRETRUK_a;
+                        else
+                            modelCar = MODEL_FIRETRUK;
+                        modelPed = MODEL_FIREMAN;
+                        break;
+                    case 2: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
+                    case 3: modelCar = MODEL_FIRETRUK; modelPed = MODEL_FIREMAN; break;
+                    default: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
+                    }
 
+                    CVehicle *taxi = GetRandomVehicle(player->GetPosition(), modelCar);
+                    if (taxi) {
+                        offset_Y = (-1.0f * (CModelInfo::ms_modelInfoPtrs[taxi->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin.y)) + CModelInfo::ms_modelInfoPtrs[modelCar]->m_pColModel->m_boundBox.m_vecMax.y + 1.0f;
+                        CVector position = taxi->TransformFromObjectSpace(CVector(0.0f, -offset_Y, 0.0f));
+                        if (LoadModel(modelCar) && LoadModel(modelPed)) {
+                            CVehicle *vehicle = nullptr;
+                            vehicle = new CAutomobile(modelCar, 1);
+                            if (vehicle) {
+                                CMessages::AddMessageJumpQ(L"Yes", 2000, 1);
 
+                                spawnCarTime = CTimer::m_snTimeInMilliseconds;
+                                vehicle->SetPosition(position);
+                                vehicle->SetHeading(taxi->GetHeading() / 57.295776f);
+                                vehicle->m_nState = 4;
+                                CWorld::Add(vehicle);
+                                CTheScripts::ClearSpaceForMissionEntity(position, vehicle);
+                                reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
+                                if (modelPed == MODEL_MEDIC)
+                                    CCarAI::AddAmbulanceOccupants(vehicle);
+                                else
+                                    CCarAI::AddFiretruckOccupants(vehicle);
+                                //Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
+                                Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), taxi->m_matrix.pos.x, taxi->m_matrix.pos.y, taxi->m_matrix.pos.z);
+                                //Command<COMMAND_SET_CAR_MISSION>(CPools::GetVehicleRef(vehicle), MISSION_CRUISE);
+                                vehicle->m_autoPilot.m_nCarMission = MISSION_CRUISE;
+                                //vehicle->m_nState = vehicle->m_nState & 7 | 0x18;
+                                //vehicle->m_nVehicleFlags.bEngineOn |= 0x10;
+                                
+                                if (plugin::Random(0, 1)) {
+                                    vehicle->m_nSirenOrAlarm = true;
+                                    vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                                    vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                                }
+                                else {
+                                    vehicle->m_nSirenOrAlarm = false;
+                                    vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_STOP_FOR_CARS;
+                                    vehicle->m_autoPilot.m_nCruiseSpeed = taxi->m_autoPilot.m_nCruiseSpeed;
+                                }
+                                //vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+                            }
                         }
                     }
                 }
-                //if (KeyCheck::CheckWithDelay('N', 2000)) 
-                    //Command<COMMAND_REMOVE_BLIP>(blip);
-
                 gamefont::Print({
                     Format("cop = %d", patch::GetUChar(0x4C11F2)),
                     Format("swat = %d", patch::GetUChar(0x4C1241)),
                     Format("fbi = %d", patch::GetUChar(0x4C12A0)),
                     Format("army = %d", patch::GetUChar(0x4C12FC)),
-                    Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z),
-                    Format("pos = %.2f, %.2f, %.2f", pos.x, pos.y, pos.z)
+                    Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z)
                 }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             }
             
@@ -119,6 +189,10 @@ public:
         };
     }
 }test;
+
+CEntity* Test::outEntity = nullptr;
+short Test::outCount = 0;
+float Test::offset_Y = 0.0f;
 
 
 //#include <plugin.h>
