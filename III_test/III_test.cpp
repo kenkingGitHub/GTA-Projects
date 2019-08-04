@@ -35,6 +35,7 @@ public:
     static float offset_Y;
     static CVector carPos;
     static float carAngle;
+    static CAutoPilot pilot;
 
     static bool LoadModel(int model) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
@@ -64,10 +65,10 @@ public:
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
 
-    static CVehicle *GetRandomCar(CRect const &rect) {
+    static CVehicle *GetRandomCar(float x1, float y1, float x2, float y2) {
         std::vector<CVehicle *> vehicles;
         for (auto vehicle : CPools::ms_pVehiclePool) {
-            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_pDriver && vehicle->IsWithinArea(rect.left, rect.bottom, rect.right, rect.top))
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_pDriver && vehicle->IsWithinArea(x1, y1, x2, y2))
                 vehicles.push_back(vehicle);
         }
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
@@ -75,7 +76,12 @@ public:
 
     Test() {
         static int spawnCarTime = 0;
-        //Events::gameProcessEvent += [] {
+        /*Events::gameProcessEvent += [] {
+            for (auto vehicle : CPools::ms_pVehiclePool) {
+                if (vehicle->m_pDriver && !CTheScripts::IsPlayerOnAMission() && vehicle->m_autoPilot.m_nCarMission == MISSION_GOTOCOORDS)
+                    vehicle->m_autoPilot.m_nCarMission = MISSION_CRUISE;
+            }
+        };*/
             //KeyCheck::Update();
         Events::drawingEvent += [] {
             //for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
@@ -106,13 +112,13 @@ public:
                 switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
-                        CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 150.0f, 0.0f));
-                        CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 70.0f, 0.0f));
-                        CRect rect = { onePoint.x, onePoint.y, twoPoint.x, twoPoint.y };
-                        CVehicle *car = GetRandomCar(rect);
+                        CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
+                        CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
+                        CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
                         if (car) {
                             carPos = car->m_matrix.pos;
                             carAngle = car->GetHeading() / 57.295776f;
+                            pilot = car->m_autoPilot;
                             m_currentState = STATE_WAIT;
                         }
                     }
@@ -129,7 +135,7 @@ public:
                         cornerB.z = carPos.z + 3.0f;
                         outCount = 1;
                         CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
-                        if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 50.0f))
+                        if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
                             m_currentState = STATE_CREATE;
                     }
                     else
@@ -175,16 +181,14 @@ public:
                             else
                                 CCarAI::AddFiretruckOccupants(vehicle);
                             Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
+                            vehicle->m_autoPilot = pilot;
                             if (plugin::Random(0, 1)) {
                                 vehicle->m_nSirenOrAlarm = true;
                                 vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
                                 vehicle->m_autoPilot.m_nCruiseSpeed = 25;
                             }
-                            else {
+                            else 
                                 vehicle->m_nSirenOrAlarm = false;
-                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_STOP_FOR_CARS;
-                                vehicle->m_autoPilot.m_nCruiseSpeed = 15;
-                            }
                         }
                     }
                     m_currentState = STATE_FIND;
@@ -301,7 +305,7 @@ short Test::outCount = 0;
 float Test::offset_Y = 0.0f;
 CVector Test::carPos = { 0.0f, 0.0f, 0.0f };
 float Test::carAngle = 0.0f;
-
+CAutoPilot Test::pilot;
 
 //#include <plugin.h>
 //#include "extensions\KeyCheck.h"
