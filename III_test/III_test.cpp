@@ -13,7 +13,6 @@
 #include "ePedModel.h"
 #include "CFont.h"
 #include "CSprite.h"
-#include "ePedType.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
@@ -109,7 +108,7 @@ public:
             CPlayerPed *player = FindPlayerPed();
             if (player) {
                 CVector posn = FindPlayerCentreOfWorld(CWorld::PlayerInFocus);
-                switch (m_currentState) {
+                /*switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
                         CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
@@ -193,7 +192,7 @@ public:
                     }
                     m_currentState = STATE_FIND;
                     break;
-                }
+                }*/
                 //if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
                 //    int modelCar, modelPed;
                 //    int randomModel = plugin::Random(0, 3);
