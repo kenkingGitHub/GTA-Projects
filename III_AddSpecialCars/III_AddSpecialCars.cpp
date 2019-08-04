@@ -14,6 +14,7 @@
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
 #include "CCarAI.h"
+#include "CTheCarGenerators.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
@@ -34,7 +35,7 @@
 #define MODEL_FBI_a 87
 #define MODEL_ARMY_a 88
 
-//bool &bReplayEnabled = *(bool *)0x617CAC;
+bool &bReplayEnabled = *(bool *)0x617CAC;
 
 using namespace plugin;
 
@@ -665,7 +666,7 @@ public:
         static unsigned int modelCop, modelSwat, modelFbi, modelArmy;
 
         Events::gameProcessEvent += [] {
-            //bReplayEnabled = false;
+            bReplayEnabled = false;
             if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
                 if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetVehicleLoadState(MODEL_POLICE_a);
@@ -937,3 +938,100 @@ void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
         jmp jmp_531FF1
     }
 }
+
+class MyCarGenerator {
+public:
+    MyCarGenerator() {
+        static CdeclEvent<AddressList<0x582E6C, H_CALL, 0x48C7CC, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> myOnInitGame;
+
+        static float angle_portland_police, angle_staunton_police, angle_shoreside_police, angle_staunton_ambulance,
+            angle_shoreside_ambulance, angle_shoreside_firetruck, angle_portland_firetruck, angle_staunton_firetruck;
+        angle_portland_police = angle_staunton_police = angle_shoreside_police = angle_staunton_ambulance = angle_shoreside_ambulance 
+            = angle_shoreside_firetruck = angle_portland_firetruck = angle_staunton_firetruck = 0.0f;
+        static CVector portland_police = { 1148.76f, -690.0f, 14.0f };
+        static CVector staunton_police = { 347.0f, -1170.25f, 22.0f };
+        static CVector shoreside_police = { -1261.84f, -21.49f, 58.5f };
+        static CVector staunton_ambulance = { 185.19f, -41.0f, 17.0f };
+        static CVector shoreside_ambulance = { -1271.68f, -143.18f, 58.83f };
+        static CVector shoreside_firetruck = { -839.38f, -452.39f, 12.0f };
+        static CVector portland_firetruck = { 1107.5f, -36.57f, 7.5f };
+        static CVector staunton_firetruck = { -83.88f, -457.54f, 17.0f };
+
+        myOnInitGame += [] {
+            if (CTheCarGenerators::NumOfCarGenerators < 160) {
+                bool alreadyRegisteredA, alreadyRegisteredB, alreadyRegisteredC, alreadyRegisteredD, 
+                    alreadyRegisteredE, alreadyRegisteredF, alreadyRegisteredG, alreadyRegisteredH;
+                alreadyRegisteredA = alreadyRegisteredB = alreadyRegisteredC = alreadyRegisteredD 
+                    = alreadyRegisteredE = alreadyRegisteredF = alreadyRegisteredG = alreadyRegisteredH = false;
+                for (int i = 0; i < CTheCarGenerators::NumOfCarGenerators; i++) {
+                    if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
+                        CCarGenerator &carGenA = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenA.m_nEnabled && DistanceBetweenPoints(portland_police, carGenA.m_vecPos) < 1.0f && carGenA.m_fAngle == angle_portland_police && carGenA.m_nModelId == MODEL_POLICE_a)
+                            alreadyRegisteredA = true;
+                    }
+                    if (CModelInfo::IsCarModel(MODEL_POLICE_b)) {
+                        CCarGenerator &carGenB = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenB.m_nEnabled && DistanceBetweenPoints(staunton_police, carGenB.m_vecPos) < 1.0f && carGenB.m_fAngle == angle_staunton_police && carGenB.m_nModelId == MODEL_POLICE_b)
+                            alreadyRegisteredB = true;
+                    }
+                    if (CModelInfo::IsCarModel(MODEL_POLICE_c)) {
+                        CCarGenerator &carGenC = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenC.m_nEnabled && DistanceBetweenPoints(shoreside_police, carGenC.m_vecPos) < 1.0f && carGenC.m_fAngle == angle_shoreside_police && carGenC.m_nModelId == MODEL_POLICE_c)
+                            alreadyRegisteredC = true;
+                    }
+                    if (CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
+                        CCarGenerator &carGenD = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenD.m_nEnabled && DistanceBetweenPoints(staunton_ambulance, carGenD.m_vecPos) < 1.0f && carGenD.m_fAngle == angle_staunton_ambulance && carGenD.m_nModelId == MODEL_AMBULAN_a)
+                            alreadyRegisteredD = true;
+                        CCarGenerator &carGenE = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenE.m_nEnabled && DistanceBetweenPoints(shoreside_ambulance, carGenE.m_vecPos) < 1.0f && carGenE.m_fAngle == angle_shoreside_ambulance && carGenE.m_nModelId == MODEL_AMBULAN_a)
+                            alreadyRegisteredE = true;
+                    }
+                    if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
+                        CCarGenerator &carGenF = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenF.m_nEnabled && DistanceBetweenPoints(shoreside_firetruck, carGenF.m_vecPos) < 1.0f && carGenF.m_fAngle == angle_shoreside_firetruck && carGenF.m_nModelId == MODEL_FIRETRUK_a)
+                            alreadyRegisteredF = true;
+                        CCarGenerator &carGenG = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenG.m_nEnabled && DistanceBetweenPoints(portland_firetruck, carGenG.m_vecPos) < 1.0f && carGenG.m_fAngle == angle_portland_firetruck && carGenG.m_nModelId == MODEL_FIRETRUK_a)
+                            alreadyRegisteredG = true;
+                        CCarGenerator &carGenH = CTheCarGenerators::CarGeneratorArray[i];
+                        if (carGenH.m_nEnabled && DistanceBetweenPoints(staunton_firetruck, carGenH.m_vecPos) < 1.0f && carGenH.m_fAngle == angle_staunton_firetruck && carGenH.m_nModelId == MODEL_FIRETRUK_a)
+                            alreadyRegisteredH = true;
+                    }
+                }
+                if (!alreadyRegisteredA && CModelInfo::IsCarModel(MODEL_POLICE_a)) {
+                    unsigned int carGenAId = CTheCarGenerators::CreateCarGenerator(portland_police.x, portland_police.y, portland_police.z, 0.0f, MODEL_POLICE_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenAId].SwitchOn();
+                }
+                if (!alreadyRegisteredB && CModelInfo::IsCarModel(MODEL_POLICE_b)) {
+                    unsigned int carGenBId = CTheCarGenerators::CreateCarGenerator(staunton_police.x, staunton_police.y, staunton_police.z, 0.0f, MODEL_POLICE_b, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenBId].SwitchOn();
+                }
+                if (!alreadyRegisteredC && CModelInfo::IsCarModel(MODEL_POLICE_c)) {
+                    unsigned int carGenCId = CTheCarGenerators::CreateCarGenerator(shoreside_police.x, shoreside_police.y, shoreside_police.z, 173.23f, MODEL_POLICE_c, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenCId].SwitchOn();
+                }
+                if (!alreadyRegisteredD && CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
+                    unsigned int carGenDId = CTheCarGenerators::CreateCarGenerator(staunton_ambulance.x, staunton_ambulance.y, staunton_ambulance.z, 0.0f, MODEL_AMBULAN_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenDId].SwitchOn();
+                }
+                if (!alreadyRegisteredE && CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
+                    unsigned int carGenEId = CTheCarGenerators::CreateCarGenerator(shoreside_ambulance.x, shoreside_ambulance.y, shoreside_ambulance.z, 0.0f, MODEL_AMBULAN_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenEId].SwitchOn();
+                }
+                if (!alreadyRegisteredF && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
+                    unsigned int carGenFId = CTheCarGenerators::CreateCarGenerator(shoreside_firetruck.x, shoreside_firetruck.y, shoreside_firetruck.z, 90.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenFId].SwitchOn();
+                }
+                if (!alreadyRegisteredG && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
+                    unsigned int carGenGId = CTheCarGenerators::CreateCarGenerator(portland_firetruck.x, portland_firetruck.y, portland_firetruck.z, 270.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenGId].SwitchOn();
+                }
+                if (!alreadyRegisteredH && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
+                    unsigned int carGenHId = CTheCarGenerators::CreateCarGenerator(staunton_firetruck.x, staunton_firetruck.y, staunton_firetruck.z, 90.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
+                    CTheCarGenerators::CarGeneratorArray[carGenHId].SwitchOn();
+                }
+            }
+        };
+    }
+}instance;
