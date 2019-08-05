@@ -37,6 +37,44 @@
 
 bool &bReplayEnabled = *(bool *)0x617CAC;
 
+int &/*CCranes::*/CarsCollectedMilitaryCrane = *(int *)0x8F6248;
+
+class CCrane {
+public:
+    CEntity *m_pObject;
+    CObject *m_pMagnet;
+    int m_nAudioEntity;
+    float m_fPickupX1;
+    float m_fPickupX2;
+    float m_fPickupY1;
+    float m_fPickupY2;
+    CVector m_vecDropoffTarget;
+    float m_fDropoffHeading;
+    float m_fPickupAngle;
+    float m_fDropoffAngle;
+    float m_fPickupDistance;
+    float m_fDropoffDistance;
+    float m_fAngle;
+    float m_fDistance;
+    float m_fHeight;
+    float m_fHookOffset;
+    float m_fHookHeight;
+    CVector m_vecHookInitPos;
+    CVector m_vecHookCurPos;
+    float m_fHookVelocityX;
+    float m_fHookVelocityY;
+    CVehicle *m_pVehiclePickedUp;
+    int m_nUpdateTimer;
+    bool m_bCraneActive;
+    char m_bCraneStatus;
+    char byte_7A;
+    bool m_bIsCrusher;
+    bool m_bIsMilitaryCrane;
+    bool byte_7D;
+    bool m_bNotMilitaryCrane;
+    char _pad_7F;
+};
+
 using namespace plugin;
 
 class AddSpecialCars {
@@ -105,17 +143,137 @@ public:
     static void Patch_4F5857(); // AddPedInCar
     static void Patch_531FE8(); // FireTruckControl
 
+    // CCranes::DoesMilitaryCraneHaveThisOneAlready
+    static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int vehicleModelIndex) {
+        bool result; 
+
+        switch (vehicleModelIndex) {
+        case MODEL_FIRETRUK:
+        case MODEL_FIRETRUK_a:
+            if (!(CarsCollectedMilitaryCrane & 1))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_AMBULAN:
+        case MODEL_AMBULAN_a:
+            if (!(CarsCollectedMilitaryCrane & 2))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_ENFORCER:
+        case MODEL_ENFORCER_a:
+            if (!(CarsCollectedMilitaryCrane & 4))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_FBICAR:
+        case MODEL_FBICAR_a:
+            if (!(CarsCollectedMilitaryCrane & 8))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_RHINO:
+            if (!(CarsCollectedMilitaryCrane & 0x10))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_BARRACKS:
+        case MODEL_BARRACKS_a:
+            if (!(CarsCollectedMilitaryCrane & 0x20))
+                goto LABEL_16;
+            result = true;
+            break;
+        case MODEL_POLICE:
+        case MODEL_POLICE_a:
+        case MODEL_POLICE_b:
+        case MODEL_POLICE_c:
+        case MODEL_POLICE_d:
+            if (!(CarsCollectedMilitaryCrane & 0x40))
+                goto LABEL_16;
+            result = true;
+            break;
+        default:
+        LABEL_16:
+            result =  false;
+            break;
+        }
+        return result;
+    }
+
+    // CCranes::RegisterCarForMilitaryCrane
+    static void __cdecl RegisterCarForMilitaryCrane(int vehicleModelIndex) {
+        switch (vehicleModelIndex) {
+        case MODEL_FIRETRUK:
+        case MODEL_FIRETRUK_a:
+            CarsCollectedMilitaryCrane |= 1;
+            break;
+        case MODEL_AMBULAN:
+        case MODEL_AMBULAN_a:
+            CarsCollectedMilitaryCrane |= 2;
+            break;
+        case MODEL_ENFORCER:
+        case MODEL_ENFORCER_a:
+            CarsCollectedMilitaryCrane |= 4;
+            break;
+        case MODEL_FBICAR:
+        case MODEL_FBICAR_a:
+            CarsCollectedMilitaryCrane |= 8;
+            break;
+        case MODEL_RHINO:
+            CarsCollectedMilitaryCrane |= 0x10;
+            break;
+        case MODEL_BARRACKS:
+        case MODEL_BARRACKS_a:
+            CarsCollectedMilitaryCrane |= 0x20;
+            break;
+        case MODEL_POLICE:
+        case MODEL_POLICE_a:
+        case MODEL_POLICE_b:
+        case MODEL_POLICE_c:
+        case MODEL_POLICE_d:
+            CarsCollectedMilitaryCrane |= 0x40;
+            break;
+        default:
+            return;
+        }
+    }
+
+    // CCrane::DoesCranePickUpThisCarType
+    static bool __fastcall DoesCranePickUpThisCarType(CCrane *_this, int, int vehicleModelIndex) {
+        bool result; 
+
+        if (_this->m_bIsCrusher) {
+            result = vehicleModelIndex != MODEL_FIRETRUK && vehicleModelIndex != MODEL_FIRETRUK_a 
+                && vehicleModelIndex != MODEL_TRASH && vehicleModelIndex != MODEL_BLISTA 
+                && vehicleModelIndex != MODEL_SECURICA && vehicleModelIndex != MODEL_BUS 
+                && vehicleModelIndex != MODEL_DODO && vehicleModelIndex != MODEL_RHINO;
+        }
+        else if (_this->m_bIsMilitaryCrane) {
+            result = vehicleModelIndex == MODEL_FIRETRUK || vehicleModelIndex == MODEL_FIRETRUK_a 
+                || vehicleModelIndex == MODEL_ENFORCER || vehicleModelIndex == MODEL_ENFORCER_a
+                || vehicleModelIndex == MODEL_AMBULAN || vehicleModelIndex == MODEL_AMBULAN_a 
+                || vehicleModelIndex == MODEL_FBICAR || vehicleModelIndex == MODEL_FBICAR_a
+                || vehicleModelIndex == MODEL_RHINO || vehicleModelIndex == MODEL_BARRACKS 
+                || vehicleModelIndex == MODEL_BARRACKS_a || vehicleModelIndex == MODEL_POLICE
+                || vehicleModelIndex == MODEL_POLICE_a || vehicleModelIndex == MODEL_POLICE_b
+                || vehicleModelIndex == MODEL_POLICE_c || vehicleModelIndex == MODEL_POLICE_d;
+        }
+        else
+            result = true;
+        return result;
+    }
+
     // CVehicle::IsVehicleNormal
     static bool __fastcall IsVehicleNormal(CVehicle *_this) {
         bool result; 
 
-        result = FALSE;
+        result = false;
         if (_this->m_pDriver && !_this->m_nNumPassengers && _this->m_nState != 5) {
             if (GetTaxiModels().find(_this->m_nModelIndex) != GetTaxiModels().end())
                 return result;
             switch (_this->m_nModelIndex) {
             default:
-                result = TRUE;
+                result = true;
                 break;
             case MODEL_FIRETRUK:
             case MODEL_FIRETRUK_a:
@@ -162,10 +320,10 @@ public:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
         case MODEL_POLICE_d:
-            result = TRUE;
+            result = true;
             break;
         default:
-            result = FALSE;
+            result = false;
             break;
         }
         return result;
@@ -359,10 +517,10 @@ public:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
         case MODEL_POLICE_d:
-            result = TRUE;
+            result = true;
             break;
         default:
-            result = FALSE;
+            result = false;
             break;
         }
         return result;
@@ -388,10 +546,10 @@ public:
         case MODEL_POLICE_b:
         case MODEL_POLICE_c:
         case MODEL_POLICE_d:
-            result = TRUE;
+            result = true;
             break;
         default:
-            result = FALSE;
+            result = false;
             break;
         }
         return result;
@@ -408,7 +566,7 @@ public:
                 CVehicle *vehicle = FindPlayerVehicle();
                 if (vehicle) {
                     if (vehicle->m_nState == 5)
-                        result = FALSE;
+                        result = false;
                     else {
                         switch (vehicle->m_nModelIndex) {
                         case MODEL_FIRETRUK:
@@ -421,7 +579,7 @@ public:
                         case MODEL_SPEEDER:
                         case MODEL_REEFER:
                         case MODEL_GHOST:
-                            result = FALSE;
+                            result = false;
                             break;
                         default:
                             goto LABEL_11;
@@ -430,14 +588,14 @@ public:
                 }
                 else {
                 LABEL_11:
-                    result = TRUE;
+                    result = true;
                 }
             }
             else
-                result = FALSE;
+                result = false;
         }
         else
-            result = FALSE;
+            result = false;
 
         return result;
     }
@@ -461,10 +619,10 @@ public:
         case VEHICLE_156:
         case VEHICLE_157:
         case VEHICLE_158:
-            result = TRUE;
+            result = true;
             break;
         default:
-            result = FALSE;
+            result = false;
             break;
         }
         return result;
@@ -485,10 +643,10 @@ public:
         case VEHICLE_154:
         case VEHICLE_155:
         case VEHICLE_156:
-            result = TRUE;
+            result = true;
             break;
         default:
-            result = FALSE;
+            result = false;
             break;
         }
         return result;
@@ -516,10 +674,10 @@ public:
         case MODEL_FIRETRUK_a:
         case MODEL_BARRACKS_a:
         case MODEL_ENFORCER_a:
-            result = FALSE;
+            result = false;
             break;
         default:
-            result = TRUE;
+            result = true;
             break;
         }
         return result;
@@ -599,6 +757,7 @@ public:
         if (LoadModel(modelIndex)) {
             CVehicle *vehicle = nullptr;
             vehicle = new CAutomobile(modelIndex, 1);
+
         }
     }
 
@@ -627,6 +786,9 @@ public:
                 GetTaxiModels().insert(std::stoi(line));
         }
 
+        patch::RedirectJump(0x544B00, DoesMilitaryCraneHaveThisOneAlready);
+        patch::RedirectJump(0x544B80, RegisterCarForMilitaryCrane);
+        patch::RedirectJump(0x544A90, DoesCranePickUpThisCarType);
         patch::RedirectJump(0x552880, IsLawEnforcementVehicle);
         patch::RedirectJump(0x415C60, AddPoliceCarOccupants);
         patch::RedirectJump(0x4181F0, ChoosePoliceCarModel);
