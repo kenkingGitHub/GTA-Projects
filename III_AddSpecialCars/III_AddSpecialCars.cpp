@@ -53,11 +53,11 @@ public:
     static unsigned int currentSpecialModelForOccupants;
     static unsigned int randomPolice;
     static unsigned int currentFiretrukModel;
-    
+
     static unsigned int jmp_5373DE;
     static unsigned int jmp_4F5860;
     static unsigned int jmp_531FF1;
-    
+
     static std::unordered_set<unsigned int> &GetTaxiModels() {
         static std::unordered_set<unsigned int> taxiIds;
         return taxiIds;
@@ -104,7 +104,7 @@ public:
     static void Patch_5373D7(); // Siren
     static void Patch_4F5857(); // AddPedInCar
     static void Patch_531FE8(); // FireTruckControl
-    
+
     // CVehicle::IsVehicleNormal
     static bool __fastcall IsVehicleNormal(CVehicle *_this) {
         bool result; 
@@ -663,7 +663,7 @@ public:
         static int spawnCarTime = 0;
         static int randomCopTime = 0;
         static unsigned int randomCop = 3;
-        static unsigned int modelCop, modelSwat, modelFbi, modelArmy;
+        static unsigned int modelCop, modelSwat, modelFbi, modelArmy, modelBarracks, modelEnforcer, modelFbicar;
 
         Events::gameProcessEvent += [] {
             bReplayEnabled = false;
@@ -699,6 +699,10 @@ public:
                 if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetVehicleLoadState(MODEL_BARRACKS_a);
             }
+            if (CModelInfo::IsCarModel(MODEL_ENFORCER_a)) {
+                if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_NOT_LOADED)
+                    SetVehicleLoadState(MODEL_ENFORCER_a);
+            }
             if (CModelInfo::IsPedModel(MODEL_COP_a)) {
                 if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetPedLoadState(MODEL_COP_a);
@@ -723,71 +727,108 @@ public:
                 if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetPedLoadState(MODEL_ARMY_a);
             }
-            // Random Cops
-            if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 30000)) {
-                randomCopTime = CTimer::m_snTimeInMilliseconds;
-                // cop
-                if (randomCop < 3)
-                    randomCop++;
-                else
-                    randomCop = 0;
-                switch (randomCop) {
-                case 0: modelCop = MODEL_COP; break;
-                case 1:
-                    if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_LOADED)
-                        modelCop = MODEL_COP_a;
-                    else
-                        modelCop = MODEL_COP;
-                    break;
-                case 2:
-                    if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_LOADED)
-                        modelCop = MODEL_COP_b;
-                    else
-                        modelCop = MODEL_COP;
-                    break;
-                case 3:
-                    if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_LOADED)
-                        modelCop = MODEL_COP_c;
-                    else
-                        modelCop = MODEL_COP;
-                    break;
-                default: modelCop = MODEL_COP;  break;
-                }
-                patch::SetChar(0x4C11F2, modelCop, true);
-                // swat
-                if (plugin::Random(0, 1)) {
-                    if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_LOADED)
-                        modelSwat = MODEL_SWAT_a;
-                    else
-                        modelSwat = MODEL_SWAT;
-                }
-                else
-                    modelSwat = MODEL_SWAT;
-                patch::SetChar(0x4C1241, modelSwat, true);
-                // fbi
-                if (plugin::Random(0, 1)) {
-                    if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
-                        modelFbi = MODEL_FBI_a;
-                    else
-                        modelFbi = MODEL_FBI;
-                }
-                else
-                    modelFbi = MODEL_FBI;
-                patch::SetChar(0x4C12A0, modelFbi, true);
-                // army
-                if (plugin::Random(0, 1)) {
-                    if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
-                        modelArmy = MODEL_ARMY_a;
-                    else
-                        modelArmy = MODEL_ARMY;
-                }
-                else
-                    modelArmy = MODEL_ARMY;
-                patch::SetChar(0x4C12FC, modelArmy, true);
-            }
-            // Spawn Cars
+            
             CPlayerPed *player = FindPlayerPed();
             if (player) {
+                // Random Cops
+                if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 30000)) {
+                    randomCopTime = CTimer::m_snTimeInMilliseconds;
+                    // cop
+                    if (randomCop < 3)
+                        randomCop++;
+                    else
+                        randomCop = 0;
+                    switch (randomCop) {
+                    case 0: modelCop = MODEL_COP; break;
+                    case 1:
+                        if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_LOADED)
+                            modelCop = MODEL_COP_a;
+                        else
+                            modelCop = MODEL_COP;
+                        break;
+                    case 2:
+                        if (CStreaming::ms_aInfoForModel[MODEL_COP_b].m_nLoadState == LOADSTATE_LOADED)
+                            modelCop = MODEL_COP_b;
+                        else
+                            modelCop = MODEL_COP;
+                        break;
+                    case 3:
+                        if (CStreaming::ms_aInfoForModel[MODEL_COP_c].m_nLoadState == LOADSTATE_LOADED)
+                            modelCop = MODEL_COP_c;
+                        else
+                            modelCop = MODEL_COP;
+                        break;
+                    default: modelCop = MODEL_COP;  break;
+                    }
+                    patch::SetChar(0x4C11F2, modelCop, true);
+                    // swat
+                    if (plugin::Random(0, 1)) {
+                        if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_LOADED)
+                            modelSwat = MODEL_SWAT_a;
+                        else
+                            modelSwat = MODEL_SWAT;
+                    }
+                    else
+                        modelSwat = MODEL_SWAT;
+                    patch::SetChar(0x4C1241, modelSwat, true);
+                    // fbi
+                    if (plugin::Random(0, 1)) {
+                        if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
+                            modelFbi = MODEL_FBI_a;
+                        else
+                            modelFbi = MODEL_FBI;
+                    }
+                    else
+                        modelFbi = MODEL_FBI;
+                    patch::SetChar(0x4C12A0, modelFbi, true);
+                    // army
+                    if (plugin::Random(0, 1)) {
+                        if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
+                            modelArmy = MODEL_ARMY_a;
+                        else
+                            modelArmy = MODEL_ARMY;
+                    }
+                    else
+                        modelArmy = MODEL_ARMY;
+                    patch::SetChar(0x4C12FC, modelArmy, true);
+                    // armyRoadBlocks
+                    if (player->m_pWanted->AreArmyRequired() && CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
+                        if (patch::GetUChar(0x43719C) == MODEL_BARRACKS) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelBarracks = MODEL_BARRACKS_a;
+                            else
+                                modelBarracks = MODEL_BARRACKS;
+                        }
+                        else
+                            modelBarracks = MODEL_BARRACKS;
+                        patch::SetChar(0x43719C, modelBarracks, true);
+                    }
+                    // swatRoadBlocks
+                    if (player->m_pWanted->AreSwatRequired() && CModelInfo::IsCarModel(MODEL_ENFORCER_a)) {
+                        if (patch::GetUChar(0x4371D8) == MODEL_ENFORCER) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelEnforcer = MODEL_ENFORCER_a;
+                            else
+                                modelEnforcer = MODEL_ENFORCER;
+                        }
+                        else
+                            modelEnforcer = MODEL_ENFORCER;
+                        patch::SetChar(0x4371D8, modelEnforcer, true);
+                    }
+                    // fbiRoadBlocks
+                    if (player->m_pWanted->AreFbiRequired() && CModelInfo::IsCarModel(MODEL_FBICAR_a)) {
+                        if (patch::GetUChar(0x4371BA) == MODEL_FBICAR) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelFbicar = MODEL_FBICAR_a;
+                            else
+                                modelFbicar = MODEL_FBICAR;
+                        }
+                        else
+                            modelFbicar = MODEL_FBICAR;
+                        patch::SetChar(0x4371BA, modelFbicar, true);
+                    }
+                }
+                // Spawn Cars
                 switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {

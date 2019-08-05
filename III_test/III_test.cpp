@@ -103,6 +103,7 @@ public:
             //        }
             //    }
             //}
+            //patch::SetUChar(0x4371D8, 155, true);
 
             KeyCheck::Update();
             CPlayerPed *player = FindPlayerPed();
@@ -267,7 +268,10 @@ public:
                     Format("swat = %d", patch::GetUChar(0x4C1241)),
                     Format("fbi = %d", patch::GetUChar(0x4C12A0)),
                     Format("army = %d", patch::GetUChar(0x4C12FC)),
-                    Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z)
+                    Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z),
+                    Format("armyBlok = %d", patch::GetUChar(0x43719C)),
+                    Format("swatBlok = %d", patch::GetUChar(0x4371D8)),
+                    Format("fbiBlok = %d", patch::GetUChar(0x4371BA))
                 }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             }
             
