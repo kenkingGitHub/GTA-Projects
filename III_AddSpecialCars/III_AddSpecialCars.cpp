@@ -91,10 +91,11 @@ public:
     static unsigned int currentSpecialModelForOccupants;
     static unsigned int randomPolice;
     static unsigned int currentFiretrukModel;
-
+    static unsigned int currentRoadBlockModel;
     static unsigned int jmp_5373DE;
     static unsigned int jmp_4F5860;
     static unsigned int jmp_531FF1;
+    static unsigned int jmp_4378D1;
 
     static std::unordered_set<unsigned int> &GetTaxiModels() {
         static std::unordered_set<unsigned int> taxiIds;
@@ -139,9 +140,20 @@ public:
         return model;
     }
 
+    static int __stdcall GetRoadBlockModel(unsigned int model) {
+        if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+            return MODEL_ENFORCER;
+        else if (model == MODEL_FBICAR || model == MODEL_FBICAR_a)
+            return MODEL_FBICAR;
+        else if (model == MODEL_BARRACKS || model == MODEL_BARRACKS_a)
+            return MODEL_BARRACKS;
+        return model;
+    }
+
     static void Patch_5373D7(); // Siren
     static void Patch_4F5857(); // AddPedInCar
     static void Patch_531FE8(); // FireTruckControl
+    static void Patch_4378C4(); // RoadBlockCopsForCar
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int vehicleModelIndex) {
@@ -809,6 +821,7 @@ public:
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
         patch::RedirectJump(0x531FE8, Patch_531FE8);
+        patch::RedirectJump(0x4378C4, Patch_4378C4);
         
         // fix ID 154, 155, 159
         patch::SetUChar(0x52D0B3, 140, true);
@@ -933,6 +946,7 @@ public:
                     else
                         modelSwat = MODEL_SWAT;
                     patch::SetChar(0x4C1241, modelSwat, true);
+                    patch::SetChar(0x4378DB, modelSwat, true); // RoadBlocks
                     // fbi
                     if (plugin::Random(0, 1)) {
                         if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
@@ -943,6 +957,7 @@ public:
                     else
                         modelFbi = MODEL_FBI;
                     patch::SetChar(0x4C12A0, modelFbi, true);
+                    patch::SetChar(0x4378E7, modelFbi, true); // RoadBlocks
                     // army
                     if (plugin::Random(0, 1)) {
                         if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
@@ -953,6 +968,7 @@ public:
                     else
                         modelArmy = MODEL_ARMY;
                     patch::SetChar(0x4C12FC, modelArmy, true);
+                    patch::SetChar(0x4378F3, modelArmy, true); // RoadBlocks
                     // armyRoadBlocks
                     if (player->m_pWanted->AreArmyRequired() && CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
                         if (patch::GetUChar(0x43719C) == MODEL_BARRACKS) {
@@ -1089,10 +1105,11 @@ unsigned int AddSpecialCars::currentSpecialModelForSiren;
 unsigned int AddSpecialCars::currentSpecialModelForOccupants;
 unsigned int AddSpecialCars::randomPolice = 0;
 unsigned int AddSpecialCars::currentFiretrukModel;
-
+unsigned int AddSpecialCars::currentRoadBlockModel;
 unsigned int AddSpecialCars::jmp_5373DE;
 unsigned int AddSpecialCars::jmp_4F5860;
 unsigned int AddSpecialCars::jmp_531FF1;
+unsigned int AddSpecialCars::jmp_4378D1;
 
 void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
     __asm {
@@ -1111,7 +1128,7 @@ void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
 
 void __declspec(naked) AddSpecialCars::Patch_4F5857() { // AddPedInCar
     __asm {
-        movsx   eax, word ptr[ebx + 5Ch]
+        movsx   eax, word ptr[ebx + 0x5C]
         pushad
         push eax
         call GetSpecialModelForOccupants
@@ -1139,6 +1156,23 @@ void __declspec(naked) AddSpecialCars::Patch_531FE8() { // FireTruckControl
         cmp     eax, 61h
         mov jmp_531FF1, 0x531FF1
         jmp jmp_531FF1
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4378C4() { // RoadBlockCopsForCar
+    __asm {
+        movsx   eax, word ptr[ebx + 0x5C]
+        pushad
+        push eax
+        call GetRoadBlockModel
+        mov currentRoadBlockModel, eax
+        popad
+        mov eax, currentRoadBlockModel
+        add     esp, 0Ch
+        sub     eax, 6Bh
+        cmp     eax, 10h
+        mov jmp_4378D1, 0x4378D1
+        jmp jmp_4378D1
     }
 }
 

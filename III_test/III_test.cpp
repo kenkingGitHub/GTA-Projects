@@ -271,7 +271,10 @@ public:
                     Format("pos = %.2f, %.2f, %.2f", posn.x, posn.y, posn.z),
                     Format("armyBlok = %d", patch::GetUChar(0x43719C)),
                     Format("swatBlok = %d", patch::GetUChar(0x4371D8)),
-                    Format("fbiBlok = %d", patch::GetUChar(0x4371BA))
+                    Format("fbiBlok = %d", patch::GetUChar(0x4371BA)),
+                    Format("pedSwatBlok = %d", patch::GetUChar(0x4378DB)),
+                    Format("pedFbiBlok = %d", patch::GetUChar(0x4378E7)),
+                    Format("pedArmyBlok = %d", patch::GetUChar(0x4378F3))
                 }, 10, 400, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             }
             
