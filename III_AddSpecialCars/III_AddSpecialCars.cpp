@@ -838,6 +838,7 @@ public:
         static int spawnCarTime = 0;
         static int randomCopTime = 0;
         static unsigned int randomCop = 3;
+        static unsigned int randomModel = 3;
         static unsigned int modelCop, modelSwat, modelFbi, modelArmy, modelBarracks, modelEnforcer, modelFbicar;
 
         Events::gameProcessEvent += [] {
@@ -937,38 +938,44 @@ public:
                     }
                     patch::SetChar(0x4C11F2, modelCop, true);
                     // swat
-                    if (plugin::Random(0, 1)) {
-                        if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_LOADED)
-                            modelSwat = MODEL_SWAT_a;
+                    if (player->m_pWanted->AreSwatRequired()) {
+                        if (plugin::Random(0, 1)) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_SWAT_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelSwat = MODEL_SWAT_a;
+                            else
+                                modelSwat = MODEL_SWAT;
+                        }
                         else
                             modelSwat = MODEL_SWAT;
+                        patch::SetChar(0x4C1241, modelSwat, true);
+                        patch::SetChar(0x4378DB, modelSwat, true); // RoadBlocks
                     }
-                    else
-                        modelSwat = MODEL_SWAT;
-                    patch::SetChar(0x4C1241, modelSwat, true);
-                    patch::SetChar(0x4378DB, modelSwat, true); // RoadBlocks
                     // fbi
-                    if (plugin::Random(0, 1)) {
-                        if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
-                            modelFbi = MODEL_FBI_a;
+                    if (player->m_pWanted->AreFbiRequired()) {
+                        if (plugin::Random(0, 1)) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_FBI_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelFbi = MODEL_FBI_a;
+                            else
+                                modelFbi = MODEL_FBI;
+                        }
                         else
                             modelFbi = MODEL_FBI;
+                        patch::SetChar(0x4C12A0, modelFbi, true);
+                        patch::SetChar(0x4378E7, modelFbi, true); // RoadBlocks
                     }
-                    else
-                        modelFbi = MODEL_FBI;
-                    patch::SetChar(0x4C12A0, modelFbi, true);
-                    patch::SetChar(0x4378E7, modelFbi, true); // RoadBlocks
                     // army
-                    if (plugin::Random(0, 1)) {
-                        if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
-                            modelArmy = MODEL_ARMY_a;
+                    if (player->m_pWanted->AreArmyRequired()) {
+                        if (plugin::Random(0, 1)) {
+                            if (CStreaming::ms_aInfoForModel[MODEL_ARMY_a].m_nLoadState == LOADSTATE_LOADED)
+                                modelArmy = MODEL_ARMY_a;
+                            else
+                                modelArmy = MODEL_ARMY;
+                        }
                         else
                             modelArmy = MODEL_ARMY;
+                        patch::SetChar(0x4C12FC, modelArmy, true);
+                        patch::SetChar(0x4378F3, modelArmy, true); // RoadBlocks
                     }
-                    else
-                        modelArmy = MODEL_ARMY;
-                    patch::SetChar(0x4C12FC, modelArmy, true);
-                    patch::SetChar(0x4378F3, modelArmy, true); // RoadBlocks
                     // armyRoadBlocks
                     if (player->m_pWanted->AreArmyRequired() && CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
                         if (patch::GetUChar(0x43719C) == MODEL_BARRACKS) {
@@ -1041,7 +1048,10 @@ public:
                     break;
                 case STATE_CREATE:
                     int modelCar, modelPed;
-                    int randomModel = plugin::Random(0, 3);
+                    if (randomModel < 3)
+                        randomModel++;
+                    else
+                        randomModel = 0;
                     switch (randomModel) {
                     case 0:
                         if (CModelInfo::IsCarModel(MODEL_AMBULAN_a))
