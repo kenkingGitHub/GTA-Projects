@@ -13,6 +13,7 @@
 #include "ePedModel.h"
 #include "CFont.h"
 #include "CSprite.h"
+#include "CVector.h"
 
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
@@ -21,6 +22,7 @@
 
 #define MODEL_AMBULAN_a 156
 #define MODEL_FIRETRUK_a 158
+#define MODEL_POLICE_b 152
 
 using namespace plugin;
 
@@ -73,7 +75,69 @@ public:
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
 
+    // CEntity::SetModelIndex
+    static void __fastcall SetModelIndex(CEntity *_this, int, unsigned int modelIndex) {
+        if (modelIndex == MODEL_POLICE) {
+            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
+                _this->m_nModelIndex = MODEL_POLICE_b;
+            else
+                _this->m_nModelIndex = modelIndex;
+        }
+        else
+            _this->m_nModelIndex = modelIndex;
+        _this->CreateRwObject();
+    }
+
+    // CVehicle::SetModelIndex
+    /*static void __fastcall SetModelIndex(CVehicle *_this, int, unsigned int modelIndex) {
+        CVehicle *vehicle; unsigned int _modelIndex;
+        if (modelIndex == MODEL_POLICE) {
+            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
+                _modelIndex = MODEL_POLICE_b;
+            else
+                _modelIndex = modelIndex;
+        }
+        else
+            _modelIndex = modelIndex;
+        vehicle = _this;
+        _this->SetModelIndex(_modelIndex);
+        vehicle->m_anExtras[0] = CVehicleModelInfo::ms_compsUsed[0];
+        vehicle->m_anExtras[1] = CVehicleModelInfo::ms_compsUsed[1];
+        vehicle->m_nNumMaxPassengers = CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(_modelIndex);
+    }*/
+
+    // CAutomobile::SetModelIndex
+    /*static void __fastcall SetModelIndex(CAutomobile *_this, int, unsigned int modelIndex) {
+        CAutomobile *car; unsigned int _modelIndex;
+
+        car = _this;
+        if (modelIndex == MODEL_POLICE) {
+            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
+                _modelIndex = MODEL_POLICE_b;
+            else
+                _modelIndex = modelIndex;
+        }
+        else
+            _modelIndex = modelIndex;
+        _this->SetModelIndex(_modelIndex);
+        car->SetupModelNodes();
+    }*/
+
+    // CEntity::SetModelIndexNoCreate
+    static void __fastcall SetModelIndexNoCreate(CEntity *_this, int, unsigned int modelIndex) {
+        if (modelIndex == MODEL_POLICE) {
+            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
+                _this->m_nModelIndex = MODEL_POLICE_b;
+            else
+                _this->m_nModelIndex = modelIndex;
+        }
+        else
+            _this->m_nModelIndex = modelIndex;
+    }
+
     Test() {
+        //patch::RedirectJump(0x473E70, SetModelIndex);
+
         static int spawnCarTime = 0;
         /*Events::gameProcessEvent += [] {
             for (auto vehicle : CPools::ms_pVehiclePool) {
