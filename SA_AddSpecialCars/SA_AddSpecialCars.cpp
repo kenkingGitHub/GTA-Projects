@@ -4,6 +4,10 @@
 #include <fstream>
 #include "eModelID.h"
 #include "CModelInfo.h"
+#include "CStreaming.h"
+#include "CTheZones.h"
+#include "CWorld.h"
+
 #include "CTheScripts.h"
 
 
@@ -12,25 +16,61 @@ using namespace std;
 
 class AddSpecialCars {
 public:
-    static unsigned int currentSpecialModelForSiren;
-    
+    static int currentSpecialModelForSiren;
+    static int currentTaxiModel;
+    static int currentModel;
     static unsigned int jmp_6AB360;
+    static unsigned int jmp_469654;
+
+    static void Patch_6AB349(); // Siren
+    static void Patch_4912D0(); // Taxi
+    static void Patch_46963E(); // IsCharInModel
 
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
         return copcarlaIds;
     }
 
+    static unordered_set<unsigned int> &GetTaxiModels() {
+        static unordered_set<unsigned int> taxiIds;
+        return taxiIds;
+    }
+
+    static unordered_set<unsigned int> &GetAmbulanModels() {
+        static unordered_set<unsigned int> ambulanIds;
+        return ambulanIds;
+    }
+
     static int __stdcall GetSpecialModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return MODEL_COPCARLA;
+        else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
+            return MODEL_TAXI;
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            return MODEL_AMBULAN;
         return model;
     }
 
+    static int __stdcall Get—urrentTaxiModel(unsigned int model) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end())
+            return MODEL_TAXI;
+        return model;
+    }
 
-    static void Patch_6AB350(); // Siren
+    static int __stdcall Get—urrentModel(unsigned int model) {
+        if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            return MODEL_AMBULAN;
+        return model;
+    }
 
+    
+    /*static int __stdcall GetSpecialModelForOccupants(unsigned int model) {
+        if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+            return MODEL_COPCARLA;
+        return model;
+    }*/
 
+    
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
         bool result; 
@@ -64,6 +104,9 @@ public:
     static bool __fastcall UsesSiren(CVehicle *_this) {
         bool result; 
 
+        if (GetAmbulanModels().find(_this->m_nModelIndex) != GetAmbulanModels().end()) {
+            result = true; return result;
+        }
         switch (_this->m_nModelIndex) {
         case MODEL_FIRETRUK:                        
         case MODEL_AMBULAN:                         
@@ -80,6 +123,98 @@ public:
         return result;
     }
 
+    // CStreaming::GetDefaultCopCarModel
+    static int __cdecl GetDefaultCopCarModel(unsigned int a1) {
+        int result, v2, i; 
+        //
+        // CStreaming::ms_aDefaultCopCarModel[1] = 3136;
+
+        if (!CStreaming::m_bCopBikeLoaded || a1
+            || CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[4]].m_nLoadState != 1
+            || (result = CStreaming::ms_DefaultCopBikeModel, CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikeModel].m_nLoadState != 1))
+        {
+            result = CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel];
+            if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]].m_nLoadState != 1
+                || CStreaming::ms_aInfoForModel[result].m_nLoadState != 1)
+            {
+                v2 = 5;
+                if (a1)
+                    v2 = 4;
+                i = 0;
+                if (v2 <= 0)
+                {
+                LABEL_13:
+                    result = -1;
+                }
+                else
+                {
+                    while (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[i]].m_nLoadState != 1
+                        || CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopCarModel[i]].m_nLoadState != 1)
+                    {
+                        if (++i >= v2)
+                            goto LABEL_13;
+                    }
+                    //if (i == 1)
+                        result = 3136;
+                    //else
+                        //result = CStreaming::ms_aDefaultCopCarModel[i];
+                }
+            }
+        }
+        return result;
+    }
+
+    // CCarCtrl::ChoosePoliceCarModel
+    static int __cdecl ChoosePoliceCarModel(unsigned int a1) {
+        CWanted *wanted = FindPlayerWanted(-1);
+
+        if (wanted->AreSwatRequired() && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
+            && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED) {
+            if (plugin::Random(0, 3) == 2)
+                return MODEL_ENFORCER;
+        }
+        else {
+            if (wanted->AreFbiRequired() && CStreaming::ms_aInfoForModel[MODEL_FBIRANCH].m_nLoadState == LOADSTATE_LOADED
+                && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
+            {
+                return MODEL_FBIRANCH;
+            }
+            if (wanted->AreArmyRequired()
+                && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == LOADSTATE_LOADED
+                && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
+                && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
+            {
+                return (rand() < 16383) + MODEL_RHINO;
+            }
+        }
+        //return CStreaming::GetDefaultCopCarModel(a1);
+        if (LoadModel(3137))
+            return 3137;
+        else
+            return CStreaming::GetDefaultCopCarModel(a1);
+    }
+
+    static int GetModel(unsigned int modelId) {
+        for (unsigned int i : GetCopcarlaModels()) {
+            if (i == modelId)
+                return i;
+        }
+        return 0;
+    }
+
+    static bool LoadModel(int model) {
+        unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
+        CStreaming::RequestModel(model, GAME_REQUIRED);
+        CStreaming::LoadAllRequestedModels(false);
+        if (CStreaming::ms_aInfoForModel[model].m_nLoadState == LOADSTATE_LOADED) {
+            if (!(oldFlags & GAME_REQUIRED)) {
+                CStreaming::SetModelIsDeletable(model);
+                CStreaming::SetModelTxdIsDeletable(model);
+            }
+            return true;
+        }
+        return false;
+    }
 
     static void __fastcall OpcodeIsCharInAnyPoliceVehicle(CRunningScript *script) {
         script->CollectParameters(1);
@@ -97,31 +232,52 @@ public:
         script->UpdateCompareFlag(inModel);
     }
 
+
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
         if (!stream.is_open())
             return;
         for (string line; getline(stream, line); ) {
+            // copcarla
             if (!line.compare("copcarla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetCopcarlaModels().insert(stoi(line));
                 }
             }
-            
+            // taxi
+            if (!line.compare("taxi")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetTaxiModels().insert(stoi(line));
+                }
+            }
+            // ambulan
+            if (!line.compare("ambulan")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetAmbulanModels().insert(stoi(line));
+                }
+            }
+
         }
         
         patch::RedirectJump(0x6D2370, IsLawEnforcementVehicle);
         patch::RedirectJump(0x6D8470, UsesSiren);
+        //patch::RedirectJump(0x407C50, GetDefaultCopCarModel);
+        //patch::RedirectJump(0x421980, ChoosePoliceCarModel);
 
-        patch::RedirectJump(0x6AB350, Patch_6AB350);
-
+        patch::RedirectJump(0x6AB349, Patch_6AB349);
+        patch::RedirectJump(0x4912D0, Patch_4912D0); 
+        //patch::RedirectJump(0x46963E, Patch_46963E);
 
         Events::drawingEvent += [] {
             CVehicle *vehicle = FindPlayerVehicle(0, false);
             if (vehicle) {
                 gamefont::Print({
-                    Format("siren = %d", vehicle->m_nVehicleFlags.bSirenOrAlarm)
+                    Format("siren = %d", vehicle->m_nVehicleFlags.bSirenOrAlarm),
+                    Format("model = %d", GetCopcarlaModels().find(vehicle->m_nModelIndex) != GetCopcarlaModels().end()),
+                    Format("test = %d", GetModel(vehicle->m_nModelIndex))
                 }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             }
         };
@@ -129,12 +285,16 @@ public:
     }
 } specialCars;
 
-unsigned int AddSpecialCars::currentSpecialModelForSiren;
-
+int AddSpecialCars::currentSpecialModelForSiren;
+int AddSpecialCars::currentTaxiModel;
+int AddSpecialCars::currentModel;
 unsigned int AddSpecialCars::jmp_6AB360;
+unsigned int AddSpecialCars::jmp_469654;
 
-void __declspec(naked) AddSpecialCars::Patch_6AB350() { // Siren
+void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
+        mov     ecx, esi
+        call    CVehicle::AddDamagedVehicleParticles
         movsx   eax, word ptr[esi + 0x22]
         pushad
         push eax
@@ -148,3 +308,41 @@ void __declspec(naked) AddSpecialCars::Patch_6AB350() { // Siren
         jmp jmp_6AB360
     }
 }
+
+void __declspec(naked) AddSpecialCars::Patch_4912D0() { // Taxi
+    __asm {
+        CWDE
+        mov ecx, 420
+        pushad
+        push eax
+        call Get—urrentTaxiModel
+        mov currentTaxiModel, eax
+        popad
+        cmp ecx, currentTaxiModel
+        jz SET_TRUE
+        jmp END_CHECK
+        SET_TRUE :
+        mov byte ptr[esp + 20], 1
+            END_CHECK :
+            mov ecx, 0x4912E1
+            jmp ecx
+    }
+}
+
+//void __declspec(naked) AddSpecialCars::Patch_46963E() { // IsCharInModel
+//    __asm {
+//        movsx edx, word ptr[eax + 0x22]
+//        pushad
+//        push edx
+//        call Get—urrentModel
+//        popad
+//        cmp eax, CTheScripts::ScriptParams[1].uParam
+//        mov byte ptr[esp + 80], 1
+//        jz END_CHECK
+//        mov byte ptr[esp + 80], 0
+//        
+//            END_CHECK :
+//            mov jmp_469654, 0x469654
+//            jmp jmp_469654
+//    }
+//}
