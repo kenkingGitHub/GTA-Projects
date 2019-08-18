@@ -7,7 +7,6 @@
 #include "CStreaming.h"
 #include "CTheZones.h"
 #include "CWorld.h"
-
 #include "CTheScripts.h"
 
 
@@ -20,15 +19,20 @@ public:
     static int currentTaxiModel;
     static int currentModel;
     static unsigned int jmp_6AB360;
-    static unsigned int jmp_469654;
+    static unsigned int jmp_469658;
 
     static void Patch_6AB349(); // Siren
     static void Patch_4912D0(); // Taxi
-    static void Patch_46963E(); // IsCharInModel
+    static void Patch_469629(); // IsCharInModel
 
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
         return copcarlaIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopcarsfModels() {
+        static unordered_set<unsigned int> copcarsfIds;
+        return copcarsfIds;
     }
 
     static unordered_set<unsigned int> &GetTaxiModels() {
@@ -44,6 +48,8 @@ public:
     static int __stdcall GetSpecialModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return MODEL_COPCARLA;
+        if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+            return MODEL_COPCARSF;
         else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
         else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
@@ -57,12 +63,28 @@ public:
         return model;
     }
 
-    static int __stdcall Get—urrentModel(unsigned int model) {
+    /*static int __stdcall Get—urrentModel(unsigned int model) {
         if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return MODEL_AMBULAN;
         return model;
-    }
+    }*/
 
+    static bool __stdcall IsCharInModel(CPed *ped) {
+        bool inModel = false;
+
+        if (ped && ped->m_nPedFlags.bIsStanding) {
+            if (ped && ped->m_pVehicle) {
+                unsigned int model = ped->m_pVehicle->m_nModelIndex;
+                if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
+                    if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()) // Paramedic
+                        inModel = true;
+                }
+                else if (model == CTheScripts::ScriptParams[1].uParam)
+                    inModel = true;
+            }
+        }
+        return inModel;
+    }
     
     /*static int __stdcall GetSpecialModelForOccupants(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
@@ -76,6 +98,9 @@ public:
         bool result; 
 
         if (GetCopcarlaModels().find(_this->m_nModelIndex) != GetCopcarlaModels().end()) {
+            result = true; return result;
+        }
+        else if (GetCopcarsfModels().find(_this->m_nModelIndex) != GetCopcarsfModels().end()) {
             result = true; return result;
         }
         switch (_this->m_nModelIndex) {
@@ -216,23 +241,7 @@ public:
         return false;
     }
 
-    static void __fastcall OpcodeIsCharInAnyPoliceVehicle(CRunningScript *script) {
-        script->CollectParameters(1);
-        bool inModel = false;
-
-        CPed *ped = CPools::ms_pPedPool->GetAt(CTheScripts::ScriptParams[0].uParam);
-        if (ped->m_nPedFlags.bIsStanding) {
-            if (ped->m_pVehicle) {
-                if (IsLawEnforcementVehicle(ped->m_pVehicle)) {
-                    if (ped->m_pVehicle->m_nModelIndex != MODEL_PREDATOR)
-                        inModel = true;
-                }
-            }
-        }
-        script->UpdateCompareFlag(inModel);
-    }
-
-
+    
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
         if (!stream.is_open())
@@ -243,6 +252,13 @@ public:
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetCopcarlaModels().insert(stoi(line));
+                }
+            }
+            // copcarsf
+            if (!line.compare("copcarsf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopcarsfModels().insert(stoi(line));
                 }
             }
             // taxi
@@ -269,7 +285,7 @@ public:
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
         patch::RedirectJump(0x4912D0, Patch_4912D0); 
-        //patch::RedirectJump(0x46963E, Patch_46963E);
+        patch::RedirectJump(0x469629, Patch_469629);
 
         Events::drawingEvent += [] {
             CVehicle *vehicle = FindPlayerVehicle(0, false);
@@ -289,7 +305,7 @@ int AddSpecialCars::currentSpecialModelForSiren;
 int AddSpecialCars::currentTaxiModel;
 int AddSpecialCars::currentModel;
 unsigned int AddSpecialCars::jmp_6AB360;
-unsigned int AddSpecialCars::jmp_469654;
+unsigned int AddSpecialCars::jmp_469658;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -329,20 +345,15 @@ void __declspec(naked) AddSpecialCars::Patch_4912D0() { // Taxi
     }
 }
 
-//void __declspec(naked) AddSpecialCars::Patch_46963E() { // IsCharInModel
-//    __asm {
-//        movsx edx, word ptr[eax + 0x22]
-//        pushad
-//        push edx
-//        call Get—urrentModel
-//        popad
-//        cmp eax, CTheScripts::ScriptParams[1].uParam
-//        mov byte ptr[esp + 80], 1
-//        jz END_CHECK
-//        mov byte ptr[esp + 80], 0
-//        
-//            END_CHECK :
-//            mov jmp_469654, 0x469654
-//            jmp jmp_469654
-//    }
-//}
+void __declspec(naked) AddSpecialCars::Patch_469629() { // IsCharInModel
+    __asm {
+        pushad
+        push eax
+        call IsCharInModel
+        mov currentModel, eax
+        popad
+        mov eax, currentModel
+        mov jmp_469658, 0x469658
+        jmp jmp_469658
+    }
+}
