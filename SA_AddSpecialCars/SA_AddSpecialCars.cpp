@@ -35,6 +35,16 @@ public:
         return copcarsfIds;
     }
 
+    static unordered_set<unsigned int> &GetCopcarvgModels() {
+        static unordered_set<unsigned int> copcarvgIds;
+        return copcarvgIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbiranchModels() {
+        static unordered_set<unsigned int> fbiranchIds;
+        return fbiranchIds;
+    }
+
     static unordered_set<unsigned int> &GetTaxiModels() {
         static unordered_set<unsigned int> taxiIds;
         return taxiIds;
@@ -45,11 +55,20 @@ public:
         return ambulanIds;
     }
 
+    static unordered_set<unsigned int> &GetBoxburgModels() {
+        static unordered_set<unsigned int> boxburgIds;
+        return boxburgIds;
+    }
+
     static int __stdcall GetSpecialModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return MODEL_COPCARLA;
-        if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+        else if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
             return MODEL_COPCARSF;
+        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+            return MODEL_COPCARVG;
+        else if (model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+            return MODEL_FBIRANCH;
         else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
         else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
@@ -63,7 +82,7 @@ public:
         return model;
     }
 
-    /*static int __stdcall GetÑurrentModel(unsigned int model) {
+    /*static int __stdcall GetCurrentModel(unsigned int model) {
         if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return MODEL_AMBULAN;
         return model;
@@ -77,6 +96,10 @@ public:
                 unsigned int model = ped->m_pVehicle->m_nModelIndex;
                 if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
                     if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()) // Paramedic
+                        inModel = true;
+                }
+                else if (CTheScripts::ScriptParams[1].uParam == MODEL_BOXBURG) {
+                    if (model == MODEL_BOXBURG || GetBoxburgModels().find(model) != GetBoxburgModels().end()) // Burglary
                         inModel = true;
                 }
                 else if (model == CTheScripts::ScriptParams[1].uParam)
@@ -103,6 +126,12 @@ public:
         else if (GetCopcarsfModels().find(_this->m_nModelIndex) != GetCopcarsfModels().end()) {
             result = true; return result;
         }
+        else if (GetCopcarvgModels().find(_this->m_nModelIndex) != GetCopcarvgModels().end()) {
+            result = true; return result;
+        }
+        else if (GetFbiranchModels().find(_this->m_nModelIndex) != GetFbiranchModels().end()) {
+            result = true; return result;
+        }
         switch (_this->m_nModelIndex) {
         case MODEL_ENFORCER:                        
         case MODEL_PREDATOR:                        
@@ -115,7 +144,8 @@ public:
         case MODEL_COPCARSF:                        
         case MODEL_COPCARVG:                        
         case MODEL_COPCARRU:                        
-        case MODEL_SWATVAN:                         
+        case MODEL_SWATVAN:
+        //case MODEL_HYDRA:
             result = true;
             break;
         default:
@@ -138,7 +168,8 @@ public:
         case MODEL_MRWHOOP:                         
             result = true;
             break;
-        case MODEL_RHINO:                           
+        case MODEL_RHINO:
+        //case MODEL_HYDRA:
             result = false;
             break;
         default:
@@ -261,6 +292,20 @@ public:
                         GetCopcarsfModels().insert(stoi(line));
                 }
             }
+            // copcarvg
+            if (!line.compare("copcarvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopcarvgModels().insert(stoi(line));
+                }
+            }
+            // fbiranch
+            if (!line.compare("fbiranch")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiranchModels().insert(stoi(line));
+                }
+            }
             // taxi
             if (!line.compare("taxi")) {
                 while (getline(stream, line) && line.compare("end")) {
@@ -273,6 +318,13 @@ public:
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetAmbulanModels().insert(stoi(line));
+                }
+            }
+            // boxburg
+            if (!line.compare("boxburg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetBoxburgModels().insert(stoi(line));
                 }
             }
 
