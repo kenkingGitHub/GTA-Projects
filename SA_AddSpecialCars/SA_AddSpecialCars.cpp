@@ -119,12 +119,6 @@ public:
         return model;
     }
 
-    /*static int __stdcall GetCurrentModel(unsigned int model) {
-        if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
-            return MODEL_AMBULAN;
-        return model;
-    }*/
-
     static bool __stdcall IsCharInModel(CPed *ped) {
         bool inModel = false;
 
@@ -303,14 +297,6 @@ public:
             return CStreaming::GetDefaultCopCarModel(a1);
     }
 
-    static int GetModel(unsigned int modelId) {
-        for (unsigned int i : GetCopcarlaModels()) {
-            if (i == modelId)
-                return i;
-        }
-        return 0;
-    }
-
     static bool LoadModel(int model) {
         unsigned char oldFlags = CStreaming::ms_aInfoForModel[model].m_nFlags;
         CStreaming::RequestModel(model, GAME_REQUIRED);
@@ -323,6 +309,13 @@ public:
             return true;
         }
         return false;
+    }
+
+    static unsigned int GetRandomCopcarla() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopcarlaModels()) 
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
 
     
@@ -414,10 +407,12 @@ public:
         Events::drawingEvent += [] {
             CVehicle *vehicle = FindPlayerVehicle(0, false);
             if (vehicle) {
+                unsigned int size = GetCopcarlaModels().size();
                 gamefont::Print({
                     Format("siren = %d", vehicle->m_nVehicleFlags.bSirenOrAlarm),
                     Format("model = %d", GetCopcarlaModels().find(vehicle->m_nModelIndex) != GetCopcarlaModels().end()),
-                    Format("test = %d", GetModel(vehicle->m_nModelIndex))
+                    Format("test = %d", GetRandomCopcarla()),
+                    Format("level = %d", CTheZones::m_CurrLevel)
                 }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
             }
         };
