@@ -15,10 +15,28 @@
 #include "CSprite.h"
 #include "CVector.h"
 
+#include "cAudioManager.h"
+#include "eVehicleIndex.h"
+
 //float &m_Distance = *(float *)0x5F07DC;
 //bool b_Counter = false;
 //int &NumAmbulancesOnDuty = *(int *)0x885BB0;
 //bool &bReplayEnabled = *(bool *)0x617CAC;
+
+struct cVehicleParams {
+    char m_nDistanceCalculated;
+    char _pad_1[3];
+    float m_fDistance;
+    CVehicle *m_pVehicle;
+    cTransmission *m_pTransmission;
+    eVehicleIndex m_nIndex;
+    float m_fVelocityChange;
+};
+
+
+void /*cAudioManager::*/ProcessVehicleEngine(cAudioManager *_this, cVehicleParams &vehicleParams) {
+    ((void(__thiscall *)(cAudioManager*, cVehicleParams&))0x56A610)(_this, vehicleParams);
+}
 
 #define MODEL_AMBULAN_a 156
 #define MODEL_FIRETRUK_a 158
@@ -326,6 +344,14 @@ public:
                 //            }
                 //        }
                 //    }
+                //}
+
+                //int indexH, indexM; //cVehicleParams params;
+                //CVehicle *car = player->m_pVehicle;
+                //if (car) {
+                //    indexH = car->m_pHandlingData->m_nHandlingId;
+                //    indexM = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[car->m_nModelIndex])->m_nHandlingId;
+                //    //ProcessVehicleEngine(&gAudioManager, params);
                 //}
                 gamefont::Print({
                     Format("cop = %d", patch::GetUChar(0x4C11F2)),
