@@ -6,18 +6,8 @@
 #include "CModelInfo.h"
 #include "CStreaming.h"
 #include "CTheZones.h"
-#include "CWorld.h"
 #include "CTheScripts.h"
 #include "CTimer.h"
-
-#include "CTaskComplexCopInCar.h"
-#include "CTaskSimpleCarSetPedOut.h"
-#include "CTaskComplexKillPedFromBoat.h"
-#include "CPedIntelligence.h"
-
-void CTaskSimpleCarSetPedOut__m1C(CTask *_this, CPed *ped) {
-    ((void(__thiscall *)(CTask*, CPed*))0x647D10)(_this, ped);
-}
 
 using namespace plugin;
 using namespace std;
@@ -102,6 +92,26 @@ public:
         return boxburgIds;
     }
 
+    static unordered_set<unsigned int> &GetRhinoModels() {
+        static unordered_set<unsigned int> rhinoIds;
+        return rhinoIds;
+    }
+
+    static unordered_set<unsigned int> &GetBarracksModels() {
+        static unordered_set<unsigned int> barracksIds;
+        return barracksIds;
+    }
+
+    static unordered_set<unsigned int> &GetSwatvanModels() {
+        static unordered_set<unsigned int> swatvanIds;
+        return swatvanIds;
+    }
+
+    static unordered_set<unsigned int> &GetBroadwayModels() {
+        static unordered_set<unsigned int> broadwayIds;
+        return broadwayIds;
+    }
+
     static int __stdcall GetModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return MODEL_COPCARLA;
@@ -156,6 +166,10 @@ public:
                     if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()) // Firefighter
                         inModel = true;
                 }
+                else if (CTheScripts::ScriptParams[1].uParam == MODEL_BROADWAY) {
+                    if (model == MODEL_BROADWAY || GetBroadwayModels().find(model) != GetBroadwayModels().end()) // Pimping
+                        inModel = true;
+                }
                 else if (model == CTheScripts::ScriptParams[1].uParam)
                     inModel = true;
             }
@@ -178,6 +192,10 @@ public:
             return 63;
         else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
             return 0;
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+            return 6;
+        else if (model == MODEL_RHINO || GetRhinoModels().find(model) != GetRhinoModels().end())
+            return 5;
         return model - 427;
     }
 
@@ -198,6 +216,12 @@ public:
             return 9;
         else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return 0;
+        else if (model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+            return 83;
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+            return 26;
+        else if (model == MODEL_RHINO || GetRhinoModels().find(model) != GetRhinoModels().end())
+            return 25;
         return model - 407;
     }
 
@@ -236,6 +260,34 @@ public:
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
     
+    static unsigned int GetRandomEnforcer() {
+        vector<unsigned int> ids;
+        for (auto id : GetEnforcerModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFbiranch() {
+        vector<unsigned int> ids;
+        for (auto id : GetFbiranchModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomBarracks() {
+        vector<unsigned int> ids;
+        for (auto id : GetBarracksModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomRhino() {
+        vector<unsigned int> ids;
+        for (auto id : GetRhinoModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
         bool result; 
@@ -259,6 +311,15 @@ public:
             result = true; return result;
         }
         else if (GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end()) {
+            result = true; return result;
+        }
+        else if (GetRhinoModels().find(_this->m_nModelIndex) != GetRhinoModels().end()) {
+            result = true; return result;
+        }
+        else if (GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end()) {
+            result = true; return result;
+        }
+        else if (GetSwatvanModels().find(_this->m_nModelIndex) != GetSwatvanModels().end()) {
             result = true; return result;
         }
         switch (_this->m_nModelIndex) {
@@ -293,6 +354,9 @@ public:
         }
         if (GetFiretrukModels().find(_this->m_nModelIndex) != GetFiretrukModels().end()) {
             result = true; return result;
+        }
+        if (GetRhinoModels().find(_this->m_nModelIndex) != GetRhinoModels().end()) {
+            result = false; return result;
         }
         switch (_this->m_nModelIndex) {
         case MODEL_FIRETRUK:                        
@@ -397,26 +461,191 @@ public:
     static int __cdecl ChoosePoliceCarModel(unsigned int a1) {
         CWanted *wanted = FindPlayerWanted(-1);
 
-        if (wanted->AreSwatRequired() && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
-            && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED) {
-            if (plugin::Random(0, 3) == 2)
+        if (wanted->AreSwatRequired() 
+            && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED 
+            && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED) 
+        {
+            if (plugin::Random(0, 1)) {
+                unsigned int enforcerId = GetRandomEnforcer();
+                if (enforcerId != 0) {
+                    if (LoadModel(enforcerId))
+                        return enforcerId;
+                    else
+                        return MODEL_ENFORCER;
+                }
+                else
+                    return MODEL_ENFORCER;
+            }
+            else
                 return MODEL_ENFORCER;
         }
         else {
-            if (wanted->AreFbiRequired() && CStreaming::ms_aInfoForModel[MODEL_FBIRANCH].m_nLoadState == LOADSTATE_LOADED
+            if (wanted->AreFbiRequired() 
+                && CStreaming::ms_aInfoForModel[MODEL_FBIRANCH].m_nLoadState == LOADSTATE_LOADED 
                 && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
             {
-                return MODEL_FBIRANCH;
+                if (plugin::Random(0, 1)) {
+                    unsigned int fbiranchId = GetRandomFbiranch();
+                    if (fbiranchId != 0) {
+                        if (LoadModel(fbiranchId))
+                            return fbiranchId;
+                        else
+                            return MODEL_FBIRANCH;
+                    }
+                    else
+                        return MODEL_FBIRANCH;
+                }
+                else
+                    return MODEL_FBIRANCH;
             }
             if (wanted->AreArmyRequired()
                 && CStreaming::ms_aInfoForModel[MODEL_RHINO].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
             {
-                return (rand() < 16383) + MODEL_RHINO;
+                unsigned int barracksId, rhinoId;
+                int randomArmy = plugin::Random(0, 3);
+                switch (randomArmy) {
+                case 0:
+                    barracksId = GetRandomBarracks();
+                    if (barracksId != 0) {
+                        if (LoadModel(barracksId))
+                            return barracksId;
+                        else
+                            return MODEL_BARRACKS;
+                    }
+                    else
+                        return MODEL_BARRACKS;
+                case 1:
+                    rhinoId = GetRandomRhino();
+                    if (rhinoId != 0) {
+                        if (LoadModel(rhinoId))
+                            return rhinoId;
+                        else
+                            return MODEL_RHINO;
+                    }
+                    else
+                        return MODEL_RHINO;
+                case 2: return MODEL_BARRACKS;
+                case 3: return MODEL_RHINO;
+                default: return MODEL_BARRACKS;
+                }
             }
         }
         return CStreaming::GetDefaultCopCarModel(a1);
+    }
+
+    // CPopulation::LoadSpecificDriverModelsForCar
+    static void __cdecl LoadSpecificDriverModelsForCar(int model) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+            int modelDriver = CStreaming::GetDefaultCabDriverModel();
+            CStreaming::RequestModel(modelDriver, 10);
+            return;
+        }
+        switch (model) {
+        case MODEL_BMX:
+            CStreaming::RequestModel(MODEL_WMYBMX, 10);
+            break;
+        case MODEL_PIZZABOY:
+            CStreaming::RequestModel(MODEL_WMYPIZZ, 10);
+            break;
+        case MODEL_FREEWAY:
+            CStreaming::RequestModel(MODEL_BIKERA, 10);
+            CStreaming::RequestModel(MODEL_BIKERB, 10);
+            break;
+        case MODEL_STRETCH:
+            CStreaming::RequestModel(MODEL_WMYCH, 10);
+            break;
+        case MODEL_MRWHOOP:
+            CStreaming::RequestModel(MODEL_WMOICE, 10);
+            break;
+        case MODEL_SECURICA:
+            CStreaming::RequestModel(MODEL_WMYSGRD, 10);
+            break;
+        default:
+            return;
+        }
+    }
+
+    // CPopulation::RemoveSpecificDriverModelsForCar
+    static void __cdecl RemoveSpecificDriverModelsForCar(int model) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+            int modelDriver = CStreaming::GetDefaultCabDriverModel();
+            CStreaming::SetModelIsDeletable(modelDriver);
+            CStreaming::SetModelTxdIsDeletable(modelDriver);
+            return;
+        }
+
+        switch (model) {
+        case MODEL_BMX:
+            CStreaming::SetModelIsDeletable(MODEL_WMYBMX);
+            CStreaming::SetModelTxdIsDeletable(MODEL_WMYBMX);
+            break;
+        case MODEL_PIZZABOY:
+            CStreaming::SetModelIsDeletable(MODEL_WMYPIZZ);
+            CStreaming::SetModelTxdIsDeletable(MODEL_WMYPIZZ);
+            break;
+        default:
+            return;
+        case MODEL_FREEWAY:
+            CStreaming::SetModelIsDeletable(MODEL_BIKERA);
+            CStreaming::SetModelTxdIsDeletable(MODEL_BIKERA);
+            CStreaming::SetModelIsDeletable(MODEL_BIKERB);
+            CStreaming::SetModelTxdIsDeletable(MODEL_BIKERB);
+            break;
+        case MODEL_STRETCH:
+            CStreaming::SetModelIsDeletable(MODEL_WMYCH);
+            CStreaming::SetModelTxdIsDeletable(MODEL_WMYCH);
+            break;
+        case MODEL_MRWHOOP:
+            CStreaming::SetModelIsDeletable(MODEL_WMOICE);
+            CStreaming::SetModelTxdIsDeletable(MODEL_WMOICE);
+            break;
+        case MODEL_SECURICA:
+            CStreaming::SetModelIsDeletable(MODEL_WMYSGRD);
+            CStreaming::SetModelTxdIsDeletable(MODEL_WMYSGRD);
+            break;
+        }
+    }
+
+    // CPopulation::FindSpecificDriverModelForCar_ToUse
+    static int __cdecl FindSpecificDriverModelForCar_ToUse(int model) {
+        int result; int randomBiker; 
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+            result = CStreaming::GetDefaultCabDriverModel(); return result;
+        }
+        switch (model) {
+        case MODEL_BMX:
+            result = MODEL_WMYBMX;
+            break;
+        case MODEL_PIZZABOY:
+            result = MODEL_WMYPIZZ;
+            break;
+        case MODEL_FREEWAY:
+            randomBiker = plugin::Random(0, 3);
+            if (randomBiker) {
+                if (randomBiker != 1)
+                    goto LABEL_12;
+                result = MODEL_BIKERB;
+            }
+            else
+                result = MODEL_BIKERA;
+            break;
+        case MODEL_STRETCH:
+            result = MODEL_WMYCH;
+            break;
+        case MODEL_MRWHOOP:
+            result = MODEL_WMOICE;
+            break;
+        case MODEL_SECURICA:
+            result = MODEL_WMYSGRD;
+            break;
+        default:
+        LABEL_12:
+            result = -1;
+            break;
+        }
+        return result;
     }
 
     static bool LoadModel(int model) {
@@ -432,86 +661,6 @@ public:
         }
         return false;
     }
-
-    
-
-    // CCarAI::AddPoliceCarOccupants
-    //static void __cdecl AddPoliceCarOccupants(CVehicle *vehicle, bool a3)  {
-    //    if (!vehicle->m_nVehicleFlags.bOccupantsHaveBeenGenerated) {
-    //        vehicle->m_nVehicleFlags.bOccupantsHaveBeenGenerated = 1;
-    //        CPlayerPed *player = FindPlayerPed(-1);
-    //        CPed *driver, *passenger;
-    //        switch (vehicle->m_nModelIndex) {
-    //        case MODEL_BARRACKS:
-    //        case MODEL_COPCARLA:
-    //        case MODEL_COPCARSF:
-    //        case MODEL_COPCARVG:
-    //        case MODEL_COPCARRU:
-    //        case 3136:
-    //        case 3137:
-    //        case 3140:
-    //        case 3142:
-    //        case 3143:
-    //            driver = vehicle->SetUpDriver(-1, 0, 0);
-    //            if (player->GetWantedLevel() > 1) {
-    //                passenger = vehicle->SetupPassenger(0, -1, 0, 0);
-    //                if (player->GetWantedLevel() > 2) {
-    //                    if (plugin::Random(0, 3) < 1) {
-    //                        driver->GiveDelayedWeapon(WEAPON_SHOTGUN, 1000);
-    //                        goto LABEL_13;
-    //                    }
-    //                    if (plugin::Random(0, 3) < 1)
-    //                        passenger->GiveDelayedWeapon(WEAPON_SHOTGUN, 1000);
-    //                }
-    //            LABEL_13:
-    //                driver->m_pIntelligence->ClearTasks(1, 1);
-    //                CTask *task_driver = nullptr;
-    //                task_driver = new CTaskComplexCopInCar(vehicle, driver, player, 1);
-    //                driver->m_pIntelligence->m_TaskMgr.SetTask(task_driver, 3, 1);
-    //                passenger->m_pIntelligence->ClearTasks(1, 1);
-    //                CTask *task_passenger = nullptr;
-    //                task_passenger = new CTaskComplexCopInCar(vehicle, passenger, player, 0);
-    //                passenger->m_pIntelligence->m_TaskMgr.SetTask(task_passenger, 3, 1);
-    //                return;
-    //            }
-    //            if (a3 || plugin::Random(0, 100) < 50)
-    //                vehicle->SetupPassenger(0, -1, 0, 0);
-    //            break;
-    //        case MODEL_ENFORCER:
-    //        case MODEL_FBIRANCH:
-    //        case 3146:
-    //        case 3141:
-    //            vehicle->SetUpDriver(-1, 0, 0);
-    //            vehicle->SetupPassenger(0, -1, 0, 0);
-    //            vehicle->SetupPassenger(1, -1, 0, 0);
-    //            vehicle->SetupPassenger(2, -1, 0, 0);
-    //            return;
-    //        case MODEL_PREDATOR:
-    //            if (player->GetWantedLevel() > 1) {
-    //                driver = vehicle->SetUpDriver(-1, 0, 0);
-    //                CTask *task_driver = nullptr;
-    //                task_driver = new CTaskSimpleCarSetPedOut(vehicle, 10, 1);
-    //                CTaskSimpleCarSetPedOut__m1C(task_driver, driver); // ?
-    //                CVector pos = { 0.0f, 3.0f, 2.0f };
-    //                driver->AttachPedToEntity(vehicle, pos, 0, 6.2831855f, WEAPON_PISTOL);
-    //                driver->m_nPedFlags.bStayInSamePlace = 1;
-    //                CTask *task = nullptr;
-    //                task = new CTaskComplexKillPedFromBoat(player);
-    //                driver->m_pIntelligence->m_TaskMgr.SetTask(task, 3, 0);
-    //                CTaskSimpleCarSetPedOut__dtor((int)&a1);
-    //            }
-    //            goto LABEL_28;
-    //        case MODEL_RHINO:
-    //        case MODEL_COPBIKE:
-    //        case 3144:
-    //        LABEL_28:
-    //            vehicle->SetUpDriver(-1, 0, 0);
-    //            return;
-    //        default:
-    //            return;
-    //        }
-    //    }
-    //}
 
     
     AddSpecialCars() {
@@ -585,40 +734,59 @@ public:
                         GetBoxburgModels().insert(stoi(line));
                 }
             }
-
+            if (!line.compare("rhino")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetRhinoModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("barracks")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetBarracksModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("swatvan")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatvanModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("broadway")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetBroadwayModels().insert(stoi(line));
+                }
+            }
         }
         
         patch::RedirectJump(0x6D2370, IsLawEnforcementVehicle);
         patch::RedirectJump(0x6D8470, UsesSiren);
         patch::RedirectJump(0x407C50, GetDefaultCopCarModel);
-        //patch::RedirectJump(0x421980, ChoosePoliceCarModel);
-        //patch::RedirectJump(0x41C070, AddPoliceCarOccupants);
+        patch::RedirectJump(0x6117F0, LoadSpecificDriverModelsForCar);
+        patch::RedirectJump(0x6119D0, RemoveSpecificDriverModelsForCar);
+        patch::RedirectJump(0x611900, FindSpecificDriverModelForCar_ToUse);
+        patch::RedirectJump(0x421980, ChoosePoliceCarModel);
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
         patch::RedirectJump(0x4912D0, Patch_4912D0); 
         patch::RedirectJump(0x469629, Patch_469629);
         patch::RedirectJump(0x6ACA57, Patch_6ACA57);
         patch::RedirectJump(0x6B1F4F, Patch_6B1F4F);
-        
         patch::RedirectJump(0x41C0A6, Patch_41C0A6);
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
 
         Events::drawingEvent += [] {
-            //CVehicle *vehicle = FindPlayerVehicle(0, false);
-            //if (vehicle) {
-                //unsigned int size = GetCopcarlaModels().size();
-                gamefont::Print({
-                    //Format("siren = %d", vehicle->m_nVehicleFlags.bSirenOrAlarm),
-                    Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
-                    Format("level = %d", CTheZones::m_CurrLevel),
-                    Format("copcar ru = %d", CStreaming::ms_aDefaultCopCarModel[0]),
-                    Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
-                    Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
-                    Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
-                    Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel)
-                }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-            //}
+            gamefont::Print({
+                Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
+                Format("level = %d", CTheZones::m_CurrLevel),
+                Format("copcar ru = %d", CStreaming::ms_aDefaultCopCarModel[0]),
+                Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
+                Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
+                Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
+                Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel)
+            }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
     }
