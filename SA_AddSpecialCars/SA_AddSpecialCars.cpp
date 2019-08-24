@@ -17,6 +17,8 @@ public:
     static int currentModelForSiren;
     static int currentModelTaxi;
     static int currentModelFiretruk;
+    static int currentWaterJetsModel;
+    static int currentTurretsModel;
     static int currentModel;
     static int currentModel_Patch_41C0A6;
     static int currentModel_Patch_42BBC8;
@@ -28,14 +30,15 @@ public:
     static unsigned int jmp_42BBCE;
     static unsigned int jmp_613A71;
 
-    static void Patch_6AB349(); // Siren
-    static void Patch_4912D0(); // Taxi
-    static void Patch_469629(); // IsCharInModel
-    static void Patch_6ACA57(); // Firetruk
-    static void Patch_6B1F4F(); // Firetruk
-    static void Patch_41C0A6(); // AddPoliceCarOccupants
+    static void Patch_6AB349(); 
+    static void Patch_4912D0(); 
+    static void Patch_469629(); 
+    static void Patch_6ACA57(); 
+    static void Patch_6B1F4F(); 
+    static void Patch_41C0A6(); 
     static void Patch_42BBC8();
     static void Patch_613A68();
+    static void Patch_6ACA51();
 
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
@@ -92,11 +95,6 @@ public:
         return boxburgIds;
     }
 
-    static unordered_set<unsigned int> &GetRhinoModels() {
-        static unordered_set<unsigned int> rhinoIds;
-        return rhinoIds;
-    }
-
     static unordered_set<unsigned int> &GetBarracksModels() {
         static unordered_set<unsigned int> barracksIds;
         return barracksIds;
@@ -148,6 +146,19 @@ public:
         return model;
     }
 
+    static int __stdcall GetWaterJetsModel(unsigned int model) {
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end() 
+            || model == MODEL_SWATVAN || GetSwatvanModels().find(model) != GetSwatvanModels().end())
+            return MODEL_FIRETRUK;
+        return model;
+    }
+
+    static int __stdcall GetTurretsModel(unsigned int model) {
+        if (model == MODEL_SWATVAN || GetSwatvanModels().find(model) != GetSwatvanModels().end())
+            return MODEL_SWATVAN;
+        return model;
+    }
+
     static bool __stdcall IsCharInModel(CPed *ped) {
         bool inModel = false;
 
@@ -194,8 +205,6 @@ public:
             return 0;
         else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
             return 6;
-        else if (model == MODEL_RHINO || GetRhinoModels().find(model) != GetRhinoModels().end())
-            return 5;
         return model - 427;
     }
 
@@ -220,8 +229,6 @@ public:
             return 83;
         else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
             return 26;
-        else if (model == MODEL_RHINO || GetRhinoModels().find(model) != GetRhinoModels().end())
-            return 25;
         return model - 407;
     }
 
@@ -281,13 +288,6 @@ public:
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
 
-    static unsigned int GetRandomRhino() {
-        vector<unsigned int> ids;
-        for (auto id : GetRhinoModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
         bool result; 
@@ -311,9 +311,6 @@ public:
             result = true; return result;
         }
         else if (GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end()) {
-            result = true; return result;
-        }
-        else if (GetRhinoModels().find(_this->m_nModelIndex) != GetRhinoModels().end()) {
             result = true; return result;
         }
         else if (GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end()) {
@@ -355,9 +352,7 @@ public:
         if (GetFiretrukModels().find(_this->m_nModelIndex) != GetFiretrukModels().end()) {
             result = true; return result;
         }
-        if (GetRhinoModels().find(_this->m_nModelIndex) != GetRhinoModels().end()) {
-            result = false; return result;
-        }
+        
         switch (_this->m_nModelIndex) {
         case MODEL_FIRETRUK:                        
         case MODEL_AMBULAN:                         
@@ -503,8 +498,8 @@ public:
                 && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
             {
-                unsigned int barracksId, rhinoId;
-                int randomArmy = plugin::Random(0, 3);
+                unsigned int barracksId;
+                int randomArmy = plugin::Random(0, 2);
                 switch (randomArmy) {
                 case 0:
                     barracksId = GetRandomBarracks();
@@ -516,18 +511,8 @@ public:
                     }
                     else
                         return MODEL_BARRACKS;
-                case 1:
-                    rhinoId = GetRandomRhino();
-                    if (rhinoId != 0) {
-                        if (LoadModel(rhinoId))
-                            return rhinoId;
-                        else
-                            return MODEL_RHINO;
-                    }
-                    else
-                        return MODEL_RHINO;
-                case 2: return MODEL_BARRACKS;
-                case 3: return MODEL_RHINO;
+                case 1: return MODEL_BARRACKS;
+                case 2: return MODEL_RHINO;
                 default: return MODEL_BARRACKS;
                 }
             }
@@ -734,12 +719,6 @@ public:
                         GetBoxburgModels().insert(stoi(line));
                 }
             }
-            if (!line.compare("rhino")) {
-                while (getline(stream, line) && line.compare("end")) {
-                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetRhinoModels().insert(stoi(line));
-                }
-            }
             if (!line.compare("barracks")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
@@ -773,6 +752,7 @@ public:
         patch::RedirectJump(0x469629, Patch_469629);
         patch::RedirectJump(0x6ACA57, Patch_6ACA57);
         patch::RedirectJump(0x6B1F4F, Patch_6B1F4F);
+        patch::RedirectJump(0x6ACA51, Patch_6ACA51);
         patch::RedirectJump(0x41C0A6, Patch_41C0A6);
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
@@ -795,6 +775,8 @@ public:
 int AddSpecialCars::currentModelForSiren;
 int AddSpecialCars::currentModelTaxi;
 int AddSpecialCars::currentModelFiretruk;
+int AddSpecialCars::currentWaterJetsModel;
+int AddSpecialCars::currentTurretsModel;
 int AddSpecialCars::currentModel;
 int AddSpecialCars::currentModel_Patch_41C0A6;
 int AddSpecialCars::currentModel_Patch_42BBC8;
@@ -876,23 +858,44 @@ void __declspec(naked) AddSpecialCars::Patch_6ACA57() { // Firetruk
     }
 }
 
-void __declspec(naked) AddSpecialCars::Patch_6B1F4F() { // Firetruk
+void __declspec(naked) AddSpecialCars::Patch_6B1F4F() { // firetruk and svatvan water jets
     __asm {
         CWDE
         mov ecx, 407
         pushad
         push eax
-        call GetFiretrukModel
-        mov currentModelFiretruk, eax
+        call GetWaterJetsModel
+        mov currentWaterJetsModel, eax
         popad
-        cmp ecx, currentModelFiretruk
+        cmp ecx, currentWaterJetsModel
         jz SET_TRUE
         jmp END_CHECK
         SET_TRUE :
         mov ecx, 0x6B1F5B
         jmp ecx
             END_CHECK :
-            mov ecx, 0x6B1F55
+            mov ecx, 0x6B1F77
+            jmp ecx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_6ACA51() { // swatvan turrets
+    __asm {
+        CWDE
+        mov ecx, 601
+        pushad
+        push eax
+        call GetTurretsModel
+        mov currentTurretsModel, eax
+        popad
+        cmp ecx, currentTurretsModel
+        jz SET_TRUE
+        jmp END_CHECK
+        SET_TRUE :
+        mov ecx, 0x6ACAAE
+            jmp ecx
+            END_CHECK :
+        mov ecx, 0x6ACA57
             jmp ecx
     }
 }
