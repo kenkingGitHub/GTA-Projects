@@ -110,6 +110,16 @@ public:
         return broadwayIds;
     }
 
+    static unordered_set<unsigned int> &GetStreakModels() {
+        static unordered_set<unsigned int> streakIds;
+        return streakIds;
+    }
+
+    static unordered_set<unsigned int> &GetStreakcModels() {
+        static unordered_set<unsigned int> streakcIds;
+        return streakcIds;
+    }
+
     static int __stdcall GetModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return MODEL_COPCARLA;
@@ -179,6 +189,14 @@ public:
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_BROADWAY) {
                     if (model == MODEL_BROADWAY || GetBroadwayModels().find(model) != GetBroadwayModels().end()) // Pimping
+                        inModel = true;
+                }
+                else if (CTheScripts::ScriptParams[1].uParam == MODEL_STREAK) {
+                    if (model == MODEL_STREAK || GetStreakModels().find(model) != GetStreakModels().end()) // Freight Train
+                        inModel = true;
+                }
+                else if (CTheScripts::ScriptParams[1].uParam == MODEL_STREAKC) {
+                    if (model == MODEL_STREAKC || GetStreakcModels().find(model) != GetStreakcModels().end()) 
                         inModel = true;
                 }
                 else if (model == CTheScripts::ScriptParams[1].uParam)
@@ -735,6 +753,18 @@ public:
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetBroadwayModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("streak")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetStreakModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("streakc")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetStreakcModels().insert(stoi(line));
                 }
             }
         }
