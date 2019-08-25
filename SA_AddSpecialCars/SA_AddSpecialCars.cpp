@@ -24,6 +24,7 @@ public:
     static int currentModel_Patch_42BBC8;
     static int currentModel_Patch_613A68;
     static unsigned int randomCopCarTime;
+    static unsigned int randomEmergencyServicesCarTime;
     static unsigned int jmp_6AB360;
     static unsigned int jmp_469658;
     static unsigned int jmp_41C0AF;
@@ -306,6 +307,20 @@ public:
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
 
+    static unsigned int GetRandomAmbulance() {
+        vector<unsigned int> ids;
+        for (auto id : GetAmbulanModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFiretruk() {
+        vector<unsigned int> ids;
+        for (auto id : GetFiretrukModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
         bool result; 
@@ -442,7 +457,7 @@ public:
             }
         }
 
-        if (!CStreaming::m_bCopBikeLoaded || a1 || CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[4]].m_nLoadState != 1 || (result = CStreaming::ms_DefaultCopBikeModel, CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikeModel].m_nLoadState != 1))
+        if (!CStreaming::m_bCopBikeLoaded || a1 || CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikerModel].m_nLoadState != 1 || (result = CStreaming::ms_DefaultCopBikeModel, CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikeModel].m_nLoadState != 1))
         {
             result = CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel];
             if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]].m_nLoadState != 1 || CStreaming::ms_aInfoForModel[result].m_nLoadState != 1)
@@ -787,6 +802,27 @@ public:
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
 
+
+        Events::gameProcessEvent += [] {
+            if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 60000)) {
+                randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
+                unsigned int ambulanceId = GetRandomAmbulance();
+                if (ambulanceId != 0) {
+                    if (CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] == MODEL_AMBULAN)
+                        CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = ambulanceId;
+                    else
+                        CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = MODEL_AMBULAN;
+                }
+                unsigned int firetrukId = GetRandomFiretruk();
+                if (firetrukId != 0) {
+                    if (CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] != MODEL_FIRETRUK)
+                        CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = MODEL_FIRETRUK;
+                    else
+                        CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = firetrukId;
+                }
+            }
+        };
+
         Events::drawingEvent += [] {
             gamefont::Print({
                 Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
@@ -795,7 +831,9 @@ public:
                 Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
                 Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
                 Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
-                Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel)
+                Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
+                Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
+                Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel])
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
@@ -812,6 +850,7 @@ int AddSpecialCars::currentModel_Patch_41C0A6;
 int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 unsigned int AddSpecialCars::randomCopCarTime = 0;
+unsigned int AddSpecialCars::randomEmergencyServicesCarTime = 0;
 unsigned int AddSpecialCars::jmp_6AB360;
 unsigned int AddSpecialCars::jmp_469658;
 unsigned int AddSpecialCars::jmp_41C0AF;
