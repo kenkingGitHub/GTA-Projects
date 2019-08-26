@@ -802,23 +802,24 @@ public:
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
 
+        patch::SetChar(0x42F9FB, 6, true);
 
         Events::gameProcessEvent += [] {
-            if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 60000)) {
+            if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                 randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
                 unsigned int ambulanceId = GetRandomAmbulance();
                 if (ambulanceId != 0) {
-                    if (CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] == MODEL_AMBULAN)
+                    if (plugin::Random(0, 1))
                         CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = ambulanceId;
                     else
                         CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = MODEL_AMBULAN;
                 }
                 unsigned int firetrukId = GetRandomFiretruk();
                 if (firetrukId != 0) {
-                    if (CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] != MODEL_FIRETRUK)
-                        CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = MODEL_FIRETRUK;
-                    else
+                    if (plugin::Random(0, 1))
                         CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = firetrukId;
+                    else
+                        CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = MODEL_FIRETRUK;
                 }
             }
         };
