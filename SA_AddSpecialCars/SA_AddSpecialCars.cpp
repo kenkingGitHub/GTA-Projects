@@ -802,9 +802,10 @@ public:
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
 
-        patch::SetChar(0x42F9FB, 6, true);
+        //patch::SetChar(0x42F9FB, 6, true);
 
         Events::gameProcessEvent += [] {
+            CWanted *wanted = FindPlayerWanted(-1);
             if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                 randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
                 unsigned int ambulanceId = GetRandomAmbulance();
@@ -821,6 +822,34 @@ public:
                     else
                         CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = MODEL_FIRETRUK;
                 }
+                // RoadBlocks
+                if (wanted->AreSwatRequired()) {
+                    unsigned int enforcerId = GetRandomEnforcer();
+                    if (enforcerId != 0) {
+                        if (patch::GetShort(0x461BE7) == MODEL_ENFORCER)
+                            patch::SetShort(0x461BE7, enforcerId, true);
+                        else
+                            patch::SetShort(0x461BE7, MODEL_ENFORCER, true);
+                    }
+                }
+                if (wanted->AreFbiRequired()) {
+                    unsigned int fbiranchId = GetRandomFbiranch();
+                    if (fbiranchId != 0) {
+                        if (patch::GetShort(0x461BCC) == MODEL_FBIRANCH)
+                            patch::SetShort(0x461BCC, fbiranchId, true);
+                        else
+                            patch::SetShort(0x461BCC, MODEL_FBIRANCH, true);
+                    }
+                }
+                if (wanted->AreArmyRequired()) {
+                    unsigned int barracksId = GetRandomBarracks();
+                    if (barracksId != 0) {
+                        if (patch::GetShort(0x461BB1) == MODEL_BARRACKS)
+                            patch::SetShort(0x461BB1, barracksId, true);
+                        else
+                            patch::SetShort(0x461BB1, MODEL_BARRACKS, true);
+                    }
+                }
             }
         };
 
@@ -834,7 +863,10 @@ public:
                 Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
                 Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
                 Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
-                Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel])
+                Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
+                Format("armyBlok = %d", patch::GetShort(0x461BB1)),
+                Format("swatBlok = %d", patch::GetShort(0x461BE7)),
+                Format("fbiBlok = %d", patch::GetShort(0x461BCC))
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
