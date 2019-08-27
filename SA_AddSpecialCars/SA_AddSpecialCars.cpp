@@ -8,13 +8,26 @@
 #include "CTheZones.h"
 #include "CTheScripts.h"
 #include "CTimer.h"
+#include "CWorld.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "CCarAI.h"
 
 using namespace plugin;
 using namespace std;
 
 class AddSpecialCars {
 public:
+    enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
+
+    static eSpawnCarState m_currentState;
+    static short outCount;
+    static CVector carPos;
+    static float carAngle;
+    static CAutoPilot pilot;
+
     static int currentModelForSiren;
+    static int currentModelCopbike;
     static int currentModelTaxi;
     static int currentModelFiretruk;
     static int currentWaterJetsModel;
@@ -30,6 +43,7 @@ public:
     static unsigned int jmp_41C0AF;
     static unsigned int jmp_42BBCE;
     static unsigned int jmp_613A71;
+    static unsigned int jmp_6BD415;
 
     static void Patch_6AB349(); 
     static void Patch_4912D0(); 
@@ -40,6 +54,7 @@ public:
     static void Patch_42BBC8();
     static void Patch_613A68();
     static void Patch_6ACA51();
+    static void Patch_6BD408();
 
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
@@ -130,8 +145,6 @@ public:
             return MODEL_COPCARVG;
         else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
             return MODEL_COPCARRU;
-        else if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
-            return MODEL_COPBIKE;
         else if (model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
             return MODEL_FBIRANCH;
         else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
@@ -142,6 +155,12 @@ public:
             return MODEL_AMBULAN;
         else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return MODEL_FIRETRUK;
+        return model;
+    }
+
+    static int __stdcall GetCopbikeModel(unsigned int model) {
+        if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+            return MODEL_COPBIKE;
         return model;
     }
 
@@ -680,6 +699,14 @@ public:
         return false;
     }
 
+    static CVehicle *GetRandomCar(float x1, float y1, float x2, float y2) {
+        std::vector<CVehicle *> vehicles;
+        for (auto vehicle : CPools::ms_pVehiclePool) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_pDriver && vehicle->IsWithinArea(x1, y1, x2, y2))
+                vehicles.push_back(vehicle);
+        }
+        return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
+    }
     
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -801,8 +828,12 @@ public:
         patch::RedirectJump(0x41C0A6, Patch_41C0A6);
         patch::RedirectJump(0x42BBC8, Patch_42BBC8);
         patch::RedirectJump(0x613A68, Patch_613A68);
+        patch::RedirectJump(0x6BD408, Patch_6BD408);
 
         //patch::SetChar(0x42F9FB, 6, true);
+
+        static int spawnCarTime = 0;
+        static int randomModel = 3;
 
         Events::gameProcessEvent += [] {
             CWanted *wanted = FindPlayerWanted(-1);
@@ -851,6 +882,97 @@ public:
                     }
                 }
             }
+        
+            //CPlayerPed *player = FindPlayerPed(-1);
+            //if (player) {
+            //    // Spawn Cars
+            //    switch (m_currentState) {
+            //    case STATE_FIND:
+            //        if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
+            //            CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
+            //            CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
+            //            CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
+            //            if (car) {
+            //                carPos = car->m_matrix->pos;
+            //                carAngle = car->GetHeading() / 57.295776f;
+            //                pilot = car->m_autoPilot;
+            //                m_currentState = STATE_WAIT;
+            //            }
+            //        }
+
+            //        break;
+            //    case STATE_WAIT:
+            //        if (DistanceBetweenPoints(player->GetPosition(), carPos) < 150.0f) {
+            //            CVector cornerA, cornerB;
+            //            cornerA.x = carPos.x - 5.0f;
+            //            cornerA.y = carPos.y - 7.0f;
+            //            cornerA.z = carPos.z - 3.0f;
+            //            cornerB.x = carPos.x + 5.0f;
+            //            cornerB.y = carPos.y + 7.0f;
+            //            cornerB.z = carPos.z + 3.0f;
+            //            outCount = 1;
+            //            CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
+            //            if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
+            //                m_currentState = STATE_CREATE;
+            //        }
+            //        else
+            //            m_currentState = STATE_FIND;
+            //        break;
+            //    case STATE_CREATE:
+            //        int modelCar, modelPed;
+            //        if (randomModel < 3)
+            //            randomModel++;
+            //        else
+            //            randomModel = 0;
+            //        switch (randomModel) {
+            //        case 0:
+            //            if (CModelInfo::IsCarModel(MODEL_AMBULAN_a))
+            //                modelCar = MODEL_AMBULAN_a;
+            //            else
+            //                modelCar = MODEL_AMBULAN;
+            //            modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+            //            break;
+            //        case 1:
+            //            if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a))
+            //                modelCar = MODEL_FIRETRUK_a;
+            //            else
+            //                modelCar = MODEL_FIRETRUK;
+            //            modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+            //            break;
+            //        case 2: modelCar = MODEL_AMBULAN; modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel]; break;
+            //        case 3: modelCar = MODEL_FIRETRUK; modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel]; break;
+            //        default: modelCar = MODEL_AMBULAN; modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel]; break;
+            //        }
+            //        if (LoadModel(modelCar) && LoadModel(modelPed)) {
+            //            CVehicle *vehicle = nullptr;
+            //            vehicle = new CAutomobile(modelCar, 1, true);
+            //            if (vehicle) {
+            //                spawnCarTime = CTimer::m_snTimeInMilliseconds;
+            //                vehicle->SetPosn(carPos);
+            //                vehicle->SetHeading(carAngle);
+            //                vehicle->m_nStatus = 4;
+            //                CWorld::Add(vehicle);
+            //                CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
+            //                reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
+            //                if (modelPed == CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel])
+            //                    CCarAI::AddAmbulanceOccupants(vehicle);
+            //                else
+            //                    CCarAI::AddFiretruckOccupants(vehicle);
+            //                Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 0.0f, 0.0f, 0.0f);
+            //                vehicle->m_autoPilot = pilot;
+            //                if (plugin::Random(0, 1)) {
+            //                    vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+            //                    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+            //                    vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+            //                }
+            //                else
+            //                    vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+            //            }
+            //        }
+            //        m_currentState = STATE_FIND;
+            //        break;
+            //    }
+            //}
         };
 
         Events::drawingEvent += [] {
@@ -873,7 +995,14 @@ public:
     }
 } specialCars;
 
+AddSpecialCars::eSpawnCarState AddSpecialCars::m_currentState = STATE_FIND;
+short AddSpecialCars::outCount = 0;
+CVector AddSpecialCars::carPos = { 0.0f, 0.0f, 0.0f };
+float AddSpecialCars::carAngle = 0.0f;
+CAutoPilot AddSpecialCars::pilot;
+
 int AddSpecialCars::currentModelForSiren;
+int AddSpecialCars::currentModelCopbike;
 int AddSpecialCars::currentModelTaxi;
 int AddSpecialCars::currentModelFiretruk;
 int AddSpecialCars::currentWaterJetsModel;
@@ -889,6 +1018,7 @@ unsigned int AddSpecialCars::jmp_469658;
 unsigned int AddSpecialCars::jmp_41C0AF;
 unsigned int AddSpecialCars::jmp_42BBCE;
 unsigned int AddSpecialCars::jmp_613A71;
+unsigned int AddSpecialCars::jmp_6BD415;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1041,5 +1171,21 @@ void __declspec(naked) AddSpecialCars::Patch_613A68() {
         mov eax, currentModel_Patch_613A68
         mov jmp_613A71, 0x613A71
         jmp jmp_613A71
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_6BD408() { // Siren copbike
+    __asm {
+        mov  ecx, esi
+        call  CVehicle::AddDamagedVehicleParticles
+        movsx eax, word ptr[esi + 22h]
+        pushad
+        push eax
+        call GetCopbikeModel
+        mov currentModelCopbike, eax
+        popad
+        cmp currentModelCopbike, 523
+        mov jmp_6BD415, 0x6BD415
+        jmp jmp_6BD415
     }
 }
