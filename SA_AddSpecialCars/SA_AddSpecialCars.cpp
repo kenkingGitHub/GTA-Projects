@@ -13,6 +13,9 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 
+#include "extensions\KeyCheck.h"
+#include "CMessages.h"
+
 using namespace plugin;
 using namespace std;
 
@@ -56,6 +59,11 @@ public:
     static void Patch_6ACA51();
     static void Patch_6BD408();
 
+    static unordered_set<string> &GetCopModels() {
+        static unordered_set<string> copName;
+        return copName;
+    }
+    
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
         return copcarlaIds;
@@ -270,6 +278,13 @@ public:
         return model - 407;
     }
 
+    static string GetRandomCop() {
+        vector<string> ids;
+        for (auto id : GetCopModels())
+            ids.push_back(id);
+        return ids.empty() ? "" : ids[plugin::Random(0, ids.size() - 1)];
+    }
+    
     static unsigned int GetRandomCopcarla() {
         vector<unsigned int> ids;
         for (auto id : GetCopcarlaModels())
@@ -809,6 +824,12 @@ public:
                         GetStreakcModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("cop")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopModels().insert(line);
+                }
+            }
         }
         
         patch::RedirectJump(0x6D2370, IsLawEnforcementVehicle);
@@ -836,6 +857,22 @@ public:
         static int randomModel = 3;
 
         Events::gameProcessEvent += [] {
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay('M', 2000)) {
+                string copName = GetRandomCop();
+                if (copName.length() > 3) {
+                    char name[] = "";
+                    strcpy(name, copName.c_str());
+                    Command<COMMAND_LOAD_SPECIAL_CHARACTER>(1, name);
+                    Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
+                    if (Command<COMMAND_HAS_SPECIAL_CHARACTER_LOADED>(1)) {
+                        CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 290;
+                        CMessages::AddMessageJumpQ("yes", 2000, 3, true);
+                        Command<COMMAND_UNLOAD_SPECIAL_CHARACTER>(1);
+                    }
+                }
+            }
+            
             CWanted *wanted = FindPlayerWanted(-1);
             if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                 randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
@@ -986,6 +1023,7 @@ public:
                 Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
                 Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
                 Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
+                Format("cop = %d", CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]),
                 Format("armyBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiBlok = %d", patch::GetShort(0x461BCC))
