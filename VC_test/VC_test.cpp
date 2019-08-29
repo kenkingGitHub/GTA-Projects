@@ -1,33 +1,106 @@
-#include "plugin.h"
-#include "CTheScripts.h"
-#include "extensions\KeyCheck.h"
+//#include "plugin.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                int pickup;
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                    CVector pos = player->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f));
+//                    //Command<COMMAND_REQUEST_MODEL>(335, 2);
+//                    //Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
+//                    //if (Command<COMMAND_HAS_MODEL_LOADED>(335)) {
+//                        Command<COMMAND_CREATE_PICKUP>(411, 3, pos.x, pos.y, pos.z, &pickup);
+//                        //Command<COMMAND_MARK_MODEL_AS_NO_LONGER_NEEDED>(335);
+//                    //}
+//                }
+//                if (Command<COMMAND_HAS_PICKUP_BEEN_COLLECTED>(pickup))
+//                    CMessages::AddMessageJumpQ(L"message", 2000, 1);
+//            }
+//        };
+//    }
+//} test;
 
-unsigned int &OnAMissionFlag = *(unsigned int *)0x978748;
+
+#include "plugin.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "extensions\KeyCheck.h"
 
 using namespace plugin;
 
 class Test {
 public:
+    enum eAudioState { STATE_LOAD, STATE_PLAY, STATE_CLEAR };
+    static eAudioState m_currentState;
+    
     Test() {
-        Events::drawingEvent += [] {
-            gamefont::Print({
-                Format("OnAMissionFlag = %d", CTheScripts::ScriptSpace[OnAMissionFlag])
-            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-           
-            CPed *player = FindPlayerPed();
-            if (player) {
+        Events::gameProcessEvent += [] {
+            switch (m_currentState) {
+            case STATE_LOAD:
                 KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('M', 1000)) {
-                    if (CTheScripts::ScriptSpace[OnAMissionFlag])
-                        CTheScripts::ScriptSpace[OnAMissionFlag] = 0;
-                    else
-                        CTheScripts::ScriptSpace[OnAMissionFlag] = 1;
+                if (KeyCheck::CheckWithDelay('M', 2000)) {
+                    Command<COMMAND_LOAD_MISSION_AUDIO>(1, "FIN_1a");
+                    m_currentState = STATE_PLAY;
                 }
+                break;
+            case STATE_PLAY:
+                if (Command<COMMAND_HAS_MISSION_AUDIO_LOADED>(1)) {
+                    Command<COMMAND_PLAY_MISSION_AUDIO>(1);
+                    m_currentState = STATE_CLEAR;
+                }
+                break;
+            case STATE_CLEAR:
+                if (Command<COMMAND_HAS_MISSION_AUDIO_FINISHED>(1)) {
+                    Command<COMMAND_CLEAR_MISSION_AUDIO>(1);
+                    m_currentState = STATE_LOAD;
+                }
+                break;
             }
         };
     }
 } test;
 
+Test::eAudioState Test::m_currentState = STATE_LOAD;
+
+//#include "plugin.h"
+//#include "CTheScripts.h"
+//#include "extensions\KeyCheck.h"
+//
+//unsigned int &OnAMissionFlag = *(unsigned int *)0x978748;
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::drawingEvent += [] {
+//            gamefont::Print({
+//                Format("OnAMissionFlag = %d", CTheScripts::ScriptSpace[OnAMissionFlag])
+//            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+//           
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 1000)) {
+//                    if (CTheScripts::ScriptSpace[OnAMissionFlag])
+//                        CTheScripts::ScriptSpace[OnAMissionFlag] = 0;
+//                    else
+//                        CTheScripts::ScriptSpace[OnAMissionFlag] = 1;
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "CMessages.h"
