@@ -31,8 +31,9 @@ public:
 
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, currentTurretsModel,
         currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, currentModel_Patch_46130F;
-    static unsigned int randomCopCarTime, randomEmergencyServicesCarTime;
+    static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415;
+    static int slotId, copId;
 
     static void Patch_6AB349(); 
     static void Patch_4912D0(); 
@@ -710,6 +711,32 @@ public:
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
     
+    static void SetRandomCop(int level, int defaultCop) {
+        randomCopTime = CTimer::m_snTimeInMilliseconds;
+        string copName; char name[] = "";
+        if (CStreaming::ms_aDefaultCopModel[level] == defaultCop) {
+            if (slotId < 9) {
+                slotId++; copId++;
+            }
+            else {
+                slotId = 6; copId = 295;
+            }
+            copName = GetRandomCop();
+            if (copName.length() > 3) {
+                strcpy(name, copName.c_str());
+                Command<COMMAND_LOAD_SPECIAL_CHARACTER>(slotId, name);
+                Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
+                if (Command<COMMAND_HAS_SPECIAL_CHARACTER_LOADED>(slotId)) {
+                    CStreaming::ms_aDefaultCopModel[level] = copId;
+                    Command<COMMAND_UNLOAD_SPECIAL_CHARACTER>(slotId);
+                }
+            }
+        }
+        else 
+            CStreaming::ms_aDefaultCopModel[level] = defaultCop;
+    }
+    
+
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
         if (!stream.is_open())
@@ -846,22 +873,51 @@ public:
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
-                KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('M', 2000)) {
-                    string copName = GetRandomCop();
-                    if (copName.length() > 3) {
-                        char name[] = "";
-                        strcpy(name, copName.c_str());
-                        Command<COMMAND_LOAD_SPECIAL_CHARACTER>(1, name);
-                        Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
-                        if (Command<COMMAND_HAS_SPECIAL_CHARACTER_LOADED>(1)) {
-                            CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 290;
-                            CMessages::AddMessageJumpQ("yes", 2000, 3, true);
-                            Command<COMMAND_UNLOAD_SPECIAL_CHARACTER>(1);
-                        }
+                if (GetCopModels().size()) {
+                    switch (CTheZones::m_CurrLevel) {
+                    case 0:
+                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
+                            CStreaming::ms_aDefaultCopModel[1] = 280;
+                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
+                            CStreaming::ms_aDefaultCopModel[2] = 281;
+                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
+                            CStreaming::ms_aDefaultCopModel[3] = 282;
+                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
+                            SetRandomCop(0, 283);
+                        break;
+                    case 1:
+                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
+                            CStreaming::ms_aDefaultCopModel[0] = 283;
+                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
+                            CStreaming::ms_aDefaultCopModel[2] = 281;
+                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
+                            CStreaming::ms_aDefaultCopModel[3] = 282;
+                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
+                            SetRandomCop(1, 280);
+                        break;
+                    case 2:
+                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
+                            CStreaming::ms_aDefaultCopModel[0] = 283;
+                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
+                            CStreaming::ms_aDefaultCopModel[1] = 280;
+                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
+                            CStreaming::ms_aDefaultCopModel[3] = 282;
+                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
+                            SetRandomCop(2, 281);
+                        break;
+                    case 3:
+                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
+                            CStreaming::ms_aDefaultCopModel[0] = 283;
+                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
+                            CStreaming::ms_aDefaultCopModel[1] = 280;
+                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
+                            CStreaming::ms_aDefaultCopModel[2] = 281;
+                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
+                            SetRandomCop(3, 282);
+                        break;
                     }
                 }
-
+                // RandomEmergencyServicesCar
                 CWanted *wanted = FindPlayerWanted(-1);
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                     randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
@@ -1002,7 +1058,8 @@ public:
                 Format("cop = %d", CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]),
                 Format("armyBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatBlok = %d", patch::GetShort(0x461BE7)),
-                Format("fbiBlok = %d", patch::GetShort(0x461BCC))
+                Format("fbiBlok = %d", patch::GetShort(0x461BCC)),
+                Format("size = %d", GetCopModels().size())
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
@@ -1015,6 +1072,8 @@ CVector AddSpecialCars::carPos = { 0.0f, 0.0f, 0.0f };
 float AddSpecialCars::carAngle = 0.0f;
 CAutoPilot AddSpecialCars::pilot;
 
+int AddSpecialCars::slotId = 9;
+int AddSpecialCars::copId = 298;
 int AddSpecialCars::currentModelForSiren;
 int AddSpecialCars::currentModelCopbike;
 int AddSpecialCars::currentModelTaxi;
@@ -1026,6 +1085,7 @@ int AddSpecialCars::currentModel_Patch_41C0A6;
 int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 int AddSpecialCars::currentModel_Patch_46130F;
+unsigned int AddSpecialCars::randomCopTime = 0;
 unsigned int AddSpecialCars::randomCopCarTime = 0;
 unsigned int AddSpecialCars::randomEmergencyServicesCarTime = 0;
 unsigned int AddSpecialCars::jmp_6AB360;
