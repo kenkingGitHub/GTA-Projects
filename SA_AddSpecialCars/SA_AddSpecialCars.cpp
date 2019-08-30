@@ -13,8 +13,8 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 
-#include "extensions\KeyCheck.h"
-#include "CMessages.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
 
 using namespace plugin;
 using namespace std;
@@ -1044,7 +1044,7 @@ public:
             }
         };
 
-        Events::drawingEvent += [] {
+        /*Events::drawingEvent += [] {
             gamefont::Print({
                 Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
                 Format("level = %d", CTheZones::m_CurrLevel),
@@ -1061,7 +1061,7 @@ public:
                 Format("fbiBlok = %d", patch::GetShort(0x461BCC)),
                 Format("size = %d", GetCopModels().size())
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        };
+        };*/
 
     }
 } specialCars;
