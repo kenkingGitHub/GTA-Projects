@@ -28,12 +28,11 @@ public:
     static CVector carPos;
     static float carAngle;
     static CAutoPilot pilot;
-
+    static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, currentTurretsModel,
         currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, currentModel_Patch_46130F;
-    static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime;
+    static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415;
-    static int slotId, copId;
 
     static void Patch_6AB349(); 
     static void Patch_4912D0(); 
@@ -47,11 +46,31 @@ public:
     static void Patch_6BD408();
     static void Patch_46130F();
 
-    static unordered_set<string> &GetCopModels() {
-        static unordered_set<string> copName;
-        return copName;
+    static unordered_set<unsigned int> &GetCoplaModels() {
+        static unordered_set<unsigned int> coplaIds;
+        return coplaIds;
     }
     
+    static unordered_set<unsigned int> &GetCopsfModels() {
+        static unordered_set<unsigned int> copsfIds;
+        return copsfIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopvgModels() {
+        static unordered_set<unsigned int> copvgIds;
+        return copvgIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopruModels() {
+        static unordered_set<unsigned int> copruIds;
+        return copruIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopbikerModels() {
+        static unordered_set<unsigned int> copbikerIds;
+        return copbikerIds;
+    }
+
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
         return copcarlaIds;
@@ -266,11 +285,39 @@ public:
         return model - 407;
     }
 
-    static string GetRandomCop() {
-        vector<string> ids;
-        for (auto id : GetCopModels())
+    static unsigned int GetRandomCopla() {
+        vector<unsigned int> ids;
+        for (auto id : GetCoplaModels())
             ids.push_back(id);
-        return ids.empty() ? "" : ids[plugin::Random(0, ids.size() - 1)];
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomCopsf() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopsfModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomCopvg() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopvgModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomCopru() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopruModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomCopbiker() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopbikerModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
     
     static unsigned int GetRandomCopcarla() {
@@ -711,31 +758,12 @@ public:
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
     
-    static void SetRandomCop(int level, int defaultCop) {
-        randomCopTime = CTimer::m_snTimeInMilliseconds;
-        string copName; char name[] = "";
-        if (CStreaming::ms_aDefaultCopModel[level] == defaultCop) {
-            if (slotId < 9) {
-                slotId++; copId++;
-            }
-            else {
-                slotId = 6; copId = 295;
-            }
-            copName = GetRandomCop();
-            if (copName.length() > 3) {
-                strcpy(name, copName.c_str());
-                Command<COMMAND_LOAD_SPECIAL_CHARACTER>(slotId, name);
-                Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
-                if (Command<COMMAND_HAS_SPECIAL_CHARACTER_LOADED>(slotId)) {
-                    CStreaming::ms_aDefaultCopModel[level] = copId;
-                    Command<COMMAND_UNLOAD_SPECIAL_CHARACTER>(slotId);
-                }
-            }
-        }
-        else 
-            CStreaming::ms_aDefaultCopModel[level] = defaultCop;
+    static void SetRandomCop(unsigned int id) {
+        modelInfo = CModelInfo::ms_modelInfoPtrs[id];
+        if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED)
+            CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = id;
     }
-    
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -838,10 +866,34 @@ public:
                         GetStreakcModels().insert(stoi(line));
                 }
             }
-            if (!line.compare("cop")) {
+            if (!line.compare("copla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopModels().insert(line);
+                        GetCoplaModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("copsf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopsfModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("copvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopvgModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("copru")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopruModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbiker")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopbikerModels().insert(stoi(line));
                 }
             }
         }
@@ -873,47 +925,55 @@ public:
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
-                if (GetCopModels().size()) {
+                if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000)) {
+                    randomCopTime = CTimer::m_snTimeInMilliseconds;
+                    if (GetCopbikerModels().size()) {
+                        if (CStreaming::ms_DefaultCopBikerModel == 284) {
+                            copId = GetRandomCopbiker();
+                            modelInfo = CModelInfo::ms_modelInfoPtrs[copId];
+                            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                CStreaming::ms_DefaultCopBikerModel = copId;
+                                patch::SetShort(0x5DDD86, copId, true);
+                            }
+                        }
+                        else {
+                            CStreaming::ms_DefaultCopBikerModel = 284;
+                            patch::SetShort(0x5DDD86, 284, true);
+                        }
+                            
+                    }
                     switch (CTheZones::m_CurrLevel) {
                     case 0:
-                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
-                            CStreaming::ms_aDefaultCopModel[1] = 280;
-                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
-                            CStreaming::ms_aDefaultCopModel[2] = 281;
-                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
-                            CStreaming::ms_aDefaultCopModel[3] = 282;
-                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
-                            SetRandomCop(0, 283);
+                        if (GetCopruModels().size()) {
+                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 283) 
+                                SetRandomCop(GetRandomCopru());
+                            else
+                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 283;
+                        }
                         break;
                     case 1:
-                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
-                            CStreaming::ms_aDefaultCopModel[0] = 283;
-                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
-                            CStreaming::ms_aDefaultCopModel[2] = 281;
-                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
-                            CStreaming::ms_aDefaultCopModel[3] = 282;
-                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
-                            SetRandomCop(1, 280);
+                        if (GetCoplaModels().size()) {
+                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 280) 
+                                SetRandomCop(GetRandomCopla());
+                            else
+                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 280;
+                        }
                         break;
                     case 2:
-                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
-                            CStreaming::ms_aDefaultCopModel[0] = 283;
-                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
-                            CStreaming::ms_aDefaultCopModel[1] = 280;
-                        if (CStreaming::ms_aDefaultCopModel[3] != 282)
-                            CStreaming::ms_aDefaultCopModel[3] = 282;
-                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
-                            SetRandomCop(2, 281);
+                        if (GetCopsfModels().size()) {
+                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 281) 
+                                SetRandomCop(GetRandomCopsf());
+                            else
+                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 281;
+                        }
                         break;
                     case 3:
-                        if (CStreaming::ms_aDefaultCopModel[0] != 283)
-                            CStreaming::ms_aDefaultCopModel[0] = 283;
-                        if (CStreaming::ms_aDefaultCopModel[1] != 280)
-                            CStreaming::ms_aDefaultCopModel[1] = 280;
-                        if (CStreaming::ms_aDefaultCopModel[2] != 281)
-                            CStreaming::ms_aDefaultCopModel[2] = 281;
-                        if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000))
-                            SetRandomCop(3, 282);
+                        if (GetCopvgModels().size()) {
+                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 282) 
+                                SetRandomCop(GetRandomCopvg());
+                            else
+                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 282;
+                        }
                         break;
                     }
                 }
@@ -1044,7 +1104,7 @@ public:
             }
         };
 
-        /*Events::drawingEvent += [] {
+        Events::drawingEvent += [] {
             gamefont::Print({
                 Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
                 Format("level = %d", CTheZones::m_CurrLevel),
@@ -1055,13 +1115,17 @@ public:
                 Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
                 Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
                 Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-                Format("cop = %d", CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]),
+                Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
+                Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
+                Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
+                Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
+                Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
                 Format("armyBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiBlok = %d", patch::GetShort(0x461BCC)),
-                Format("size = %d", GetCopModels().size())
+                Format("biker = %d", patch::GetShort(0x5DDD86))
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        };*/
+        };
 
     }
 } specialCars;
@@ -1071,9 +1135,7 @@ short AddSpecialCars::outCount = 0;
 CVector AddSpecialCars::carPos = { 0.0f, 0.0f, 0.0f };
 float AddSpecialCars::carAngle = 0.0f;
 CAutoPilot AddSpecialCars::pilot;
-
-int AddSpecialCars::slotId = 9;
-int AddSpecialCars::copId = 298;
+CBaseModelInfo* AddSpecialCars::modelInfo;
 int AddSpecialCars::currentModelForSiren;
 int AddSpecialCars::currentModelCopbike;
 int AddSpecialCars::currentModelTaxi;
@@ -1094,6 +1156,7 @@ unsigned int AddSpecialCars::jmp_41C0AF;
 unsigned int AddSpecialCars::jmp_42BBCE;
 unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
+unsigned int AddSpecialCars::copId;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
