@@ -71,6 +71,21 @@ public:
         return copbikerIds;
     }
 
+    static unordered_set<unsigned int> &GetSwatModels() {
+        static unordered_set<unsigned int> swatIds;
+        return swatIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbiModels() {
+        static unordered_set<unsigned int> fbiIds;
+        return fbiIds;
+    }
+
+    static unordered_set<unsigned int> &GetArmyModels() {
+        static unordered_set<unsigned int> armyIds;
+        return armyIds;
+    }
+
     static unordered_set<unsigned int> &GetCopcarlaModels() {
         static unordered_set<unsigned int> copcarlaIds;
         return copcarlaIds;
@@ -319,6 +334,27 @@ public:
             ids.push_back(id);
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
+
+    static unsigned int GetRandomSwat() {
+        vector<unsigned int> ids;
+        for (auto id : GetSwatModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFbi() {
+        vector<unsigned int> ids;
+        for (auto id : GetFbiModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomArmy() {
+        vector<unsigned int> ids;
+        for (auto id : GetArmyModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
     
     static unsigned int GetRandomCopcarla() {
         vector<unsigned int> ids;
@@ -479,7 +515,7 @@ public:
         if (CTimer::m_snTimeInMilliseconds > (randomCopCarTime + 30000)) {
             randomCopCarTime = CTimer::m_snTimeInMilliseconds;
             unsigned int copbikeId = GetRandomCopbike();
-            if (copbikeId != 0) {
+            if (CModelInfo::IsBikeModel(copbikeId)) {
                 if (CStreaming::ms_DefaultCopBikeModel == MODEL_COPBIKE)
                     CStreaming::ms_DefaultCopBikeModel = copbikeId;
                 else
@@ -489,38 +525,38 @@ public:
             switch (CTheZones::m_CurrLevel) {
             case 0:
                 copcarruId = GetRandomCopcarru();
-                if (copcarruId != 0) {
-                    if (CStreaming::ms_aDefaultCopCarModel[0] == MODEL_COPCARRU)
-                        CStreaming::ms_aDefaultCopCarModel[0] = copcarruId;
+                if (CModelInfo::IsCarModel(copcarruId)) {
+                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARRU)
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarruId;
                     else
-                        CStreaming::ms_aDefaultCopCarModel[0] = MODEL_COPCARRU;
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARRU;
                 }
                 break;
             case 1:
                 copcarlaId = GetRandomCopcarla();
-                if (copcarlaId != 0) {
-                    if (CStreaming::ms_aDefaultCopCarModel[1] == MODEL_COPCARLA)
-                        CStreaming::ms_aDefaultCopCarModel[1] = copcarlaId;
+                if (CModelInfo::IsCarModel(copcarlaId)) {
+                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARLA)
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarlaId;
                     else
-                        CStreaming::ms_aDefaultCopCarModel[1] = MODEL_COPCARLA;
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARLA;
                 }
                 break;
             case 2:
                 copcarsfId = GetRandomCopcarsf();
-                if (copcarsfId != 0) {
-                    if (CStreaming::ms_aDefaultCopCarModel[2] == MODEL_COPCARSF)
-                        CStreaming::ms_aDefaultCopCarModel[2] = copcarsfId;
+                if (CModelInfo::IsCarModel(copcarsfId)) {
+                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARSF)
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarsfId;
                     else
-                        CStreaming::ms_aDefaultCopCarModel[2] = MODEL_COPCARSF;
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARSF;
                 }
                 break;
             case 3:
                 copcarvgId = GetRandomCopcarvg();
-                if (copcarvgId != 0) {
-                    if (CStreaming::ms_aDefaultCopCarModel[3] == MODEL_COPCARVG)
-                        CStreaming::ms_aDefaultCopCarModel[3] = copcarvgId;
+                if (CModelInfo::IsCarModel(copcarvgId)) {
+                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARVG)
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarvgId;
                     else
-                        CStreaming::ms_aDefaultCopCarModel[3] = MODEL_COPCARVG;
+                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARVG;
                 }
                 break;
             }
@@ -564,7 +600,7 @@ public:
         {
             if (plugin::Random(0, 1)) {
                 unsigned int enforcerId = GetRandomEnforcer();
-                if (enforcerId != 0) {
+                if (CModelInfo::IsCarModel(enforcerId)) {
                     if (LoadModel(enforcerId))
                         return enforcerId;
                     else
@@ -583,7 +619,7 @@ public:
             {
                 if (plugin::Random(0, 1)) {
                     unsigned int fbiranchId = GetRandomFbiranch();
-                    if (fbiranchId != 0) {
+                    if (CModelInfo::IsCarModel(fbiranchId)) {
                         if (LoadModel(fbiranchId))
                             return fbiranchId;
                         else
@@ -605,7 +641,7 @@ public:
                 switch (randomArmy) {
                 case 0:
                     barracksId = GetRandomBarracks();
-                    if (barracksId != 0) {
+                    if (CModelInfo::IsCarModel(barracksId)) {
                         if (LoadModel(barracksId))
                             return barracksId;
                         else
@@ -896,6 +932,24 @@ public:
                         GetCopbikerModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("swat")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("fbi")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("army")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetArmyModels().insert(stoi(line));
+                }
+            }
         }
         
         patch::RedirectJump(0x6D2370, IsLawEnforcementVehicle);
@@ -983,14 +1037,14 @@ public:
                     randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
                     if (CTheZones::m_CurrLevel) {
                         unsigned int ambulanceId = GetRandomAmbulance();
-                        if (ambulanceId != 0) {
+                        if (CModelInfo::IsCarModel(ambulanceId)) {
                             if (plugin::Random(0, 1))
                                 CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = ambulanceId;
                             else
                                 CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = MODEL_AMBULAN;
                         }
                         unsigned int firetrukId = GetRandomFiretruk();
-                        if (firetrukId != 0) {
+                        if (CModelInfo::IsCarModel(firetrukId)) {
                             if (plugin::Random(0, 1))
                                 CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = firetrukId;
                             else
@@ -1000,29 +1054,71 @@ public:
                     // RoadBlocks
                     if (wanted->AreSwatRequired()) {
                         unsigned int enforcerId = GetRandomEnforcer();
-                        if (enforcerId != 0) {
+                        if (CModelInfo::IsCarModel(enforcerId)) {
                             if (patch::GetShort(0x461BE7) == MODEL_ENFORCER)
                                 patch::SetShort(0x461BE7, enforcerId, true);
                             else
                                 patch::SetShort(0x461BE7, MODEL_ENFORCER, true);
                         }
+                        if (GetSwatModels().size()) {
+                            if (plugin::Random(0, 1)) {
+                                unsigned int swatId = GetRandomSwat();
+                                modelInfo = CModelInfo::ms_modelInfoPtrs[swatId];
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                    patch::SetShort(0x5DDD90, swatId, true);
+                                    patch::SetShort(0x461339, swatId, true);
+                                }
+                            }
+                            else {
+                                patch::SetShort(0x5DDD90, 285, true);
+                                patch::SetShort(0x461339, 285, true);
+                            }
+                        }
                     }
                     if (wanted->AreFbiRequired()) {
                         unsigned int fbiranchId = GetRandomFbiranch();
-                        if (fbiranchId != 0) {
+                        if (CModelInfo::IsCarModel(fbiranchId)) {
                             if (patch::GetShort(0x461BCC) == MODEL_FBIRANCH)
                                 patch::SetShort(0x461BCC, fbiranchId, true);
                             else
                                 patch::SetShort(0x461BCC, MODEL_FBIRANCH, true);
                         }
+                        if (GetFbiModels().size()) {
+                            if (plugin::Random(0, 1)) {
+                                unsigned int fbiId = GetRandomFbi();
+                                modelInfo = CModelInfo::ms_modelInfoPtrs[fbiId];
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                    patch::SetShort(0x5DDDD0, fbiId, true);
+                                    patch::SetShort(0x461353, fbiId, true);
+                                }
+                            }
+                            else {
+                                patch::SetShort(0x5DDDD0, 286, true);
+                                patch::SetShort(0x461353, 286, true);
+                            }
+                        }
                     }
                     if (wanted->AreArmyRequired()) {
                         unsigned int barracksId = GetRandomBarracks();
-                        if (barracksId != 0) {
+                        if (CModelInfo::IsCarModel(barracksId)) {
                             if (patch::GetShort(0x461BB1) == MODEL_BARRACKS)
                                 patch::SetShort(0x461BB1, barracksId, true);
                             else
                                 patch::SetShort(0x461BB1, MODEL_BARRACKS, true);
+                        }
+                        if (GetArmyModels().size()) {
+                            if (plugin::Random(0, 1)) {
+                                unsigned int armyId = GetRandomArmy();
+                                modelInfo = CModelInfo::ms_modelInfoPtrs[armyId];
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                    patch::SetShort(0x5DDE10, armyId, true);
+                                    patch::SetShort(0x46136D, armyId, true);
+                                }
+                            }
+                            else {
+                                patch::SetShort(0x5DDE10, 287, true);
+                                patch::SetShort(0x46136D, 287, true);
+                            }
                         }
                     }
                 }
@@ -1120,10 +1216,12 @@ public:
                 Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
                 Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
                 Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
-                Format("armyBlok = %d", patch::GetShort(0x461BB1)),
-                Format("swatBlok = %d", patch::GetShort(0x461BE7)),
-                Format("fbiBlok = %d", patch::GetShort(0x461BCC)),
-                Format("biker = %d", patch::GetShort(0x5DDD86))
+                Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
+                Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
+                Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
+                Format("swatBlok = %d", patch::GetShort(0x5DDD90)),
+                Format("fbiBlok = %d", patch::GetShort(0x5DDDD0)),
+                Format("armyBlok = %d", patch::GetShort(0x5DDE10))
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
