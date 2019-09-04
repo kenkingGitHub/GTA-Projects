@@ -1061,17 +1061,17 @@ public:
                                 patch::SetShort(0x461BE7, MODEL_ENFORCER, true);
                         }
                         if (GetSwatModels().size()) {
-                            if (plugin::Random(0, 1)) {
+                            if (plugin::Random(0, 2)) {
+                                patch::SetShort(0x5DDD90, 285, true);
+                                patch::SetShort(0x461339, 285, true);
+                            }
+                            else {
                                 unsigned int swatId = GetRandomSwat();
                                 modelInfo = CModelInfo::ms_modelInfoPtrs[swatId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(swatId)) {
                                     patch::SetShort(0x5DDD90, swatId, true);
                                     patch::SetShort(0x461339, swatId, true);
                                 }
-                            }
-                            else {
-                                patch::SetShort(0x5DDD90, 285, true);
-                                patch::SetShort(0x461339, 285, true);
                             }
                         }
                     }
@@ -1084,17 +1084,17 @@ public:
                                 patch::SetShort(0x461BCC, MODEL_FBIRANCH, true);
                         }
                         if (GetFbiModels().size()) {
-                            if (plugin::Random(0, 1)) {
+                            if (plugin::Random(0, 2)) {
+                                patch::SetShort(0x5DDDD0, 286, true);
+                                patch::SetShort(0x461353, 286, true);
+                            }
+                            else {
                                 unsigned int fbiId = GetRandomFbi();
                                 modelInfo = CModelInfo::ms_modelInfoPtrs[fbiId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(fbiId)) {
                                     patch::SetShort(0x5DDDD0, fbiId, true);
                                     patch::SetShort(0x461353, fbiId, true);
                                 }
-                            }
-                            else {
-                                patch::SetShort(0x5DDDD0, 286, true);
-                                patch::SetShort(0x461353, 286, true);
                             }
                         }
                     }
@@ -1107,17 +1107,17 @@ public:
                                 patch::SetShort(0x461BB1, MODEL_BARRACKS, true);
                         }
                         if (GetArmyModels().size()) {
-                            if (plugin::Random(0, 1)) {
+                            if (plugin::Random(0, 2)) {
+                                patch::SetShort(0x5DDE10, 287, true);
+                                patch::SetShort(0x46136D, 287, true);
+                            }
+                            else {
                                 unsigned int armyId = GetRandomArmy();
                                 modelInfo = CModelInfo::ms_modelInfoPtrs[armyId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(armyId)) {
                                     patch::SetShort(0x5DDE10, armyId, true);
                                     patch::SetShort(0x46136D, armyId, true);
                                 }
-                            }
-                            else {
-                                patch::SetShort(0x5DDE10, 287, true);
-                                patch::SetShort(0x46136D, 287, true);
                             }
                         }
                     }
@@ -1219,9 +1219,9 @@ public:
                 Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-                Format("swatBlok = %d", patch::GetShort(0x5DDD90)),
-                Format("fbiBlok = %d", patch::GetShort(0x5DDDD0)),
-                Format("armyBlok = %d", patch::GetShort(0x5DDE10))
+                Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
+                Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
+                Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
