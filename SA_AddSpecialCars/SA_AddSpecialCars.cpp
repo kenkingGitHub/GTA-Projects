@@ -796,7 +796,7 @@ public:
     
     static void SetRandomCop(unsigned int id) {
         modelInfo = CModelInfo::ms_modelInfoPtrs[id];
-        if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED)
+        if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(id))
             CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = id;
     }
 
@@ -985,7 +985,7 @@ public:
                         if (CStreaming::ms_DefaultCopBikerModel == 284) {
                             copId = GetRandomCopbiker();
                             modelInfo = CModelInfo::ms_modelInfoPtrs[copId];
-                            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copId)) {
                                 CStreaming::ms_DefaultCopBikerModel = copId;
                                 patch::SetShort(0x5DDD86, copId, true);
                             }
@@ -1200,7 +1200,7 @@ public:
             }
         };
 
-        Events::drawingEvent += [] {
+        /*Events::drawingEvent += [] {
             gamefont::Print({
                 Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
                 Format("level = %d", CTheZones::m_CurrLevel),
@@ -1223,7 +1223,7 @@ public:
                 Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
                 Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        };
+        };*/
 
     }
 } specialCars;
