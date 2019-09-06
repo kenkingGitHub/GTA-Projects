@@ -76,6 +76,7 @@ public:
 };
 
 using namespace plugin;
+using namespace std;
 
 class AddSpecialCars {
 public:
@@ -97,55 +98,175 @@ public:
     static unsigned int jmp_531FF1;
     static unsigned int jmp_4378D1;
 
-    static std::unordered_set<unsigned int> &GetTaxiModels() {
+    static unordered_set<unsigned int> &GetPoliceModels() {
+        static std::unordered_set<unsigned int> policeIds;
+        return policeIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbicarModels() {
+        static std::unordered_set<unsigned int> fbicarIds;
+        return fbicarIds;
+    }
+
+    static unordered_set<unsigned int> &GetEnforcerModels() {
+        static unordered_set<unsigned int> enforcerIds;
+        return enforcerIds;
+    }
+
+    static unordered_set<unsigned int> &GetTaxiModels() {
         static std::unordered_set<unsigned int> taxiIds;
         return taxiIds;
     }
 
+    static unordered_set<unsigned int> &GetAmbulanModels() {
+        static unordered_set<unsigned int> ambulanIds;
+        return ambulanIds;
+    }
+
+    static unordered_set<unsigned int> &GetFiretrukModels() {
+        static unordered_set<unsigned int> firetrukIds;
+        return firetrukIds;
+    }
+
+    static unordered_set<unsigned int> &GetBarracksModels() {
+        static unordered_set<unsigned int> barracksIds;
+        return barracksIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopModels() {
+        static unordered_set<unsigned int> copIds;
+        return copIds;
+    }
+
+    static unordered_set<unsigned int> &GetSwatModels() {
+        static unordered_set<unsigned int> swatIds;
+        return swatIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbiModels() {
+        static unordered_set<unsigned int> fbiIds;
+        return fbiIds;
+    }
+
+    static unordered_set<unsigned int> &GetArmyModels() {
+        static unordered_set<unsigned int> armyIds;
+        return armyIds;
+    }
+
+    static unsigned int GetRandomPolice() {
+        vector<unsigned int> ids;
+        for (auto id : GetPoliceModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFbicar() {
+        vector<unsigned int> ids;
+        for (auto id : GetFbicarModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomEnforcer() {
+        vector<unsigned int> ids;
+        for (auto id : GetEnforcerModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomBarracks() {
+        vector<unsigned int> ids;
+        for (auto id : GetBarracksModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomAmbulance() {
+        vector<unsigned int> ids;
+        for (auto id : GetAmbulanModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFiretruk() {
+        vector<unsigned int> ids;
+        for (auto id : GetFiretrukModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomCop() {
+        vector<unsigned int> ids;
+        for (auto id : GetCopModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomSwat() {
+        vector<unsigned int> ids;
+        for (auto id : GetSwatModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFbi() {
+        vector<unsigned int> ids;
+        for (auto id : GetFbiModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomArmy() {
+        vector<unsigned int> ids;
+        for (auto id : GetArmyModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
     static int __stdcall GetSpecialModelForSiren(unsigned int model) {
-        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d)
+        if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
             return MODEL_POLICE;
         else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
             return MODEL_TAXI;
-        else if (model == MODEL_AMBULAN || model == MODEL_AMBULAN_a)
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return MODEL_AMBULAN;
-        else if (model == MODEL_FBICAR || model == MODEL_FBICAR_a)
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end())
             return MODEL_FBICAR;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
+        else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return MODEL_FIRETRUK;
-        else if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
             return MODEL_ENFORCER;
         return model;
     }
 
     static int __stdcall GetSpecialModelForOccupants(unsigned int model) {
-        if (model == MODEL_POLICE || model == MODEL_POLICE_a || model == MODEL_POLICE_b || model == MODEL_POLICE_c || model == MODEL_POLICE_d)
+        if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
             return MODEL_POLICE;
-        else if (model == MODEL_AMBULAN || model == MODEL_AMBULAN_a)
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return MODEL_AMBULAN;
-        else if (model == MODEL_FBICAR || model == MODEL_FBICAR_a)
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end())
             return MODEL_FBICAR;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
+        else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return MODEL_FIRETRUK;
-        else if (model == MODEL_BARRACKS || model == MODEL_BARRACKS_a)
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
             return MODEL_BARRACKS;
-        else if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
             return MODEL_ENFORCER;
         return model;
     }
 
     static int __stdcall GetFiretrukModel(unsigned int model) {
-        if (model == MODEL_FIRETRUK || model == MODEL_FIRETRUK_a)
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return MODEL_FIRETRUK;
         return model;
     }
 
     static int __stdcall GetRoadBlockModel(unsigned int model) {
-        if (model == MODEL_ENFORCER || model == MODEL_ENFORCER_a)
+        if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
             return MODEL_ENFORCER;
-        else if (model == MODEL_FBICAR || model == MODEL_FBICAR_a)
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end())
             return MODEL_FBICAR;
-        else if (model == MODEL_BARRACKS || model == MODEL_BARRACKS_a)
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
             return MODEL_BARRACKS;
         return model;
     }
@@ -156,119 +277,81 @@ public:
     static void Patch_4378C4(); // RoadBlockCopsForCar
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
-    static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int vehicleModelIndex) {
-        bool result; 
-
-        switch (vehicleModelIndex) {
-        case MODEL_FIRETRUK:
-        case MODEL_FIRETRUK_a:
+    static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()) {
             if (!(CarsCollectedMilitaryCrane & 1))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_AMBULAN:
-        case MODEL_AMBULAN_a:
-            if (!(CarsCollectedMilitaryCrane & 2))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_ENFORCER:
-        case MODEL_ENFORCER_a:
-            if (!(CarsCollectedMilitaryCrane & 4))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_FBICAR:
-        case MODEL_FBICAR_a:
-            if (!(CarsCollectedMilitaryCrane & 8))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_RHINO:
-            if (!(CarsCollectedMilitaryCrane & 0x10))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_BARRACKS:
-        case MODEL_BARRACKS_a:
-            if (!(CarsCollectedMilitaryCrane & 0x20))
-                goto LABEL_16;
-            result = true;
-            break;
-        case MODEL_POLICE:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
-            if (!(CarsCollectedMilitaryCrane & 0x40))
-                goto LABEL_16;
-            result = true;
-            break;
-        default:
-        LABEL_16:
-            result =  false;
-            break;
+                return false;
+            return true;
         }
-        return result;
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()) {
+            if (!(CarsCollectedMilitaryCrane & 2))
+                return false;
+            return true;
+        }
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end()) {
+            if (!(CarsCollectedMilitaryCrane & 4))
+                return false;
+            return true;
+        }
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end()) {
+            if (!(CarsCollectedMilitaryCrane & 8))
+                return false;
+            return true;
+        }
+        else if (model == MODEL_RHINO) {
+            if (!(CarsCollectedMilitaryCrane & 0x10))
+                return false;
+            return true;
+        }
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end()) {
+            if (!(CarsCollectedMilitaryCrane & 0x20))
+                return false;
+            return true;
+        }
+        else if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end()) {
+            if (!(CarsCollectedMilitaryCrane & 0x40))
+                return false;
+            return true;
+        }
+        return false;
     }
 
     // CCranes::RegisterCarForMilitaryCrane
-    static void __cdecl RegisterCarForMilitaryCrane(int vehicleModelIndex) {
-        switch (vehicleModelIndex) {
-        case MODEL_FIRETRUK:
-        case MODEL_FIRETRUK_a:
+    static void __cdecl RegisterCarForMilitaryCrane(int model) {
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()) 
             CarsCollectedMilitaryCrane |= 1;
-            break;
-        case MODEL_AMBULAN:
-        case MODEL_AMBULAN_a:
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             CarsCollectedMilitaryCrane |= 2;
-            break;
-        case MODEL_ENFORCER:
-        case MODEL_ENFORCER_a:
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
             CarsCollectedMilitaryCrane |= 4;
-            break;
-        case MODEL_FBICAR:
-        case MODEL_FBICAR_a:
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end())
             CarsCollectedMilitaryCrane |= 8;
-            break;
-        case MODEL_RHINO:
+        else if (model == MODEL_RHINO)
             CarsCollectedMilitaryCrane |= 0x10;
-            break;
-        case MODEL_BARRACKS:
-        case MODEL_BARRACKS_a:
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
             CarsCollectedMilitaryCrane |= 0x20;
-            break;
-        case MODEL_POLICE:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
+        else if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
             CarsCollectedMilitaryCrane |= 0x40;
-            break;
-        default:
-            return;
-        }
     }
 
     // CCrane::DoesCranePickUpThisCarType
-    static bool __fastcall DoesCranePickUpThisCarType(CCrane *_this, int, int vehicleModelIndex) {
+    static bool __fastcall DoesCranePickUpThisCarType(CCrane *_this, int, int model) {
         bool result; 
 
         if (_this->m_bIsCrusher) {
-            result = vehicleModelIndex != MODEL_FIRETRUK && vehicleModelIndex != MODEL_FIRETRUK_a 
-                && vehicleModelIndex != MODEL_TRASH && vehicleModelIndex != MODEL_BLISTA 
-                && vehicleModelIndex != MODEL_SECURICA && vehicleModelIndex != MODEL_BUS 
-                && vehicleModelIndex != MODEL_DODO && vehicleModelIndex != MODEL_RHINO;
+            result = model != MODEL_FIRETRUK && !(GetFiretrukModels().find(model) != GetFiretrukModels().end())
+                && model != MODEL_TRASH && model != MODEL_BLISTA
+                && model != MODEL_SECURICA && model != MODEL_BUS
+                && model != MODEL_DODO && model != MODEL_RHINO;
         }
         else if (_this->m_bIsMilitaryCrane) {
-            result = vehicleModelIndex == MODEL_FIRETRUK || vehicleModelIndex == MODEL_FIRETRUK_a 
-                || vehicleModelIndex == MODEL_ENFORCER || vehicleModelIndex == MODEL_ENFORCER_a
-                || vehicleModelIndex == MODEL_AMBULAN || vehicleModelIndex == MODEL_AMBULAN_a 
-                || vehicleModelIndex == MODEL_FBICAR || vehicleModelIndex == MODEL_FBICAR_a
-                || vehicleModelIndex == MODEL_RHINO || vehicleModelIndex == MODEL_BARRACKS 
-                || vehicleModelIndex == MODEL_BARRACKS_a || vehicleModelIndex == MODEL_POLICE
-                || vehicleModelIndex == MODEL_POLICE_a || vehicleModelIndex == MODEL_POLICE_b
-                || vehicleModelIndex == MODEL_POLICE_c || vehicleModelIndex == MODEL_POLICE_d;
+            result = model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()
+                || model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end()
+                || model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()
+                || model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end()
+                || model == MODEL_RHINO || model == MODEL_BARRACKS || model == MODEL_POLICE
+                || GetBarracksModels().find(model) != GetBarracksModels().end()
+                || GetPoliceModels().find(model) != GetPoliceModels().end();
         }
         else
             result = true;
@@ -277,67 +360,43 @@ public:
 
     // CVehicle::IsVehicleNormal
     static bool __fastcall IsVehicleNormal(CVehicle *_this) {
-        bool result; 
-
-        result = false;
+        bool result;  result = false;
         if (_this->m_pDriver && !_this->m_nNumPassengers && _this->m_nState != 5) {
-            if (GetTaxiModels().find(_this->m_nModelIndex) != GetTaxiModels().end())
+            if (_this->m_nModelIndex == MODEL_TAXI || _this->m_nModelIndex == MODEL_CABBIE || _this->m_nModelIndex == MODEL_BORGNINE || GetTaxiModels().find(_this->m_nModelIndex) != GetTaxiModels().end())
                 return result;
-            switch (_this->m_nModelIndex) {
-            default:
+            else if (_this->m_nModelIndex == MODEL_FIRETRUK || GetFiretrukModels().find(_this->m_nModelIndex) != GetFiretrukModels().end())
+                return result;
+            else if (_this->m_nModelIndex == MODEL_AMBULAN || GetAmbulanModels().find(_this->m_nModelIndex) != GetAmbulanModels().end())
+                return result;
+            else if (_this->m_nModelIndex == MODEL_BUS || _this->m_nModelIndex == MODEL_COACH || _this->m_nModelIndex == MODEL_RHINO || _this->m_nModelIndex == MODEL_DODO || _this->m_nModelIndex == MODEL_RCBANDIT)
+                return result;
+            else if (_this->m_nModelIndex == MODEL_POLICE || GetPoliceModels().find(_this->m_nModelIndex) != GetPoliceModels().end())
+                return result;
+            else if (_this->m_nModelIndex == MODEL_ENFORCER || GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end())
+                return result;
+            else if (_this->m_nModelIndex == MODEL_BARRACKS || GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end())
+                return result;
+            else
                 result = true;
-                break;
-            case MODEL_FIRETRUK:
-            case MODEL_FIRETRUK_a:
-            case MODEL_AMBULAN:
-            case MODEL_AMBULAN_a:
-            case MODEL_TAXI:
-            case MODEL_POLICE:
-            case MODEL_POLICE_a:
-            case MODEL_POLICE_b:
-            case MODEL_POLICE_c:
-            case MODEL_POLICE_d:
-            case MODEL_ENFORCER:
-            case MODEL_ENFORCER_a:
-            case MODEL_BUS:
-            case MODEL_RHINO:
-            case MODEL_BARRACKS:
-            case MODEL_BARRACKS_a:
-            case MODEL_DODO:
-            case MODEL_COACH:
-            case MODEL_CABBIE:
-            case MODEL_RCBANDIT:
-            case MODEL_BORGNINE:
-                return result;
-            }
         }
         return result;
     }
 
     // CVehicle::IsLawEnforcementVehicle
     static bool __fastcall IsLawEnforcementVehicle(CVehicle *_this) {
-        bool result;
-
-        switch (_this->m_nModelIndex) {
-        case MODEL_FBICAR:
-        case MODEL_FBICAR_a:
-        case MODEL_ENFORCER:
-        case MODEL_ENFORCER_a:
-        case MODEL_PREDATOR:
-        case MODEL_RHINO:
-        case MODEL_BARRACKS:
-        case MODEL_BARRACKS_a:
-        case MODEL_POLICE:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
+        bool result; result = false;
+        if (_this->m_nModelIndex == MODEL_FBICAR || GetFbicarModels().find(_this->m_nModelIndex) != GetFbicarModels().end())
             result = true;
-            break;
-        default:
+        else if (_this->m_nModelIndex == MODEL_ENFORCER || GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end())
+            result = true;
+        else if (_this->m_nModelIndex == MODEL_PREDATOR || _this->m_nModelIndex == MODEL_RHINO)
+            result = true;
+        else if (_this->m_nModelIndex == MODEL_BARRACKS || GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end())
+            result = true;
+        else if (_this->m_nModelIndex == MODEL_POLICE || GetPoliceModels().find(_this->m_nModelIndex) != GetPoliceModels().end())
+            result = true;
+        else
             result = false;
-            break;
-        }
         return result;
     }
 
@@ -345,30 +404,29 @@ public:
     static void __cdecl AddPoliceCarOccupants(CVehicle *vehicle) {
         if (!vehicle->m_nVehicleFlags.bOccupantsHaveBeenGenerated) {
             vehicle->m_nVehicleFlags.bOccupantsHaveBeenGenerated = 1;
+            if (GetPoliceModels().find(vehicle->m_nModelIndex) != GetPoliceModels().end() || GetBarracksModels().find(vehicle->m_nModelIndex) != GetBarracksModels().end()) {
+                vehicle->SetUpDriver();
+                if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1)
+                    vehicle->SetupPassenger(0);
+                return;
+            }
+            else if (GetFbicarModels().find(vehicle->m_nModelIndex) != GetFbicarModels().end() || GetEnforcerModels().find(vehicle->m_nModelIndex) != GetEnforcerModels().end()) {
+                vehicle->SetUpDriver();
+                vehicle->SetupPassenger(0);
+                vehicle->SetupPassenger(1);
+                vehicle->SetupPassenger(2);
+                return;
+            }
             switch (vehicle->m_nModelIndex) {
-            case MODEL_POLICE_a:
-            case MODEL_POLICE_b:
             case MODEL_POLICE:
             case MODEL_RHINO:
             case MODEL_BARRACKS:
-            case MODEL_BARRACKS_a:
                 vehicle->SetUpDriver();
                 if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1)
                     vehicle->SetupPassenger(0);
                 break;
-            case MODEL_POLICE_c:
-            case MODEL_POLICE_d:
-                vehicle->SetUpDriver();
-                vehicle->SetupPassenger(0);
-                if (FindPlayerPed()->m_pWanted->m_nWantedLevel > 1) {
-                    vehicle->SetupPassenger(1);
-                    vehicle->SetupPassenger(2);
-                }
-                break;
             case MODEL_FBICAR:
-            case MODEL_FBICAR_a:
             case MODEL_ENFORCER:
-            case MODEL_ENFORCER_a:
                 vehicle->SetUpDriver();
                 vehicle->SetupPassenger(0);
                 vehicle->SetupPassenger(1);
@@ -790,12 +848,76 @@ public:
     }
 
     AddSpecialCars() {
-        std::ifstream stream(PLUGIN_PATH("taxi.dat"));
+        std::ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
         if (!stream.is_open())
             return;
-        for (std::string line; getline(stream, line); ) {
-            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                GetTaxiModels().insert(std::stoi(line));
+        for (string line; getline(stream, line); ) {
+            if (!line.compare("police")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetPoliceModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("fbicar")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbicarModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("enforcer")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetEnforcerModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("taxi")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetTaxiModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("ambulan")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetAmbulanModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("firetruk")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFiretrukModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("barracks")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetBarracksModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("cop")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("swat")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("fbi")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("army")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetArmyModels().insert(stoi(line));
+                }
+            }
         }
 
         patch::RedirectJump(0x544B00, DoesMilitaryCraneHaveThisOneAlready);
@@ -813,10 +935,10 @@ public:
         patch::RedirectJump(0x5527E0, IsVehicleNormal);
 
         patch::RedirectCall(0x446A93, OpcodePlayerDrivingTaxiVehicle);
-        patch::Nop(0x446A98, 0x4C); // или сделать jump на 0x446AE4
+        patch::Nop(0x446A98, 0x4C); // or jump 0x446AE4
 
         patch::RedirectCall(0x43DA19, OpcodeIsPlayerInModel);
-        patch::Nop(0x43DA1E, 0x40); // или сделать jump на 0x43DA5E
+        patch::Nop(0x43DA1E, 0x40); // or jump 0x43DA5E
 
         patch::RedirectJump(0x5373D7, Patch_5373D7);
         patch::RedirectJump(0x4F5857, Patch_4F5857);
@@ -1185,100 +1307,3 @@ void __declspec(naked) AddSpecialCars::Patch_4378C4() { // RoadBlockCopsForCar
         jmp jmp_4378D1
     }
 }
-
-class MyCarGenerator {
-public:
-    MyCarGenerator() {
-        static CdeclEvent<AddressList<0x582E6C, H_CALL, 0x48C7CC, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> myOnInitGame;
-
-        static float angle_portland_police, angle_staunton_police, angle_shoreside_police, angle_staunton_ambulance,
-            angle_shoreside_ambulance, angle_shoreside_firetruck, angle_portland_firetruck, angle_staunton_firetruck;
-        angle_portland_police = angle_staunton_police = angle_shoreside_police = angle_staunton_ambulance = angle_shoreside_ambulance 
-            = angle_shoreside_firetruck = angle_portland_firetruck = angle_staunton_firetruck = 0.0f;
-        static CVector portland_police = { 1148.76f, -690.0f, 14.0f };
-        static CVector staunton_police = { 347.0f, -1170.25f, 22.0f };
-        static CVector shoreside_police = { -1261.84f, -21.49f, 58.5f };
-        static CVector staunton_ambulance = { 185.19f, -41.0f, 17.0f };
-        static CVector shoreside_ambulance = { -1271.68f, -143.18f, 58.83f };
-        static CVector shoreside_firetruck = { -839.38f, -452.39f, 12.0f };
-        static CVector portland_firetruck = { 1107.5f, -36.57f, 7.5f };
-        static CVector staunton_firetruck = { -83.88f, -457.54f, 17.0f };
-
-        myOnInitGame += [] {
-            if (CTheCarGenerators::NumOfCarGenerators < 160) {
-                bool alreadyRegisteredA, alreadyRegisteredB, alreadyRegisteredC, alreadyRegisteredD, 
-                    alreadyRegisteredE, alreadyRegisteredF, alreadyRegisteredG, alreadyRegisteredH;
-                alreadyRegisteredA = alreadyRegisteredB = alreadyRegisteredC = alreadyRegisteredD 
-                    = alreadyRegisteredE = alreadyRegisteredF = alreadyRegisteredG = alreadyRegisteredH = false;
-                for (int i = 0; i < CTheCarGenerators::NumOfCarGenerators; i++) {
-                    if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
-                        CCarGenerator &carGenA = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenA.m_nEnabled && DistanceBetweenPoints(portland_police, carGenA.m_vecPos) < 1.0f && carGenA.m_fAngle == angle_portland_police && carGenA.m_nModelId == MODEL_POLICE_a)
-                            alreadyRegisteredA = true;
-                    }
-                    if (CModelInfo::IsCarModel(MODEL_POLICE_b)) {
-                        CCarGenerator &carGenB = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenB.m_nEnabled && DistanceBetweenPoints(staunton_police, carGenB.m_vecPos) < 1.0f && carGenB.m_fAngle == angle_staunton_police && carGenB.m_nModelId == MODEL_POLICE_b)
-                            alreadyRegisteredB = true;
-                    }
-                    if (CModelInfo::IsCarModel(MODEL_POLICE_c)) {
-                        CCarGenerator &carGenC = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenC.m_nEnabled && DistanceBetweenPoints(shoreside_police, carGenC.m_vecPos) < 1.0f && carGenC.m_fAngle == angle_shoreside_police && carGenC.m_nModelId == MODEL_POLICE_c)
-                            alreadyRegisteredC = true;
-                    }
-                    if (CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
-                        CCarGenerator &carGenD = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenD.m_nEnabled && DistanceBetweenPoints(staunton_ambulance, carGenD.m_vecPos) < 1.0f && carGenD.m_fAngle == angle_staunton_ambulance && carGenD.m_nModelId == MODEL_AMBULAN_a)
-                            alreadyRegisteredD = true;
-                        CCarGenerator &carGenE = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenE.m_nEnabled && DistanceBetweenPoints(shoreside_ambulance, carGenE.m_vecPos) < 1.0f && carGenE.m_fAngle == angle_shoreside_ambulance && carGenE.m_nModelId == MODEL_AMBULAN_a)
-                            alreadyRegisteredE = true;
-                    }
-                    if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
-                        CCarGenerator &carGenF = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenF.m_nEnabled && DistanceBetweenPoints(shoreside_firetruck, carGenF.m_vecPos) < 1.0f && carGenF.m_fAngle == angle_shoreside_firetruck && carGenF.m_nModelId == MODEL_FIRETRUK_a)
-                            alreadyRegisteredF = true;
-                        CCarGenerator &carGenG = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenG.m_nEnabled && DistanceBetweenPoints(portland_firetruck, carGenG.m_vecPos) < 1.0f && carGenG.m_fAngle == angle_portland_firetruck && carGenG.m_nModelId == MODEL_FIRETRUK_a)
-                            alreadyRegisteredG = true;
-                        CCarGenerator &carGenH = CTheCarGenerators::CarGeneratorArray[i];
-                        if (carGenH.m_nEnabled && DistanceBetweenPoints(staunton_firetruck, carGenH.m_vecPos) < 1.0f && carGenH.m_fAngle == angle_staunton_firetruck && carGenH.m_nModelId == MODEL_FIRETRUK_a)
-                            alreadyRegisteredH = true;
-                    }
-                }
-                if (!alreadyRegisteredA && CModelInfo::IsCarModel(MODEL_POLICE_a)) {
-                    unsigned int carGenAId = CTheCarGenerators::CreateCarGenerator(portland_police.x, portland_police.y, portland_police.z, 0.0f, MODEL_POLICE_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenAId].SwitchOn();
-                }
-                if (!alreadyRegisteredB && CModelInfo::IsCarModel(MODEL_POLICE_b)) {
-                    unsigned int carGenBId = CTheCarGenerators::CreateCarGenerator(staunton_police.x, staunton_police.y, staunton_police.z, 0.0f, MODEL_POLICE_b, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenBId].SwitchOn();
-                }
-                if (!alreadyRegisteredC && CModelInfo::IsCarModel(MODEL_POLICE_c)) {
-                    unsigned int carGenCId = CTheCarGenerators::CreateCarGenerator(shoreside_police.x, shoreside_police.y, shoreside_police.z, 173.23f, MODEL_POLICE_c, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenCId].SwitchOn();
-                }
-                if (!alreadyRegisteredD && CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
-                    unsigned int carGenDId = CTheCarGenerators::CreateCarGenerator(staunton_ambulance.x, staunton_ambulance.y, staunton_ambulance.z, 0.0f, MODEL_AMBULAN_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenDId].SwitchOn();
-                }
-                if (!alreadyRegisteredE && CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
-                    unsigned int carGenEId = CTheCarGenerators::CreateCarGenerator(shoreside_ambulance.x, shoreside_ambulance.y, shoreside_ambulance.z, 0.0f, MODEL_AMBULAN_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenEId].SwitchOn();
-                }
-                if (!alreadyRegisteredF && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
-                    unsigned int carGenFId = CTheCarGenerators::CreateCarGenerator(shoreside_firetruck.x, shoreside_firetruck.y, shoreside_firetruck.z, 90.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenFId].SwitchOn();
-                }
-                if (!alreadyRegisteredG && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
-                    unsigned int carGenGId = CTheCarGenerators::CreateCarGenerator(portland_firetruck.x, portland_firetruck.y, portland_firetruck.z, 270.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenGId].SwitchOn();
-                }
-                if (!alreadyRegisteredH && CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
-                    unsigned int carGenHId = CTheCarGenerators::CreateCarGenerator(staunton_firetruck.x, staunton_firetruck.y, staunton_firetruck.z, 90.0f, MODEL_FIRETRUK_a, -1, -1, 0, 0, 0, 0, 10000);
-                    CTheCarGenerators::CarGeneratorArray[carGenHId].SwitchOn();
-                }
-            }
-        };
-    }
-}instance;
