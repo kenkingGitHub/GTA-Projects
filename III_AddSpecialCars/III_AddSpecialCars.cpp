@@ -440,61 +440,25 @@ public:
 
     // CCarCtrl::ChoosePoliceCarModel
     static int __cdecl ChoosePoliceCarModel() {
-        int result;
-
         CPlayerPed *player = FindPlayerPed();
         if (player) {
-            
-            if (CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel > 1 && CWorld::Players[CWorld::PlayerInFocus].m_pPed->m_pWanted->m_nWantedLevel < 4) {
-                if (randomPolice < 3)
-                    randomPolice++;
-                else
-                    randomPolice = 0;
-                switch (randomPolice) {
-                case 0: result = MODEL_POLICE; break;
-                case 1:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_a;
-                    else
-                        result = MODEL_POLICE;
-                    break;
-                case 2:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_b;
-                    else
-                        result = MODEL_POLICE;
-                    break;
-                case 3:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_c;
-                    else
-                        result = MODEL_POLICE;
-                    break;
-                default: result = MODEL_POLICE;  break;
-                }
-            }
-
-            else if (player->m_pWanted->AreSwatRequired()
+            if (player->m_pWanted->AreSwatRequired()
                 && CStreaming::ms_aInfoForModel[MODEL_ENFORCER].m_nLoadState == LOADSTATE_LOADED
                 && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
             {
-                int randomSwat = plugin::Random(0, 2);
-                switch (randomSwat) {
-                case 0:
-                    if (CStreaming::ms_aInfoForModel[MODEL_POLICE_d].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_POLICE_d;
+                if (plugin::Random(0, 1)) {
+                    unsigned int enforcerId = GetRandomEnforcer();
+                    if (CModelInfo::IsCarModel(enforcerId)) {
+                        if (LoadModel(enforcerId))
+                            return enforcerId;
+                        else
+                            return MODEL_ENFORCER;
+                    }
                     else
-                        result = MODEL_POLICE;
-                    break;
-                case 1:
-                    if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_LOADED)
-                        result = MODEL_ENFORCER_a;
-                    else
-                        result = MODEL_ENFORCER;
-                    break;
-                case 2: result = MODEL_ENFORCER; break;
-                default: result = MODEL_POLICE;  break;
+                        return MODEL_ENFORCER;
                 }
+                else
+                    return MODEL_ENFORCER;
             }
             else
             {
@@ -502,15 +466,19 @@ public:
                     && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == LOADSTATE_LOADED
                     && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
                 {
-                    int randomFbi = plugin::Random(0, 1);
-                    if (randomFbi) {
-                        if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_LOADED)
-                            result = MODEL_FBICAR_a;
+                    if (plugin::Random(0, 1)) {
+                        unsigned int fbicarId = GetRandomFbicar();
+                        if (CModelInfo::IsCarModel(fbicarId)) {
+                            if (LoadModel(fbicarId))
+                                return fbicarId;
+                            else
+                                return MODEL_FBICAR;
+                        }
                         else
-                            result = MODEL_FBICAR;
+                            return MODEL_FBICAR;
                     }
                     else
-                        result = MODEL_FBICAR;
+                        return MODEL_FBICAR;
                 }
                 else {
                     if (player->m_pWanted->AreArmyRequired()
@@ -518,75 +486,61 @@ public:
                         && CStreaming::ms_aInfoForModel[MODEL_BARRACKS].m_nLoadState == LOADSTATE_LOADED
                         && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
                     {
-                        int randomArmy = plugin::Random(0, 4);
+                        unsigned int barracksId;
+                        int randomArmy = plugin::Random(0, 2);
                         switch (randomArmy) {
-                        case 0: 
-                        case 1:
-                            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_LOADED)
-                                result = MODEL_BARRACKS_a;
+                        case 0:
+                            barracksId = GetRandomBarracks();
+                            if (CModelInfo::IsCarModel(barracksId)) {
+                                if (LoadModel(barracksId))
+                                    return barracksId;
+                                else
+                                    return MODEL_BARRACKS;
+                            }
                             else
-                                result = MODEL_BARRACKS;
-                            break;
-                        case 2:
-                        case 3:
-                            result = MODEL_BARRACKS; break;
-                        case 4:
-                            result = MODEL_RHINO; break;
-                        default: result = MODEL_POLICE;  break;
+                                return MODEL_BARRACKS;
+                        case 1: return MODEL_BARRACKS;
+                        case 2: return MODEL_RHINO;
+                        default: return MODEL_BARRACKS;
                         }
                     }
                     else {
-                        if (randomPolice < 3)
-                            randomPolice++;
-                        else
-                            randomPolice = 0;
-                        switch (randomPolice) {
-                        case 0: result = MODEL_POLICE; break;
-                        case 1:
-                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_LOADED)
-                                result = MODEL_POLICE_a;
+                        if (plugin::Random(0, 1)) {
+                            unsigned int policeId = GetRandomPolice();
+                            if (CModelInfo::IsCarModel(policeId)) {
+                                if (LoadModel(policeId))
+                                    return policeId;
+                                else
+                                    return MODEL_POLICE;
+                            }
                             else
-                                result = MODEL_POLICE;
-                            break;
-                        case 2:
-                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_LOADED)
-                                result = MODEL_POLICE_b;
-                            else
-                                result = MODEL_POLICE;
-                            break;
-                        case 3:
-                            if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_LOADED)
-                                result = MODEL_POLICE_c;
-                            else
-                                result = MODEL_POLICE;
-                            break;
-                        default: result = MODEL_POLICE;  break;
+                                return MODEL_POLICE;
                         }
+                        else
+                            return MODEL_POLICE;
                     }
                 }
             }
         }
-        return result;
+        return MODEL_POLICE;
     }
 
     // cMusicManager::UsesPoliceRadio
     static bool __fastcall UsesPoliceRadio(cMusicManager *_this, int, CVehicle *vehicle) {
         bool result;
+        if (GetPoliceModels().find(vehicle->m_nModelIndex) != GetPoliceModels().end() 
+            || GetBarracksModels().find(vehicle->m_nModelIndex) != GetBarracksModels().end()
+            || GetFbicarModels().find(vehicle->m_nModelIndex) != GetFbicarModels().end()
+            || GetEnforcerModels().find(vehicle->m_nModelIndex) != GetEnforcerModels().end())
+            return true;
 
         switch (vehicle->m_nModelIndex) {
         case MODEL_FBICAR:
-        case MODEL_FBICAR_a:
         case MODEL_ENFORCER:
-        case MODEL_ENFORCER_a:
         case MODEL_PREDATOR:
         case MODEL_RHINO:
         case MODEL_BARRACKS:
-        case MODEL_BARRACKS_a:
         case MODEL_POLICE:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
             result = true;
             break;
         default:
@@ -597,25 +551,24 @@ public:
     }
 
     // CVehicle::UsesSiren
-    static bool __fastcall UsesSiren(CVehicle *_this, int, int vehicleModel) {
+    static bool __fastcall UsesSiren(CVehicle *_this, int, int model) {
         bool result;
+        if (GetPoliceModels().find(model) != GetPoliceModels().end()
+            || GetBarracksModels().find(model) != GetBarracksModels().end()
+            || GetFbicarModels().find(model) != GetFbicarModels().end()
+            || GetEnforcerModels().find(model) != GetEnforcerModels().end()
+            || GetFiretrukModels().find(model) != GetFiretrukModels().end()
+            || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            return true;
 
-        switch (vehicleModel) {
+        switch (model) {
         case MODEL_FIRETRUK:
-        case MODEL_FIRETRUK_a:
         case MODEL_AMBULAN:
-        case MODEL_AMBULAN_a:
         case MODEL_FBICAR:
-        case MODEL_FBICAR_a:
         case MODEL_MRWHOOP:
         case MODEL_ENFORCER:
-        case MODEL_ENFORCER_a:
         case MODEL_PREDATOR:
         case MODEL_POLICE:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
             result = true;
             break;
         default:
@@ -638,11 +591,11 @@ public:
                     if (vehicle->m_nState == 5)
                         result = false;
                     else {
+                        if (GetFiretrukModels().find(vehicle->m_nModelIndex) != GetFiretrukModels().end() || GetAmbulanModels().find(vehicle->m_nModelIndex) != GetAmbulanModels().end())
+                            return false;
                         switch (vehicle->m_nModelIndex) {
                         case MODEL_FIRETRUK:
-                        case MODEL_FIRETRUK_a:
                         case MODEL_AMBULAN:
-                        case MODEL_AMBULAN_a:
                         case MODEL_MRWHOOP:
                         case MODEL_PREDATOR:
                         case MODEL_TRAIN:
@@ -673,6 +626,8 @@ public:
     // cAudioManager::UsesSiren
     static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index) {
         bool result;
+        if (index > 150)
+            return true;
 
         switch (index) { // eVehicleIndex
         case VEHICLE_FIRETRUK:
@@ -681,14 +636,6 @@ public:
         case VEHICLE_POLICE:
         case VEHICLE_ENFORCER:
         case VEHICLE_PREDATOR:
-        case VEHICLE_151:
-        case VEHICLE_152:
-        case VEHICLE_153:
-        case VEHICLE_154:
-        case VEHICLE_155:
-        case VEHICLE_156:
-        case VEHICLE_157:
-        case VEHICLE_158:
             result = true;
             break;
         default:
@@ -701,18 +648,14 @@ public:
     // cAudioManager::UsesSirenSwitching
     static bool __fastcall UsesSirenSwitching(cAudioManager *_this, int, int index) {
         bool result;
+        if (index > 150)
+            return true;
 
         switch (index) { // eVehicleIndex
         case VEHICLE_AMBULAN:
         case VEHICLE_POLICE:
         case VEHICLE_ENFORCER:
         case VEHICLE_PREDATOR:
-        case VEHICLE_151:
-        case VEHICLE_152:
-        case VEHICLE_153:
-        case VEHICLE_154:
-        case VEHICLE_155:
-        case VEHICLE_156:
             result = true;
             break;
         default:
@@ -725,6 +668,12 @@ public:
     // CGarages::IsCarSprayable
     static bool __cdecl IsCarSprayable(CAutomobile *car) {
         bool result;
+        if (GetPoliceModels().find(car->m_nModelIndex) != GetPoliceModels().end()
+            || GetBarracksModels().find(car->m_nModelIndex) != GetBarracksModels().end()
+            || GetEnforcerModels().find(car->m_nModelIndex) != GetEnforcerModels().end()
+            || GetFiretrukModels().find(car->m_nModelIndex) != GetFiretrukModels().end()
+            || GetAmbulanModels().find(car->m_nModelIndex) != GetAmbulanModels().end())
+            return false;
 
         switch (car->m_nModelIndex) {
         case MODEL_FIRETRUK:
@@ -736,14 +685,6 @@ public:
         case MODEL_BARRACKS:
         case MODEL_DODO:
         case MODEL_COACH:
-        case MODEL_POLICE_a:
-        case MODEL_POLICE_b:
-        case MODEL_POLICE_c:
-        case MODEL_POLICE_d:
-        case MODEL_AMBULAN_a:
-        case MODEL_FIRETRUK_a:
-        case MODEL_BARRACKS_a:
-        case MODEL_ENFORCER_a:
             result = false;
             break;
         default:
@@ -775,33 +716,19 @@ public:
             unsigned int model = player->m_pVehicle->m_nModelIndex;
             if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER 
                 || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR) {
-                switch (model) { // Vigilante
-                case MODEL_POLICE:
-                case MODEL_POLICE_a:
-                case MODEL_POLICE_b:
-                case MODEL_POLICE_c:
-                case MODEL_POLICE_d:
-                case MODEL_ENFORCER:
-                case MODEL_ENFORCER_a:
-                case MODEL_RHINO:
-                case MODEL_FBICAR:
-                case MODEL_FBICAR_a:
-                case MODEL_BARRACKS:
-                case MODEL_BARRACKS_a:
-                    inModel = true;
-                    break;
-                default:
-                    inModel = false;
-                    break;
-                }
+                if (model == MODEL_RHINO || model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end()
+                    || model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end()
+                    || model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end()
+                    || model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+                    inModel = true; // Vigilante
             }
             else if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
-                if (model == MODEL_AMBULAN_a || model == MODEL_AMBULAN) // Paramedic
-                    inModel = true;
+                if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()) 
+                    inModel = true; // Paramedic
             }
             else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
-                if (model == MODEL_FIRETRUK_a || model == MODEL_FIRETRUK) // Firefighter
-                    inModel = true;
+                if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()) 
+                    inModel = true; // Firefighter
             }
             else if (model == CTheScripts::ScriptParams[1].uParam)
                 inModel = true;
@@ -823,13 +750,13 @@ public:
         return false;
     }
 
-    static void SetVehicleLoadState(unsigned int modelIndex) {
+    /*static void SetVehicleLoadState(unsigned int modelIndex) {
         if (LoadModel(modelIndex)) {
             CVehicle *vehicle = nullptr;
             vehicle = new CAutomobile(modelIndex, 1);
 
         }
-    }
+    }*/
 
     static void SetPedLoadState(unsigned int modelIndex) {
         if (LoadModel(modelIndex)) {
@@ -965,42 +892,6 @@ public:
 
         Events::gameProcessEvent += [] {
             bReplayEnabled = false;
-            if (CModelInfo::IsCarModel(MODEL_POLICE_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_POLICE_a);
-            }
-            if (CModelInfo::IsCarModel(MODEL_POLICE_b)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_b].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_POLICE_b);
-            }
-            if (CModelInfo::IsCarModel(MODEL_POLICE_c)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_c].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_POLICE_c);
-            }
-            if (CModelInfo::IsCarModel(MODEL_POLICE_d)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_POLICE_d].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_POLICE_d);
-            }
-            if (CModelInfo::IsCarModel(MODEL_AMBULAN_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_AMBULAN_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_AMBULAN_a);
-            }
-            if (CModelInfo::IsCarModel(MODEL_FBICAR_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_FBICAR_a);
-            }
-            if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_FIRETRUK_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_FIRETRUK_a);
-            }
-            if (CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_BARRACKS_a);
-            }
-            if (CModelInfo::IsCarModel(MODEL_ENFORCER_a)) {
-                if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_NOT_LOADED)
-                    SetVehicleLoadState(MODEL_ENFORCER_a);
-            }
             if (CModelInfo::IsPedModel(MODEL_COP_a)) {
                 if (CStreaming::ms_aInfoForModel[MODEL_COP_a].m_nLoadState == LOADSTATE_NOT_LOADED)
                     SetPedLoadState(MODEL_COP_a);
