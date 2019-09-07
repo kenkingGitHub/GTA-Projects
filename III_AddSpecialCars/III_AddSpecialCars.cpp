@@ -888,7 +888,7 @@ public:
         static int randomCopTime = 0;
         static unsigned int randomCop = 3;
         static unsigned int randomModel = 3;
-        static unsigned int modelCop, modelSwat, modelFbi, modelArmy, modelBarracks, modelEnforcer, modelFbicar;
+        static unsigned int modelCop, modelSwat, modelFbi, modelArmy;
 
         Events::gameProcessEvent += [] {
             bReplayEnabled = false;
@@ -990,44 +990,38 @@ public:
                         patch::SetChar(0x4378F3, modelArmy, true); // RoadBlocks
                     }
                     // armyRoadBlocks
-                    if (player->m_pWanted->AreArmyRequired() && CModelInfo::IsCarModel(MODEL_BARRACKS_a)) {
-                        if (patch::GetUChar(0x43719C) == MODEL_BARRACKS) {
-                            if (CStreaming::ms_aInfoForModel[MODEL_BARRACKS_a].m_nLoadState == LOADSTATE_LOADED)
-                                modelBarracks = MODEL_BARRACKS_a;
+                    if (player->m_pWanted->AreArmyRequired()) {
+                        unsigned int barracksId = GetRandomBarracks();
+                        if (CModelInfo::IsCarModel(barracksId) && LoadModel(barracksId)) {
+                            if (patch::GetShort(0x43719C) == MODEL_BARRACKS)
+                                patch::SetShort(0x43719C, barracksId, true);
                             else
-                                modelBarracks = MODEL_BARRACKS;
+                                patch::SetShort(0x43719C, MODEL_BARRACKS, true);
                         }
-                        else
-                            modelBarracks = MODEL_BARRACKS;
-                        patch::SetChar(0x43719C, modelBarracks, true);
                     }
                     // swatRoadBlocks
-                    if (player->m_pWanted->AreSwatRequired() && CModelInfo::IsCarModel(MODEL_ENFORCER_a)) {
-                        if (patch::GetUChar(0x4371D8) == MODEL_ENFORCER) {
-                            if (CStreaming::ms_aInfoForModel[MODEL_ENFORCER_a].m_nLoadState == LOADSTATE_LOADED)
-                                modelEnforcer = MODEL_ENFORCER_a;
+                    if (player->m_pWanted->AreSwatRequired()) {
+                        unsigned int enforcerId = GetRandomEnforcer();
+                        if (CModelInfo::IsCarModel(enforcerId) && LoadModel(enforcerId)) {
+                            if (patch::GetShort(0x4371D8) == MODEL_ENFORCER)
+                                patch::SetShort(0x4371D8, enforcerId, true);
                             else
-                                modelEnforcer = MODEL_ENFORCER;
+                                patch::SetShort(0x4371D8, MODEL_ENFORCER, true);
                         }
-                        else
-                            modelEnforcer = MODEL_ENFORCER;
-                        patch::SetChar(0x4371D8, modelEnforcer, true);
                     }
                     // fbiRoadBlocks
-                    if (player->m_pWanted->AreFbiRequired() && CModelInfo::IsCarModel(MODEL_FBICAR_a)) {
-                        if (patch::GetUChar(0x4371BA) == MODEL_FBICAR) {
-                            if (CStreaming::ms_aInfoForModel[MODEL_FBICAR_a].m_nLoadState == LOADSTATE_LOADED)
-                                modelFbicar = MODEL_FBICAR_a;
+                    if (player->m_pWanted->AreFbiRequired()) {
+                        unsigned int fbicarId = GetRandomFbicar();
+                        if (CModelInfo::IsCarModel(fbicarId) && LoadModel(fbicarId)) {
+                            if (patch::GetShort(0x4371BA) == MODEL_FBICAR)
+                                patch::SetShort(0x4371BA, fbicarId, true);
                             else
-                                modelFbicar = MODEL_FBICAR;
+                                patch::SetShort(0x4371BA, MODEL_FBICAR, true);
                         }
-                        else
-                            modelFbicar = MODEL_FBICAR;
-                        patch::SetChar(0x4371BA, modelFbicar, true);
                     }
                 }
                 // Spawn Cars
-                switch (m_currentState) {
+                /*switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
                         CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
@@ -1112,7 +1106,7 @@ public:
                     }
                     m_currentState = STATE_FIND;
                     break;
-                }
+                }*/
             }
         };
     }
