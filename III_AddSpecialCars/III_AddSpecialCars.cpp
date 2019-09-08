@@ -4,9 +4,7 @@
 #include "CWorld.h"
 #include "eVehicleModel.h"
 #include "ePedModel.h"
-#include "eVehicleIndex.h"
 #include "cMusicManager.h"
-#include "cAudioManager.h"
 #include "CTheScripts.h"
 #include "CCivilianPed.h"
 #include "CTimer.h"
@@ -19,15 +17,8 @@
 #include <string>
 #include <fstream>
 
-#define MODEL_POLICE_a 151
-#define MODEL_POLICE_b 152
-#define MODEL_POLICE_c 153
-#define MODEL_POLICE_d 154
-#define MODEL_ENFORCER_a 155
 #define MODEL_AMBULAN_a 156
-#define MODEL_FBICAR_a 157
 #define MODEL_FIRETRUK_a 158
-#define MODEL_BARRACKS_a 159
 #define MODEL_COP_a 83
 #define MODEL_COP_b 84
 #define MODEL_COP_c 85
@@ -88,15 +79,10 @@ public:
     static float carAngle;
     static CAutoPilot pilot;
     
-    static unsigned int currentSpecialModelForSiren;
-    static unsigned int currentSpecialModelForOccupants;
-    static unsigned int randomPolice;
-    static unsigned int currentFiretrukModel;
-    static unsigned int currentRoadBlockModel;
-    static unsigned int jmp_5373DE;
-    static unsigned int jmp_4F5860;
-    static unsigned int jmp_531FF1;
-    static unsigned int jmp_4378D1;
+    static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants;
+    static unsigned int randomPolice, currentFiretrukModel, currentRoadBlockModel;
+    static unsigned int jmp_5373DE, jmp_4F5860, jmp_531FF1, jmp_4378D1, jmp_56C23A, jmp_56C4B3;
+    static unsigned int currentModel_Patch_56C234, currentModel_Patch_56C4AD;
 
     static unordered_set<unsigned int> &GetPoliceModels() {
         static std::unordered_set<unsigned int> policeIds;
@@ -275,6 +261,34 @@ public:
     static void Patch_4F5857(); // AddPedInCar
     static void Patch_531FE8(); // FireTruckControl
     static void Patch_4378C4(); // RoadBlockCopsForCar
+    static void Patch_56C234();
+    static void Patch_56C4AD();
+
+    static bool __stdcall GetModel_Patch_56C234(unsigned int model) {
+        bool result; result = false;
+        if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            result = true;
+        else if (model == MODEL_PREDATOR || model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+            result = true;
+        else if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
+            result = true;
+        return result;
+    }
+
+    static bool __stdcall GetModel_Patch_56C4AD(unsigned int model) {
+        bool result; result = false;
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+            result = true;
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            result = true;
+        else if (model == MODEL_FBICAR || GetFbicarModels().find(model) != GetFbicarModels().end())
+            result = true;
+        else if (model == MODEL_PREDATOR || model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+            result = true;
+        else if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
+            result = true;
+        return result;
+    }
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -395,8 +409,6 @@ public:
             result = true;
         else if (_this->m_nModelIndex == MODEL_POLICE || GetPoliceModels().find(_this->m_nModelIndex) != GetPoliceModels().end())
             result = true;
-        else
-            result = false;
         return result;
     }
 
@@ -623,48 +635,6 @@ public:
         return result;
     }
 
-    // cAudioManager::UsesSiren
-    static bool __fastcall UsesSirenAudio(cAudioManager *_this, int, int index) {
-        bool result;
-        if (index > 150)
-            return true;
-
-        switch (index) { // eVehicleIndex
-        case VEHICLE_FIRETRUK:
-        case VEHICLE_AMBULAN:
-        case VEHICLE_FBICAR:
-        case VEHICLE_POLICE:
-        case VEHICLE_ENFORCER:
-        case VEHICLE_PREDATOR:
-            result = true;
-            break;
-        default:
-            result = false;
-            break;
-        }
-        return result;
-    }
-
-    // cAudioManager::UsesSirenSwitching
-    static bool __fastcall UsesSirenSwitching(cAudioManager *_this, int, int index) {
-        bool result;
-        if (index > 150)
-            return true;
-
-        switch (index) { // eVehicleIndex
-        case VEHICLE_AMBULAN:
-        case VEHICLE_POLICE:
-        case VEHICLE_ENFORCER:
-        case VEHICLE_PREDATOR:
-            result = true;
-            break;
-        default:
-            result = false;
-            break;
-        }
-        return result;
-    }
-
     // CGarages::IsCarSprayable
     static bool __cdecl IsCarSprayable(CAutomobile *car) {
         bool result;
@@ -749,14 +719,6 @@ public:
         }
         return false;
     }
-
-    /*static void SetVehicleLoadState(unsigned int modelIndex) {
-        if (LoadModel(modelIndex)) {
-            CVehicle *vehicle = nullptr;
-            vehicle = new CAutomobile(modelIndex, 1);
-
-        }
-    }*/
 
     static void SetPedLoadState(unsigned int modelIndex) {
         if (LoadModel(modelIndex)) {
@@ -856,8 +818,6 @@ public:
         patch::RedirectJump(0x57E6A0, UsesPoliceRadio);
         patch::RedirectJump(0x552200, UsesSiren);
         patch::RedirectJump(0x57E4B0, PlayerInCar);
-        patch::RedirectJump(0x56C3C0, UsesSirenAudio);
-        patch::RedirectJump(0x56C3F0, UsesSirenSwitching);
         patch::RedirectJump(0x426700, IsCarSprayable);
         patch::RedirectJump(0x5527E0, IsVehicleNormal);
 
@@ -871,6 +831,8 @@ public:
         patch::RedirectJump(0x4F5857, Patch_4F5857);
         patch::RedirectJump(0x531FE8, Patch_531FE8);
         patch::RedirectJump(0x4378C4, Patch_4378C4);
+        patch::RedirectJump(0x56C234, Patch_56C234);
+        patch::RedirectJump(0x56C4AD, Patch_56C4AD);
         
         // fix ID 154, 155, 159
         patch::SetUChar(0x52D0B3, 140, true);
@@ -1127,6 +1089,10 @@ unsigned int AddSpecialCars::jmp_5373DE;
 unsigned int AddSpecialCars::jmp_4F5860;
 unsigned int AddSpecialCars::jmp_531FF1;
 unsigned int AddSpecialCars::jmp_4378D1;
+unsigned int AddSpecialCars::jmp_56C23A;
+unsigned int AddSpecialCars::jmp_56C4B3;
+unsigned int AddSpecialCars::currentModel_Patch_56C234;
+unsigned int AddSpecialCars::currentModel_Patch_56C4AD;
 
 void __declspec(naked) AddSpecialCars::Patch_5373D7() { // Siren
     __asm {
@@ -1190,5 +1156,33 @@ void __declspec(naked) AddSpecialCars::Patch_4378C4() { // RoadBlockCopsForCar
         cmp     eax, 10h
         mov jmp_4378D1, 0x4378D1
         jmp jmp_4378D1
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_56C234() {
+    __asm {
+        movsx   eax, word ptr[ebp + 5Ch]
+        pushad
+        push eax
+        call GetModel_Patch_56C234
+        mov currentModel_Patch_56C234, eax
+        popad
+        mov eax, currentModel_Patch_56C234
+        mov jmp_56C23A, 0x56C23A
+        jmp jmp_56C23A
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_56C4AD() {
+    __asm {
+        movsx   eax, word ptr[ebp + 5Ch]
+        pushad
+        push eax
+        call GetModel_Patch_56C4AD
+        mov currentModel_Patch_56C4AD, eax
+        popad
+        mov eax, currentModel_Patch_56C4AD
+        mov jmp_56C4B3, 0x56C4B3
+        jmp jmp_56C4B3
     }
 }
