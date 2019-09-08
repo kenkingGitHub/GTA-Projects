@@ -12,13 +12,10 @@
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
 #include "CCarAI.h"
-#include "CTheCarGenerators.h"
 #include <unordered_set>
 #include <string>
 #include <fstream>
 
-#define MODEL_AMBULAN_a 156
-#define MODEL_FIRETRUK_a 158
 #define MODEL_COP_a 83
 #define MODEL_COP_b 84
 #define MODEL_COP_c 85
@@ -983,7 +980,8 @@ public:
                     }
                 }
                 // Spawn Cars
-                /*switch (m_currentState) {
+                unsigned int ambulanId, firetrukId;
+                switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
                         CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
@@ -1023,15 +1021,17 @@ public:
                         randomModel = 0;
                     switch (randomModel) {
                     case 0:
-                        if (CModelInfo::IsCarModel(MODEL_AMBULAN_a))
-                            modelCar = MODEL_AMBULAN_a;
+                        ambulanId = GetRandomAmbulance();
+                        if (CModelInfo::IsCarModel(ambulanId) && LoadModel(ambulanId))
+                            modelCar = ambulanId;
                         else
                             modelCar = MODEL_AMBULAN;
                         modelPed = MODEL_MEDIC;
                         break;
                     case 1:
-                        if (CModelInfo::IsCarModel(MODEL_FIRETRUK_a))
-                            modelCar = MODEL_FIRETRUK_a;
+                        firetrukId = GetRandomFiretruk();
+                        if (CModelInfo::IsCarModel(firetrukId) && LoadModel(firetrukId))
+                            modelCar = firetrukId;
                         else
                             modelCar = MODEL_FIRETRUK;
                         modelPed = MODEL_FIREMAN;
@@ -1068,7 +1068,7 @@ public:
                     }
                     m_currentState = STATE_FIND;
                     break;
-                }*/
+                }
             }
         };
     }
