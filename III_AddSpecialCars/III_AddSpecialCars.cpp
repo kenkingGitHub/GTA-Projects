@@ -563,7 +563,6 @@ public:
     static bool __fastcall UsesSiren(CVehicle *_this, int, int model) {
         bool result;
         if (GetPoliceModels().find(model) != GetPoliceModels().end()
-            || GetBarracksModels().find(model) != GetBarracksModels().end()
             || GetFbicarModels().find(model) != GetFbicarModels().end()
             || GetEnforcerModels().find(model) != GetEnforcerModels().end()
             || GetFiretrukModels().find(model) != GetFiretrukModels().end()
@@ -780,7 +779,7 @@ public:
                         GetBarracksModels().insert(stoi(line));
                 }
             }
-            if (!line.compare("cop")) {
+            /*if (!line.compare("cop")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetCopModels().insert(stoi(line));
@@ -803,7 +802,7 @@ public:
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetArmyModels().insert(stoi(line));
                 }
-            }
+            }*/
         }
 
         patch::RedirectJump(0x544B00, DoesMilitaryCraneHaveThisOneAlready);
