@@ -36,6 +36,8 @@
 #include "eScriptCommands.h"
 #include "extensions\KeyCheck.h"
 
+#include "CModelInfo.h"
+
 using namespace plugin;
 
 class Test {
@@ -44,6 +46,8 @@ public:
     static eAudioState m_currentState;
     
     Test() {
+        //CModelInfo::AddVehicleModel(237);
+
         Events::gameProcessEvent += [] {
             switch (m_currentState) {
             case STATE_LOAD:

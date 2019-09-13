@@ -65,8 +65,8 @@ public:
     static float carAngle;
     static CAutoPilot pilot;
     static int randomFbicar;
-    static unsigned int currentSpecialModelForSiren;
-
+    static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants;
+    static unsigned int jmp_53A913;
 
     static unordered_set<unsigned int> &GetPoliceModels() {
         static std::unordered_set<unsigned int> policeIds;
@@ -209,8 +209,24 @@ public:
         return model;
     }
 
+    static int __stdcall GetSpecialModelForOccupants(unsigned int model) {
+        if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
+            return MODEL_POLICE;
+        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+            return MODEL_AMBULAN;
+        else if (model == MODEL_FBICAR || model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+            return MODEL_FBIRANCH;
+        else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+            return MODEL_FIRETRUK;
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+            return MODEL_BARRACKS;
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+            return MODEL_ENFORCER;
+        return model;
+    }
+
     static void Patch_58BE1F(); // Siren
-    
+    static void Patch_53A905(); // AddPedInCar
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -404,7 +420,7 @@ public:
                 else
                 {
                     if (player->m_pWanted->AreFbiRequired()
-                        && CStreaming::ms_aInfoForModel[MODEL_FBICAR].m_nLoadState == LOADSTATE_LOADED
+                        && CStreaming::ms_aInfoForModel[MODEL_FBIRANCH].m_nLoadState == LOADSTATE_LOADED
                         && CStreaming::ms_aInfoForModel[MODEL_FBI].m_nLoadState == LOADSTATE_LOADED)
                     {
                         unsigned int fbicarId;
@@ -479,16 +495,16 @@ public:
     }
 
     // CVehicle::UsesSiren
-    static bool __fastcall UsesSiren(CVehicle *_this, int, int model) {
+    static bool __fastcall UsesSiren(CVehicle *_this) {
         bool result;
-        if (GetPoliceModels().find(model) != GetPoliceModels().end()
-            || GetFbiranchModels().find(model) != GetFbiranchModels().end()
-            || GetEnforcerModels().find(model) != GetEnforcerModels().end()
-            || GetFiretrukModels().find(model) != GetFiretrukModels().end()
-            || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+        if (GetPoliceModels().find(_this->m_nModelIndex) != GetPoliceModels().end()
+            || GetFbiranchModels().find(_this->m_nModelIndex) != GetFbiranchModels().end()
+            || GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end()
+            || GetFiretrukModels().find(_this->m_nModelIndex) != GetFiretrukModels().end()
+            || GetAmbulanModels().find(_this->m_nModelIndex) != GetAmbulanModels().end())
             return true;
 
-        switch (model) {
+        switch (_this->m_nModelIndex) {
         case MODEL_FIRETRUK:
         case MODEL_AMBULAN:
         case MODEL_FBICAR:
@@ -518,6 +534,37 @@ public:
                 isTaxiModel = true;
         }
         script->UpdateCompareFlag(isTaxiModel);
+    }
+
+    static void __fastcall OpcodeIsPlayerInModel(CRunningScript *script) {
+        script->CollectParameters(&script->m_nIp, 2);
+        bool inModel = false;
+
+        CPlayerPed * player = CWorld::Players[CTheScripts::ScriptParams[0].uParam].m_pPed;
+        if (player->m_bInVehicle) {
+            unsigned int model = player->m_pVehicle->m_nModelIndex;
+            if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER
+                || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR
+                || CTheScripts::ScriptParams[1].uParam == MODEL_FBIRANCH) 
+            {
+                if (model == MODEL_RHINO || model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end()
+                    || model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end()
+                    || model == MODEL_FBICAR || model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end()
+                    || model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+                    inModel = true; // Vigilante
+            }
+            else if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
+                if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+                    inModel = true; // Paramedic
+            }
+            else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
+                if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+                    inModel = true; // Firefighter
+            }
+            else if (model == CTheScripts::ScriptParams[1].uParam)
+                inModel = true;
+        }
+        script->UpdateCompareFlag(inModel);
     }
 
     static bool LoadModel(int model) {
@@ -617,12 +664,13 @@ public:
         patch::RedirectJump(0x5B8520, UsesSiren);
 
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
+        patch::RedirectJump(0x53A905, Patch_53A905);
 
         patch::RedirectCall(0x45600E, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x456013, 0x5B); // or jump 0x45606E
-
+        patch::RedirectCall(0x44525F, OpcodeIsPlayerInModel);
+        patch::Nop(0x445264, 0x46); // or jump 0x4452AA
         
-
 
     }
 } test;
@@ -634,7 +682,8 @@ float AddSpecialCars::carAngle = 0.0f;
 CAutoPilot AddSpecialCars::pilot;
 int AddSpecialCars::randomFbicar = 2;
 unsigned int AddSpecialCars::currentSpecialModelForSiren;
-
+unsigned int AddSpecialCars::currentSpecialModelForOccupants;
+unsigned int AddSpecialCars::jmp_53A913;
 
 void __declspec(naked) AddSpecialCars::Patch_58BE1F() { // Siren
     __asm {
@@ -651,3 +700,20 @@ void __declspec(naked) AddSpecialCars::Patch_58BE1F() { // Siren
     }
 }
 
+void __declspec(naked) AddSpecialCars::Patch_53A905() { // AddPedInCar
+    __asm {
+        movsx edx, word ptr[eax + 5Ch]
+        mov eax, edx
+        pushad
+        push eax
+        call GetSpecialModelForOccupants
+        mov currentSpecialModelForOccupants, eax
+        popad
+        mov eax, currentSpecialModelForOccupants
+        pop ecx
+        mov edi, eax
+        sub eax, 137
+        mov jmp_53A913, 0x53A913
+        jmp jmp_53A913
+    }
+}
