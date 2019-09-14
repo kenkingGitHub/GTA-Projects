@@ -65,8 +65,8 @@ public:
     static float carAngle;
     static CAutoPilot pilot;
     static int randomFbicar;
-    static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants;
-    static unsigned int jmp_53A913;
+    static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants, currentFiretrukModel, currentRoadBlockModel;
+    static unsigned int jmp_53A913, jmp_5945D9, jmp_444040;
 
     static unordered_set<unsigned int> &GetPoliceModels() {
         static std::unordered_set<unsigned int> policeIds;
@@ -225,8 +225,26 @@ public:
         return model;
     }
 
+    static int __stdcall GetFiretrukModel(unsigned int model) {
+        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+            return MODEL_FIRETRUK;
+        return model;
+    }
+
+    static int __stdcall GetRoadBlockModel(unsigned int model) {
+        if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+            return MODEL_ENFORCER;
+        else if (model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+            return MODEL_FBIRANCH;
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+            return MODEL_BARRACKS;
+        return model;
+    }
+
     static void Patch_58BE1F(); // Siren
     static void Patch_53A905(); // AddPedInCar
+    static void Patch_5945CE(); // FireTruckControl
+    static void Patch_444034(); // RoadBlockCopsForCar
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -665,6 +683,7 @@ public:
 
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
         patch::RedirectJump(0x53A905, Patch_53A905);
+        patch::RedirectJump(0x5945CE, Patch_5945CE);
 
         patch::RedirectCall(0x45600E, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x456013, 0x5B); // or jump 0x45606E
@@ -683,7 +702,11 @@ CAutoPilot AddSpecialCars::pilot;
 int AddSpecialCars::randomFbicar = 2;
 unsigned int AddSpecialCars::currentSpecialModelForSiren;
 unsigned int AddSpecialCars::currentSpecialModelForOccupants;
+unsigned int AddSpecialCars::currentFiretrukModel;
+unsigned int AddSpecialCars::currentRoadBlockModel;
 unsigned int AddSpecialCars::jmp_53A913;
+unsigned int AddSpecialCars::jmp_5945D9;
+unsigned int AddSpecialCars::jmp_444040;
 
 void __declspec(naked) AddSpecialCars::Patch_58BE1F() { // Siren
     __asm {
@@ -715,5 +738,37 @@ void __declspec(naked) AddSpecialCars::Patch_53A905() { // AddPedInCar
         sub eax, 137
         mov jmp_53A913, 0x53A913
         jmp jmp_53A913
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_5945CE() { // FireTruckControl
+    __asm {
+        movsx eax, word ptr[ebp + 0x5C]
+        pushad
+        push eax
+        call GetFiretrukModel
+        mov currentFiretrukModel, eax
+        popad
+        mov eax, currentFiretrukModel
+        fldz
+        cmp  eax, 137
+        mov jmp_5945D9, 0x5945D9
+        jmp jmp_5945D9
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_444034() { // RoadBlockCopsForCar
+    __asm {
+        movsx   eax, word ptr[ebx + 0x5C]
+        pushad
+        push eax
+        call GetRoadBlockModel
+        mov currentRoadBlockModel, eax
+        popad
+        mov eax, currentRoadBlockModel
+        add     esp, 12
+        sub     eax, 157
+        mov jmp_444040, 0x444040
+        jmp jmp_444040
     }
 }
