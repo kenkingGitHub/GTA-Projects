@@ -64,7 +64,7 @@ public:
     static CVector carPos;
     static float carAngle;
     static CAutoPilot pilot;
-    static int randomFbicar;
+    static int randomFbicar, currentCopModel, currentSwatModel, currentFbiModel, currentArmyModel;
     static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants, currentFiretrukModel, currentRoadBlockModel;
     static unsigned int jmp_53A913, jmp_5945D9, jmp_444040;
 
@@ -241,10 +241,78 @@ public:
         return model;
     }
 
+    static int __stdcall GetCurrentCopModel() {
+        if (GetCopModels().size()) {
+            if (plugin::Random(0, 2)) 
+                return MODEL_COP;
+            else {
+                unsigned int copId = GetRandomCop();
+                if (CModelInfo::IsPedModel(copId) && LoadModel(copId))
+                    return copId;
+                else
+                    return MODEL_COP;
+            }
+        }
+        else
+            return MODEL_COP;
+    }
+
+    static int __stdcall GetCurrentSwatModel() {
+        if (GetSwatModels().size()) {
+            if (plugin::Random(0, 2))
+                return MODEL_SWAT;
+            else {
+                unsigned int swatId = GetRandomSwat();
+                if (CModelInfo::IsPedModel(swatId) && LoadModel(swatId))
+                    return swatId;
+                else
+                    return MODEL_SWAT;
+            }
+        }
+        else
+            return MODEL_SWAT;
+    }
+
+    static int __stdcall GetCurrentFbiModel() {
+        if (GetFbiModels().size()) {
+            if (plugin::Random(0, 2))
+                return MODEL_FBI;
+            else {
+                unsigned int fbiId = GetRandomFbi();
+                if (CModelInfo::IsPedModel(fbiId) && LoadModel(fbiId))
+                    return fbiId;
+                else
+                    return MODEL_FBI;
+            }
+        }
+        else
+            return MODEL_FBI;
+    }
+
+    static int __stdcall GetCurrentArmyModel() {
+        if (GetArmyModels().size()) {
+            if (plugin::Random(0, 2))
+                return MODEL_ARMY;
+            else {
+                unsigned int armyId = GetRandomArmy();
+                if (CModelInfo::IsPedModel(armyId) && LoadModel(armyId))
+                    return armyId;
+                else
+                    return MODEL_ARMY;
+            }
+        }
+        else
+            return MODEL_ARMY;
+    }
+
     static void Patch_58BE1F(); // Siren
     static void Patch_53A905(); // AddPedInCar
     static void Patch_5945CE(); // FireTruckControl
     static void Patch_444034(); // RoadBlockCopsForCar
+    static void Patch_4ED761(); // RandomCop
+    static void Patch_4ED7C2(); // RandomSwat
+    static void Patch_4ED811(); // RandomFbi
+    static void Patch_4ED833(); // RandomArmy
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -647,30 +715,30 @@ public:
                         GetBarracksModels().insert(stoi(line));
                 }
             }
-            /*if (!line.compare("cop")) {
-            while (getline(stream, line) && line.compare("end")) {
-            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-            GetCopModels().insert(stoi(line));
-            }
+            if (!line.compare("cop")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopModels().insert(stoi(line));
+                }
             }
             if (!line.compare("swat")) {
-            while (getline(stream, line) && line.compare("end")) {
-            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-            GetSwatModels().insert(stoi(line));
-            }
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatModels().insert(stoi(line));
+                }
             }
             if (!line.compare("fbi")) {
-            while (getline(stream, line) && line.compare("end")) {
-            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-            GetFbiModels().insert(stoi(line));
-            }
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiModels().insert(stoi(line));
+                }
             }
             if (!line.compare("army")) {
-            while (getline(stream, line) && line.compare("end")) {
-            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-            GetArmyModels().insert(stoi(line));
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetArmyModels().insert(stoi(line));
+                }
             }
-            }*/
         }
         
         patch::RedirectJump(0x5A7F90, DoesMilitaryCraneHaveThisOneAlready);
@@ -684,6 +752,11 @@ public:
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
         patch::RedirectJump(0x53A905, Patch_53A905);
         patch::RedirectJump(0x5945CE, Patch_5945CE);
+
+        patch::RedirectJump(0x4ED761, Patch_4ED761);
+        patch::RedirectJump(0x4ED7C2, Patch_4ED7C2);
+        patch::RedirectJump(0x4ED811, Patch_4ED811);
+        patch::RedirectJump(0x4ED833, Patch_4ED833);
 
         patch::RedirectCall(0x45600E, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x456013, 0x5B); // or jump 0x45606E
@@ -704,6 +777,10 @@ unsigned int AddSpecialCars::currentSpecialModelForSiren;
 unsigned int AddSpecialCars::currentSpecialModelForOccupants;
 unsigned int AddSpecialCars::currentFiretrukModel;
 unsigned int AddSpecialCars::currentRoadBlockModel;
+int AddSpecialCars::currentCopModel;
+int AddSpecialCars::currentSwatModel;
+int AddSpecialCars::currentFbiModel;
+int AddSpecialCars::currentArmyModel;
 unsigned int AddSpecialCars::jmp_53A913;
 unsigned int AddSpecialCars::jmp_5945D9;
 unsigned int AddSpecialCars::jmp_444040;
@@ -770,5 +847,67 @@ void __declspec(naked) AddSpecialCars::Patch_444034() { // RoadBlockCopsForCar
         sub     eax, 157
         mov jmp_444040, 0x444040
         jmp jmp_444040
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4ED761() { // RandomCop
+    __asm {
+        pushad
+        call GetCurrentCopModel
+        mov currentCopModel, eax
+        popad
+        push currentCopModel
+        call dword ptr[ebx + 0Ch]
+        mov ecx, [esp + 4]
+        mov edx, 0x4ED76A
+        jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4ED7C2() { // RandomSwat
+    __asm {
+        pushad
+        call GetCurrentSwatModel
+        mov currentSwatModel, eax
+        popad
+        push currentSwatModel
+        call dword ptr[ebx + 0Ch]
+        mov ecx, [esp + 4]
+        push 1000
+        push 23
+        mov edx, 0x4ED7D2
+        jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4ED811() { // RandomFbi
+    __asm {
+        pushad
+        call GetCurrentFbiModel
+        mov currentFbiModel, eax
+        popad
+        push currentFbiModel
+        call dword ptr[ebx + 0Ch]
+        mov ecx, [esp + 4]
+        push 1000
+        push 25
+        mov edx, 0x4ED821
+        jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4ED833() { // RandomArmy
+    __asm {
+        pushad
+        call GetCurrentArmyModel
+        mov currentArmyModel, eax
+        popad
+        push currentArmyModel
+        call dword ptr[ebx + 0Ch]
+        mov ecx, [esp + 4]
+        push 1000
+        push 25
+        mov edx, 0x4ED843
+        jmp edx
     }
 }
