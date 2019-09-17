@@ -67,6 +67,7 @@ public:
     static int randomFbicar, currentCopModel, currentSwatModel, currentFbiModel, currentArmyModel;
     static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants, currentFiretrukModel, currentRoadBlockModel;
     static unsigned int jmp_53A913, jmp_5945D9, jmp_444040;
+    static bool isCop, isSwat, isFbi, isArmy;
 
     static unordered_set<unsigned int> &GetPoliceModels() {
         static std::unordered_set<unsigned int> policeIds;
@@ -243,14 +244,17 @@ public:
 
     static int __stdcall GetCurrentCopModel() {
         if (GetCopModels().size()) {
-            if (plugin::Random(0, 2)) 
-                return MODEL_COP;
+            if (isCop) {
+                isCop = false; return MODEL_COP;
+            }
             else {
                 unsigned int copId = GetRandomCop();
-                if (CModelInfo::IsPedModel(copId) && LoadModel(copId))
-                    return copId;
-                else
-                    return MODEL_COP;
+                if (CModelInfo::IsPedModel(copId) && LoadModel(copId)) {
+                    isCop = true; return copId;
+                }
+                else {
+                    isCop = false; return MODEL_COP;
+                }
             }
         }
         else
@@ -259,14 +263,17 @@ public:
 
     static int __stdcall GetCurrentSwatModel() {
         if (GetSwatModels().size()) {
-            if (plugin::Random(0, 2))
-                return MODEL_SWAT;
+            if (isSwat) {
+                isSwat = false; return MODEL_SWAT;
+            }
             else {
                 unsigned int swatId = GetRandomSwat();
-                if (CModelInfo::IsPedModel(swatId) && LoadModel(swatId))
-                    return swatId;
-                else
-                    return MODEL_SWAT;
+                if (CModelInfo::IsPedModel(swatId) && LoadModel(swatId)) {
+                    isSwat = true; return swatId;
+                }
+                else {
+                    isSwat = false; return MODEL_SWAT;
+                }
             }
         }
         else
@@ -275,14 +282,17 @@ public:
 
     static int __stdcall GetCurrentFbiModel() {
         if (GetFbiModels().size()) {
-            if (plugin::Random(0, 2))
-                return MODEL_FBI;
+            if (isFbi) {
+                isFbi = false; return MODEL_FBI;
+            }
             else {
                 unsigned int fbiId = GetRandomFbi();
-                if (CModelInfo::IsPedModel(fbiId) && LoadModel(fbiId))
-                    return fbiId;
-                else
-                    return MODEL_FBI;
+                if (CModelInfo::IsPedModel(fbiId) && LoadModel(fbiId)) {
+                    isFbi = true; return fbiId;
+                }
+                else {
+                    isFbi = false; return MODEL_FBI;
+                }
             }
         }
         else
@@ -291,14 +301,17 @@ public:
 
     static int __stdcall GetCurrentArmyModel() {
         if (GetArmyModels().size()) {
-            if (plugin::Random(0, 2))
-                return MODEL_ARMY;
+            if (isArmy) {
+                isArmy = false; return MODEL_ARMY;
+            }
             else {
                 unsigned int armyId = GetRandomArmy();
-                if (CModelInfo::IsPedModel(armyId) && LoadModel(armyId))
-                    return armyId;
-                else
-                    return MODEL_ARMY;
+                if (CModelInfo::IsPedModel(armyId) && LoadModel(armyId)) {
+                    isArmy = true; return armyId;
+                }
+                else {
+                    isArmy = false; return MODEL_ARMY;
+                }
             }
         }
         else
@@ -763,6 +776,157 @@ public:
         patch::RedirectCall(0x44525F, OpcodeIsPlayerInModel);
         patch::Nop(0x445264, 0x46); // or jump 0x4452AA
         
+        static int randomRoadBlocksTime = 0;
+
+        Events::gameProcessEvent += [] {
+            CPlayerPed *player = FindPlayerPed();
+            if (player) {
+                if (CTimer::m_snTimeInMilliseconds > (randomRoadBlocksTime + 30000)) {
+                    randomRoadBlocksTime = CTimer::m_snTimeInMilliseconds;
+                    if (player->m_pWanted->m_nWantedLevel == 3) {
+                        unsigned int policeId = GetRandomPolice();
+                        if (CModelInfo::IsCarModel(policeId) && LoadModel(policeId)) {
+                            if (patch::GetShort(0x4436F1) == MODEL_POLICE)
+                                patch::SetShort(0x4436F1, policeId, true);
+                            else
+                                patch::SetShort(0x4436F1, MODEL_POLICE, true);
+                        }
+                    }
+                    // armyRoadBlocks
+                    if (player->m_pWanted->AreArmyRequired()) {
+                        unsigned int barracksId = GetRandomBarracks();
+                        if (CModelInfo::IsCarModel(barracksId) && LoadModel(barracksId)) {
+                            if (patch::GetShort(0x4436A4) == MODEL_BARRACKS)
+                                patch::SetShort(0x4436A4, barracksId, true);
+                            else
+                                patch::SetShort(0x4436A4, MODEL_BARRACKS, true);
+                        }
+                    }
+                    // swatRoadBlocks
+                    if (player->m_pWanted->AreSwatRequired()) {
+                        unsigned int enforcerId = GetRandomEnforcer();
+                        if (CModelInfo::IsCarModel(enforcerId) && LoadModel(enforcerId)) {
+                            if (patch::GetShort(0x4436E5) == MODEL_ENFORCER)
+                                patch::SetShort(0x4436E5, enforcerId, true);
+                            else
+                                patch::SetShort(0x4436E5, MODEL_ENFORCER, true);
+                        }
+                    }
+                    // fbiRoadBlocks
+                    if (player->m_pWanted->AreFbiRequired()) {
+                        unsigned int fbiranchId = GetRandomFbiranch();
+                        if (CModelInfo::IsCarModel(fbiranchId) && LoadModel(fbiranchId)) {
+                            if (patch::GetShort(0x4436C5) == MODEL_FBIRANCH)
+                                patch::SetShort(0x4436C5, fbiranchId, true);
+                            else
+                                patch::SetShort(0x4436C5, MODEL_FBIRANCH, true);
+                        }
+                    }
+                }
+                // Spawn Cars
+                /*unsigned int ambulanId, firetrukId;
+                switch (m_currentState) {
+                case STATE_FIND:
+                    if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
+                        CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
+                        CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
+                        CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
+                        if (car) {
+                            carPos = car->m_matrix.pos;
+                            carAngle = car->GetHeading() / 57.295776f;
+                            pilot = car->m_autoPilot;
+                            m_currentState = STATE_WAIT;
+                        }
+                    }
+
+                    break;
+                case STATE_WAIT:
+                    if (DistanceBetweenPoints(player->GetPosition(), carPos) < 150.0f) {
+                        CVector cornerA, cornerB;
+                        cornerA.x = carPos.x - 5.0f;
+                        cornerA.y = carPos.y - 7.0f;
+                        cornerA.z = carPos.z - 3.0f;
+                        cornerB.x = carPos.x + 5.0f;
+                        cornerB.y = carPos.y + 7.0f;
+                        cornerB.z = carPos.z + 3.0f;
+                        outCount = 1;
+                        CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
+                        if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
+                            m_currentState = STATE_CREATE;
+                    }
+                    else
+                        m_currentState = STATE_FIND;
+                    break;
+                case STATE_CREATE:
+                    int modelCar, modelPed;
+                    if (randomModel < 3)
+                        randomModel++;
+                    else
+                        randomModel = 0;
+                    switch (randomModel) {
+                    case 0:
+                        ambulanId = GetRandomAmbulance();
+                        if (CModelInfo::IsCarModel(ambulanId) && LoadModel(ambulanId))
+                            modelCar = ambulanId;
+                        else
+                            modelCar = MODEL_AMBULAN;
+                        modelPed = MODEL_MEDIC;
+                        break;
+                    case 1:
+                        firetrukId = GetRandomFiretruk();
+                        if (CModelInfo::IsCarModel(firetrukId) && LoadModel(firetrukId))
+                            modelCar = firetrukId;
+                        else
+                            modelCar = MODEL_FIRETRUK;
+                        modelPed = MODEL_FIREMAN;
+                        break;
+                    case 2: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
+                    case 3: modelCar = MODEL_FIRETRUK; modelPed = MODEL_FIREMAN; break;
+                    default: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
+                    }
+                    if (LoadModel(modelCar) && LoadModel(modelPed)) {
+                        CVehicle *vehicle = nullptr;
+                        vehicle = new CAutomobile(modelCar, 1);
+                        if (vehicle) {
+                            spawnCarTime = CTimer::m_snTimeInMilliseconds;
+                            vehicle->SetPosition(carPos);
+                            vehicle->SetHeading(carAngle);
+                            vehicle->m_nState = 4;
+                            CWorld::Add(vehicle);
+                            CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
+                            reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
+                            if (modelPed == MODEL_MEDIC)
+                                CCarAI::AddAmbulanceOccupants(vehicle);
+                            else
+                                CCarAI::AddFiretruckOccupants(vehicle);
+                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
+                            vehicle->m_autoPilot = pilot;
+                            if (plugin::Random(0, 1)) {
+                                vehicle->m_nSirenOrAlarm = true;
+                                vehicle->m_autoPilot.m_nDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                                vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                            }
+                            else
+                                vehicle->m_nSirenOrAlarm = false;
+                        }
+                    }
+                    m_currentState = STATE_FIND;
+                    break;
+                }*/
+            }
+        };
+
+        Events::drawingEvent += [] {
+            gamefont::Print({
+                Format("armyCarBlok = %d", patch::GetShort(0x4436A4)),
+                Format("swatCarBlok = %d", patch::GetShort(0x4436E5)),
+                Format("fbiCarBlok = %d", patch::GetShort(0x4436C5)),
+                Format("copCarBlok = %d", patch::GetShort(0x4436F1))
+                //Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
+                //Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
+                //Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
+            }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        };
 
     }
 } test;
@@ -784,6 +948,10 @@ int AddSpecialCars::currentArmyModel;
 unsigned int AddSpecialCars::jmp_53A913;
 unsigned int AddSpecialCars::jmp_5945D9;
 unsigned int AddSpecialCars::jmp_444040;
+bool AddSpecialCars::isCop = false;
+bool AddSpecialCars::isSwat = false;
+bool AddSpecialCars::isFbi = false;
+bool AddSpecialCars::isArmy = false;
 
 void __declspec(naked) AddSpecialCars::Patch_58BE1F() { // Siren
     __asm {
