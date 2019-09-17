@@ -765,6 +765,7 @@ public:
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
         patch::RedirectJump(0x53A905, Patch_53A905);
         patch::RedirectJump(0x5945CE, Patch_5945CE);
+        patch::RedirectJump(0x444034, Patch_444034);
 
         patch::RedirectJump(0x4ED761, Patch_4ED761);
         patch::RedirectJump(0x4ED7C2, Patch_4ED7C2);
