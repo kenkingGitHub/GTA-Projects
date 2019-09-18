@@ -11,6 +11,7 @@
 #include "CWanted.h"
 #include "CStreaming.h"
 #include "CModelInfo.h"
+#include "eWeaponModel.h"
 
 
 int &/*CCarCtrl::*/MiamiViceCycle = *(int *)0xA0FD6C;
@@ -64,7 +65,7 @@ public:
     static CVector carPos;
     static float carAngle;
     static CAutoPilot pilot;
-    static int randomFbicar, currentCopModel, currentSwatModel, currentFbiModel, currentArmyModel;
+    static int randomFbicar, currentCopModel, currentSwatModel, currentFbiModel, currentArmyModel, currentWeaponModel;
     static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants, currentFiretrukModel, currentRoadBlockModel;
     static unsigned int jmp_53A913, jmp_5945D9, jmp_444040;
     static bool isCop, isSwat, isFbi, isArmy;
@@ -316,6 +317,47 @@ public:
         }
         else
             return MODEL_ARMY;
+    }
+
+    static int __stdcall GetCurrentWeaponModel() {
+        int result = 17;
+        int model = plugin::Random(0, 7);
+        switch (model) {
+        case 0: 
+            if (LoadModel(MODEL_CHROMEGUN))
+                result = 19;
+            break;
+        case 1:
+            if (LoadModel(MODEL_SHOTGSPA))
+                result = 20;
+            break;
+        case 2:
+            if (LoadModel(MODEL_BUDDYSHOT))
+                result = 21;
+            break;
+        case 3:
+            if (LoadModel(MODEL_TEC9))
+                result = 22;
+            break;
+        case 4:
+            if (LoadModel(MODEL_UZI))
+                result = 23;
+            break;
+        case 5:
+            if (LoadModel(MODEL_INGRAMSL))
+                result = 24;
+            break;
+        case 6:
+            if (LoadModel(MODEL_MP5LNG))
+                result = 25;
+            break;
+        case 7:
+            if (LoadModel(MODEL_M4))
+                result = 26;
+            break;
+        default: result = 25;  break;
+        }
+        return result;
     }
 
     static void Patch_58BE1F(); // Siren
@@ -946,6 +988,7 @@ int AddSpecialCars::currentCopModel;
 int AddSpecialCars::currentSwatModel;
 int AddSpecialCars::currentFbiModel;
 int AddSpecialCars::currentArmyModel;
+int AddSpecialCars::currentWeaponModel;
 unsigned int AddSpecialCars::jmp_53A913;
 unsigned int AddSpecialCars::jmp_5945D9;
 unsigned int AddSpecialCars::jmp_444040;
@@ -1042,9 +1085,18 @@ void __declspec(naked) AddSpecialCars::Patch_4ED7C2() { // RandomSwat
         push currentSwatModel
         call dword ptr[ebx + 0Ch]
         mov ecx, [esp + 4]
+        push 1
         push 1000
         push 23
-        mov edx, 0x4ED7D2
+        call CPed::GiveWeapon
+        mov ecx, [esp + 4]
+        push 1
+        push 7
+        push 17
+        call CPed::GiveWeapon
+        mov ecx, [esp + 4]
+        push 17
+        mov edx, 0x4ED7DD
         jmp edx
     }
 }
@@ -1057,10 +1109,22 @@ void __declspec(naked) AddSpecialCars::Patch_4ED811() { // RandomFbi
         popad
         push currentFbiModel
         call dword ptr[ebx + 0Ch]
+        pushad
+        call GetCurrentWeaponModel
+        mov currentWeaponModel, eax
+        popad
         mov ecx, [esp + 4]
+        push 1
         push 1000
-        push 25
-        mov edx, 0x4ED821
+        push currentWeaponModel
+        call CPed::GiveWeapon
+        mov ecx, [esp + 4]
+        push 1
+        push 7
+        push 17
+        call CPed::GiveWeapon
+        push 17
+        mov edx, 0x4ED828
         jmp edx
     }
 }
@@ -1073,10 +1137,23 @@ void __declspec(naked) AddSpecialCars::Patch_4ED833() { // RandomArmy
         popad
         push currentArmyModel
         call dword ptr[ebx + 0Ch]
+        pushad
+        call GetCurrentWeaponModel
+        mov currentWeaponModel, eax
+        popad
         mov ecx, [esp + 4]
+        push 1
         push 1000
-        push 25
-        mov edx, 0x4ED843
+        push currentWeaponModel
+        call CPed::GiveWeapon
+        mov ecx, [esp + 4]
+        push 1
+        push 7
+        push 17
+        call CPed::GiveWeapon
+        mov ecx, [esp + 4]
+        push 17
+        mov edx, 0x4ED84E
         jmp edx
     }
 }
