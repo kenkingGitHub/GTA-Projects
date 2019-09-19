@@ -125,6 +125,21 @@ public:
         return armyIds;
     }
 
+    static unordered_set<unsigned int> &GetSwatWeaponModels() {
+        static unordered_set<unsigned int> swatWeaponIds;
+        return swatWeaponIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbiWeaponModels() {
+        static unordered_set<unsigned int> fbiWeaponIds;
+        return fbiWeaponIds;
+    }
+
+    static unordered_set<unsigned int> &GetArmyWeaponModels() {
+        static unordered_set<unsigned int> armyWeaponIds;
+        return armyWeaponIds;
+    }
+
     static unsigned int GetRandomPolice() {
         vector<unsigned int> ids;
         for (auto id : GetPoliceModels())
@@ -191,6 +206,27 @@ public:
     static unsigned int GetRandomArmy() {
         vector<unsigned int> ids;
         for (auto id : GetArmyModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomSwatWeapon() {
+        vector<unsigned int> ids;
+        for (auto id : GetSwatWeaponModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomFbiWeapon() {
+        vector<unsigned int> ids;
+        for (auto id : GetFbiWeaponModels())
+            ids.push_back(id);
+        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
+    }
+
+    static unsigned int GetRandomArmyWeapon() {
+        vector<unsigned int> ids;
+        for (auto id : GetArmyWeaponModels())
             ids.push_back(id);
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
@@ -319,39 +355,43 @@ public:
             return MODEL_ARMY;
     }
 
-    static int __stdcall GetCurrentWeaponModel() {
-        int result = 17;
-        int model = plugin::Random(0, 7);
+    static int __stdcall GetCurrentWeaponModel(int type) {
+        int result = 25; unsigned int model;
+        switch (type) {
+        case 1: model = GetRandomSwatWeapon(); break;
+        case 2: model = GetRandomFbiWeapon();  break;
+        case 3: model = GetRandomArmyWeapon(); break;
+        }
         switch (model) {
-        case 0: 
+        case MODEL_CHROMEGUN:
             if (LoadModel(MODEL_CHROMEGUN))
                 result = 19;
             break;
-        case 1:
+        case MODEL_SHOTGSPA:
             if (LoadModel(MODEL_SHOTGSPA))
                 result = 20;
             break;
-        case 2:
+        case MODEL_BUDDYSHOT:
             if (LoadModel(MODEL_BUDDYSHOT))
                 result = 21;
             break;
-        case 3:
+        case MODEL_TEC9:
             if (LoadModel(MODEL_TEC9))
                 result = 22;
             break;
-        case 4:
+        case MODEL_UZI:
             if (LoadModel(MODEL_UZI))
                 result = 23;
             break;
-        case 5:
+        case MODEL_INGRAMSL:
             if (LoadModel(MODEL_INGRAMSL))
                 result = 24;
             break;
-        case 6:
+        case MODEL_MP5LNG:
             if (LoadModel(MODEL_MP5LNG))
                 result = 25;
             break;
-        case 7:
+        case MODEL_M4:
             if (LoadModel(MODEL_M4))
                 result = 26;
             break;
@@ -794,6 +834,24 @@ public:
                         GetArmyModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("swatweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatWeaponModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("fbiweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiWeaponModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("armyweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetArmyWeaponModels().insert(stoi(line));
+                }
+            }
         }
         
         patch::RedirectJump(0x5A7F90, DoesMilitaryCraneHaveThisOneAlready);
@@ -1084,10 +1142,15 @@ void __declspec(naked) AddSpecialCars::Patch_4ED7C2() { // RandomSwat
         popad
         push currentSwatModel
         call dword ptr[ebx + 0Ch]
+        pushad
+        push 1
+        call GetCurrentWeaponModel
+        mov currentWeaponModel, eax
+        popad
         mov ecx, [esp + 4]
         push 1
         push 1000
-        push 23
+        push currentWeaponModel
         call CPed::GiveWeapon
         mov ecx, [esp + 4]
         push 1
@@ -1110,6 +1173,7 @@ void __declspec(naked) AddSpecialCars::Patch_4ED811() { // RandomFbi
         push currentFbiModel
         call dword ptr[ebx + 0Ch]
         pushad
+        push 2
         call GetCurrentWeaponModel
         mov currentWeaponModel, eax
         popad
@@ -1138,6 +1202,7 @@ void __declspec(naked) AddSpecialCars::Patch_4ED833() { // RandomArmy
         push currentArmyModel
         call dword ptr[ebx + 0Ch]
         pushad
+        push 3
         call GetCurrentWeaponModel
         mov currentWeaponModel, eax
         popad
