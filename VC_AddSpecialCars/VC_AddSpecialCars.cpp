@@ -12,7 +12,9 @@
 #include "CStreaming.h"
 #include "CModelInfo.h"
 #include "eWeaponModel.h"
-
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "CCarAI.h"
 
 int &/*CCarCtrl::*/MiamiViceCycle = *(int *)0xA0FD6C;
 int &/*CCarCtrl::*/LastTimeMiamiViceGenerated = *(int *)0x9751A8;
@@ -71,7 +73,7 @@ public:
     static bool isCop, isSwat, isFbi, isArmy;
 
     static unordered_set<unsigned int> &GetPoliceModels() {
-        static std::unordered_set<unsigned int> policeIds;
+        static unordered_set<unsigned int> policeIds;
         return policeIds;
     }
 
@@ -140,93 +142,9 @@ public:
         return armyWeaponIds;
     }
 
-    static unsigned int GetRandomPolice() {
+    static unsigned int GetRandomModel(unordered_set<unsigned int> IDS) {
         vector<unsigned int> ids;
-        for (auto id : GetPoliceModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomFbiranch() {
-        vector<unsigned int> ids;
-        for (auto id : GetFbiranchModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomEnforcer() {
-        vector<unsigned int> ids;
-        for (auto id : GetEnforcerModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomBarracks() {
-        vector<unsigned int> ids;
-        for (auto id : GetBarracksModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomAmbulance() {
-        vector<unsigned int> ids;
-        for (auto id : GetAmbulanModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomFiretruk() {
-        vector<unsigned int> ids;
-        for (auto id : GetFiretrukModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomCop() {
-        vector<unsigned int> ids;
-        for (auto id : GetCopModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomSwat() {
-        vector<unsigned int> ids;
-        for (auto id : GetSwatModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomFbi() {
-        vector<unsigned int> ids;
-        for (auto id : GetFbiModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomArmy() {
-        vector<unsigned int> ids;
-        for (auto id : GetArmyModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomSwatWeapon() {
-        vector<unsigned int> ids;
-        for (auto id : GetSwatWeaponModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomFbiWeapon() {
-        vector<unsigned int> ids;
-        for (auto id : GetFbiWeaponModels())
-            ids.push_back(id);
-        return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
-    }
-
-    static unsigned int GetRandomArmyWeapon() {
-        vector<unsigned int> ids;
-        for (auto id : GetArmyWeaponModels())
+        for (auto id : IDS)
             ids.push_back(id);
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
@@ -285,7 +203,7 @@ public:
                 isCop = false; return MODEL_COP;
             }
             else {
-                unsigned int copId = GetRandomCop();
+                unsigned int copId = GetRandomModel(GetCopModels()); 
                 if (CModelInfo::IsPedModel(copId) && LoadModel(copId)) {
                     isCop = true; return copId;
                 }
@@ -304,7 +222,7 @@ public:
                 isSwat = false; return MODEL_SWAT;
             }
             else {
-                unsigned int swatId = GetRandomSwat();
+                unsigned int swatId = GetRandomModel(GetSwatModels()); 
                 if (CModelInfo::IsPedModel(swatId) && LoadModel(swatId)) {
                     isSwat = true; return swatId;
                 }
@@ -323,7 +241,7 @@ public:
                 isFbi = false; return MODEL_FBI;
             }
             else {
-                unsigned int fbiId = GetRandomFbi();
+                unsigned int fbiId = GetRandomModel(GetFbiModels()); 
                 if (CModelInfo::IsPedModel(fbiId) && LoadModel(fbiId)) {
                     isFbi = true; return fbiId;
                 }
@@ -342,7 +260,7 @@ public:
                 isArmy = false; return MODEL_ARMY;
             }
             else {
-                unsigned int armyId = GetRandomArmy();
+                unsigned int armyId = GetRandomModel(GetArmyModels()); 
                 if (CModelInfo::IsPedModel(armyId) && LoadModel(armyId)) {
                     isArmy = true; return armyId;
                 }
@@ -358,9 +276,9 @@ public:
     static int __stdcall GetCurrentWeaponModel(int type) {
         int result = 25; unsigned int model;
         switch (type) {
-        case 1: model = GetRandomSwatWeapon(); break;
-        case 2: model = GetRandomFbiWeapon();  break;
-        case 3: model = GetRandomArmyWeapon(); break;
+        case 1: model = GetRandomModel(GetSwatWeaponModels()); break;
+        case 2: model = GetRandomModel(GetFbiWeaponModels());  break;
+        case 3: model = GetRandomModel(GetArmyWeaponModels()); break;
         }
         switch (model) {
         case MODEL_CHROMEGUN:
@@ -395,7 +313,12 @@ public:
             if (LoadModel(MODEL_M4))
                 result = 26;
             break;
-        default: result = 25;  break;
+        default: 
+            if (type == 1)
+                result = 23;
+            else
+                result = 25;  
+            break;
         }
         return result;
     }
@@ -585,7 +508,7 @@ public:
                     && CStreaming::ms_aInfoForModel[MODEL_SWAT].m_nLoadState == LOADSTATE_LOADED)
                 {
                     if (plugin::Random(0, 1)) {
-                        unsigned int enforcerId = GetRandomEnforcer();
+                        unsigned int enforcerId = GetRandomModel(GetEnforcerModels()); 
                         if (CModelInfo::IsCarModel(enforcerId)) {
                             if (LoadModel(enforcerId))
                                 return enforcerId;
@@ -611,7 +534,7 @@ public:
                             randomFbicar = 0;
                         switch (randomFbicar) {
                         case 0:
-                            fbicarId = GetRandomFbiranch();
+                            fbicarId = GetRandomModel(GetFbiranchModels()); 
                             if (CModelInfo::IsCarModel(fbicarId)) {
                                 if (LoadModel(fbicarId))
                                     return fbicarId;
@@ -639,7 +562,7 @@ public:
                             int randomArmy = plugin::Random(0, 2);
                             switch (randomArmy) {
                             case 0:
-                                barracksId = GetRandomBarracks();
+                                barracksId = GetRandomModel(GetBarracksModels()); 
                                 if (CModelInfo::IsCarModel(barracksId)) {
                                     if (LoadModel(barracksId))
                                         return barracksId;
@@ -655,7 +578,7 @@ public:
                         }
                         else {
                             if (plugin::Random(0, 1)) {
-                                unsigned int policeId = GetRandomPolice();
+                                unsigned int policeId = GetRandomModel(GetPoliceModels()); 
                                 if (CModelInfo::IsCarModel(policeId)) {
                                     if (LoadModel(policeId))
                                         return policeId;
@@ -760,6 +683,15 @@ public:
             return true;
         }
         return false;
+    }
+
+    static CVehicle *GetRandomCar(float x1, float y1, float x2, float y2) {
+        std::vector<CVehicle *> vehicles;
+        for (auto vehicle : CPools::ms_pVehiclePool) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_pDriver && vehicle->m_placement.IsWithinArea(x1, y1, x2, y2))
+                vehicles.push_back(vehicle);
+        }
+        return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
 
 
@@ -877,7 +809,9 @@ public:
         patch::RedirectCall(0x44525F, OpcodeIsPlayerInModel);
         patch::Nop(0x445264, 0x46); // or jump 0x4452AA
         
+        static int spawnCarTime = 0;
         static int randomRoadBlocksTime = 0;
+        static int randomModel = 3;
 
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed();
@@ -885,7 +819,7 @@ public:
                 if (CTimer::m_snTimeInMilliseconds > (randomRoadBlocksTime + 30000)) {
                     randomRoadBlocksTime = CTimer::m_snTimeInMilliseconds;
                     if (player->m_pWanted->m_nWantedLevel == 3) {
-                        unsigned int policeId = GetRandomPolice();
+                        unsigned int policeId = GetRandomModel(GetPoliceModels()); 
                         if (CModelInfo::IsCarModel(policeId) && LoadModel(policeId)) {
                             if (patch::GetShort(0x4436F1) == MODEL_POLICE)
                                 patch::SetShort(0x4436F1, policeId, true);
@@ -895,7 +829,7 @@ public:
                     }
                     // armyRoadBlocks
                     if (player->m_pWanted->AreArmyRequired()) {
-                        unsigned int barracksId = GetRandomBarracks();
+                        unsigned int barracksId = GetRandomModel(GetBarracksModels()); 
                         if (CModelInfo::IsCarModel(barracksId) && LoadModel(barracksId)) {
                             if (patch::GetShort(0x4436A4) == MODEL_BARRACKS)
                                 patch::SetShort(0x4436A4, barracksId, true);
@@ -905,7 +839,7 @@ public:
                     }
                     // swatRoadBlocks
                     if (player->m_pWanted->AreSwatRequired()) {
-                        unsigned int enforcerId = GetRandomEnforcer();
+                        unsigned int enforcerId = GetRandomModel(GetEnforcerModels()); 
                         if (CModelInfo::IsCarModel(enforcerId) && LoadModel(enforcerId)) {
                             if (patch::GetShort(0x4436E5) == MODEL_ENFORCER)
                                 patch::SetShort(0x4436E5, enforcerId, true);
@@ -915,7 +849,7 @@ public:
                     }
                     // fbiRoadBlocks
                     if (player->m_pWanted->AreFbiRequired()) {
-                        unsigned int fbiranchId = GetRandomFbiranch();
+                        unsigned int fbiranchId = GetRandomModel(GetFbiranchModels()); 
                         if (CModelInfo::IsCarModel(fbiranchId) && LoadModel(fbiranchId)) {
                             if (patch::GetShort(0x4436C5) == MODEL_FBIRANCH)
                                 patch::SetShort(0x4436C5, fbiranchId, true);
@@ -925,15 +859,15 @@ public:
                     }
                 }
                 // Spawn Cars
-                /*unsigned int ambulanId, firetrukId;
+                unsigned int ambulanId, firetrukId;
                 switch (m_currentState) {
                 case STATE_FIND:
                     if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
-                        CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
-                        CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
+                        CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 150.0f, 0.0f));
+                        CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 70.0f, 0.0f));
                         CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
                         if (car) {
-                            carPos = car->m_matrix.pos;
+                            carPos = car->m_placement.pos;
                             carAngle = car->GetHeading() / 57.295776f;
                             pilot = car->m_autoPilot;
                             m_currentState = STATE_WAIT;
@@ -942,7 +876,7 @@ public:
 
                     break;
                 case STATE_WAIT:
-                    if (DistanceBetweenPoints(player->GetPosition(), carPos) < 150.0f) {
+                    if (DistanceBetweenPoints(player->GetPosition(), carPos) < 170.0f) {
                         CVector cornerA, cornerB;
                         cornerA.x = carPos.x - 5.0f;
                         cornerA.y = carPos.y - 7.0f;
@@ -952,7 +886,7 @@ public:
                         cornerB.z = carPos.z + 3.0f;
                         outCount = 1;
                         CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
-                        if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
+                        if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 70.0f))
                             m_currentState = STATE_CREATE;
                     }
                     else
@@ -966,7 +900,7 @@ public:
                         randomModel = 0;
                     switch (randomModel) {
                     case 0:
-                        ambulanId = GetRandomAmbulance();
+                        ambulanId = GetRandomModel(GetAmbulanModels());
                         if (CModelInfo::IsCarModel(ambulanId) && LoadModel(ambulanId))
                             modelCar = ambulanId;
                         else
@@ -974,7 +908,7 @@ public:
                         modelPed = MODEL_MEDIC;
                         break;
                     case 1:
-                        firetrukId = GetRandomFiretruk();
+                        firetrukId = GetRandomModel(GetFiretrukModels());
                         if (CModelInfo::IsCarModel(firetrukId) && LoadModel(firetrukId))
                             modelCar = firetrukId;
                         else
@@ -991,7 +925,7 @@ public:
                         if (vehicle) {
                             spawnCarTime = CTimer::m_snTimeInMilliseconds;
                             vehicle->SetPosition(carPos);
-                            vehicle->SetHeading(carAngle);
+                            vehicle->m_placement.SetHeading(carAngle);
                             vehicle->m_nState = 4;
                             CWorld::Add(vehicle);
                             CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
@@ -1000,7 +934,7 @@ public:
                                 CCarAI::AddAmbulanceOccupants(vehicle);
                             else
                                 CCarAI::AddFiretruckOccupants(vehicle);
-                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), -1183.0f, 286.7f, 3.8f);
+                            Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 0.0f, 0.0f, 0.0f);
                             vehicle->m_autoPilot = pilot;
                             if (plugin::Random(0, 1)) {
                                 vehicle->m_nSirenOrAlarm = true;
@@ -1013,7 +947,7 @@ public:
                     }
                     m_currentState = STATE_FIND;
                     break;
-                }*/
+                }
             }
         };
 
