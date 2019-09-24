@@ -31,9 +31,9 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA67;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65;
     static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime, copId;
-    static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA1;
+    static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
 
     static void Patch_6AB349(); 
     static void Patch_4912D0(); 
@@ -46,7 +46,7 @@ public:
     static void Patch_6ACA51();
     static void Patch_6BD408();
     static void Patch_46130F();
-    static void Patch_48DA67(); // IsCharInAnyPoliceVehicle
+    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
 
     static unordered_set<unsigned int> &GetCoplaModels() {
         static unordered_set<unsigned int> coplaIds;
@@ -428,20 +428,19 @@ public:
         return ids.empty() ? 0 : ids[plugin::Random(0, ids.size() - 1)];
     }
 
-    // CVehicle::IsLawEnforcementVehicle
-    static bool __fastcall IsLawEnforcementVehicleCheck(CVehicle *_this) {
+    static bool __cdecl IsLawEnforcementVehicleCheck(CVehicle *vehicle) {
         bool result = false; 
 
-        if (_this->m_nModelIndex == MODEL_COPCARLA || GetCopcarlaModels().find(_this->m_nModelIndex) != GetCopcarlaModels().end()
-            || _this->m_nModelIndex == MODEL_COPCARSF || GetCopcarsfModels().find(_this->m_nModelIndex) != GetCopcarsfModels().end()
-            || _this->m_nModelIndex == MODEL_COPCARVG|| GetCopcarvgModels().find(_this->m_nModelIndex) != GetCopcarvgModels().end()
-            || _this->m_nModelIndex == MODEL_COPCARRU || GetCopcarruModels().find(_this->m_nModelIndex) != GetCopcarruModels().end()
-            || _this->m_nModelIndex == MODEL_COPBIKE || GetCopbikeModels().find(_this->m_nModelIndex) != GetCopbikeModels().end()
-            || _this->m_nModelIndex == MODEL_FBIRANCH || GetFbiranchModels().find(_this->m_nModelIndex) != GetFbiranchModels().end()
-            || _this->m_nModelIndex == MODEL_ENFORCER || GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end()
-            || _this->m_nModelIndex == MODEL_BARRACKS || GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end()
-            || _this->m_nModelIndex == MODEL_SWATVAN || GetSwatvanModels().find(_this->m_nModelIndex) != GetSwatvanModels().end()
-            || MODEL_PREDATOR || MODEL_RHINO || MODEL_FBITRUCK)
+        if (vehicle->m_nModelIndex == MODEL_COPCARLA || GetCopcarlaModels().find(vehicle->m_nModelIndex) != GetCopcarlaModels().end()
+            || vehicle->m_nModelIndex == MODEL_COPCARSF || GetCopcarsfModels().find(vehicle->m_nModelIndex) != GetCopcarsfModels().end()
+            || vehicle->m_nModelIndex == MODEL_COPCARVG|| GetCopcarvgModels().find(vehicle->m_nModelIndex) != GetCopcarvgModels().end()
+            || vehicle->m_nModelIndex == MODEL_COPCARRU || GetCopcarruModels().find(vehicle->m_nModelIndex) != GetCopcarruModels().end()
+            || vehicle->m_nModelIndex == MODEL_COPBIKE || GetCopbikeModels().find(vehicle->m_nModelIndex) != GetCopbikeModels().end()
+            || vehicle->m_nModelIndex == MODEL_FBIRANCH || GetFbiranchModels().find(vehicle->m_nModelIndex) != GetFbiranchModels().end()
+            || vehicle->m_nModelIndex == MODEL_ENFORCER || GetEnforcerModels().find(vehicle->m_nModelIndex) != GetEnforcerModels().end()
+            || vehicle->m_nModelIndex == MODEL_BARRACKS || GetBarracksModels().find(vehicle->m_nModelIndex) != GetBarracksModels().end()
+            || vehicle->m_nModelIndex == MODEL_SWATVAN || GetSwatvanModels().find(vehicle->m_nModelIndex) != GetSwatvanModels().end()
+            || vehicle->m_nModelIndex == MODEL_PREDATOR || vehicle->m_nModelIndex == MODEL_RHINO || vehicle->m_nModelIndex == MODEL_FBITRUCK)
             result = true;
         return result;
     }
@@ -771,9 +770,8 @@ public:
 
         if (ped && ped->m_nPedFlags.bIsStanding) {
             if (ped && ped->m_pVehicle) {
-                unsigned int model = ped->m_pVehicle->m_nModelIndex;
                 if (IsLawEnforcementVehicleCheck(ped->m_pVehicle)) {
-                    if (model != MODEL_PREDATOR)
+                    if (ped->m_pVehicle->m_nModelIndex != MODEL_PREDATOR)
                         inModel = true;
                 }
             }
@@ -963,7 +961,7 @@ public:
         patch::RedirectJump(0x613A68, Patch_613A68);
         patch::RedirectJump(0x6BD408, Patch_6BD408);
         patch::RedirectJump(0x46130F, Patch_46130F);
-        patch::RedirectJump(0x48DA67, Patch_48DA67);
+        patch::RedirectJump(0x48DA65, Patch_48DA65);
 
         //patch::SetChar(0x42F9FB, 6, true);
 
@@ -1238,7 +1236,7 @@ int AddSpecialCars::currentModel_Patch_41C0A6;
 int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 int AddSpecialCars::currentModel_Patch_46130F;
-int AddSpecialCars::currentModel_Patch_48DA67;
+int AddSpecialCars::currentModel_Patch_48DA65;
 unsigned int AddSpecialCars::randomCopTime = 0;
 unsigned int AddSpecialCars::randomCopCarTime = 0;
 unsigned int AddSpecialCars::randomEmergencyServicesCarTime = 0;
@@ -1248,7 +1246,7 @@ unsigned int AddSpecialCars::jmp_41C0AF;
 unsigned int AddSpecialCars::jmp_42BBCE;
 unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
-unsigned int AddSpecialCars::jmp_48DAA1;
+unsigned int AddSpecialCars::jmp_48DAA2;
 unsigned int AddSpecialCars::copId;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
@@ -1436,15 +1434,15 @@ void __declspec(naked) AddSpecialCars::Patch_46130F() { // GenerateRoadBlockCops
 }
 
 // test
-void __declspec(naked) AddSpecialCars::Patch_48DA67() { // IsCharInAnyPoliceVehicle
+void __declspec(naked) AddSpecialCars::Patch_48DA65() { // IsCharInAnyPoliceVehicle
     __asm {
         pushad
         push eax
         call IsCharInAnyPoliceVehicle
-        mov currentModel_Patch_48DA67, eax
+        mov currentModel_Patch_48DA65, eax
         popad
-        mov ecx, currentModel_Patch_48DA67
-        mov jmp_48DAA1, 0x48DAA1
-        jmp jmp_48DAA1
+        push currentModel_Patch_48DA65
+        mov jmp_48DAA2, 0x48DAA2
+        jmp jmp_48DAA2
     }
 }
