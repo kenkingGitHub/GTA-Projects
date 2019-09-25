@@ -37,22 +37,16 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, 
+        currentWeaponType, weaponAmmo;
     static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
 
-    static void Patch_6AB349(); 
-    static void Patch_4912D0(); 
-    static void Patch_469629(); 
-    static void Patch_6ACA57(); 
-    static void Patch_6B1F4F(); 
-    static void Patch_41C0A6(); 
-    static void Patch_42BBC8();
-    static void Patch_613A68();
-    static void Patch_6ACA51();
-    static void Patch_6BD408();
-    static void Patch_46130F();
-    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
+    static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
+    static void Patch_6ACA57();    static void Patch_6B1F4F();    static void Patch_41C0A6(); 
+    static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
+    static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
+    static void Patch_5DDD9B(); // RandomSwatWeapon
 
     static unordered_set<unsigned int> &GetCoplaModels() {
         static unordered_set<unsigned int> coplaIds;
@@ -172,6 +166,21 @@ public:
     static unordered_set<unsigned int> &GetStreakcModels() {
         static unordered_set<unsigned int> streakcIds;
         return streakcIds;
+    }
+
+    static unordered_set<unsigned int> &GetSwatWeaponModels() {
+        static unordered_set<unsigned int> swatWeaponIds;
+        return swatWeaponIds;
+    }
+
+    static unordered_set<unsigned int> &GetFbiWeaponModels() {
+        static unordered_set<unsigned int> fbiWeaponIds;
+        return fbiWeaponIds;
+    }
+
+    static unordered_set<unsigned int> &GetArmyWeaponModels() {
+        static unordered_set<unsigned int> armyWeaponIds;
+        return armyWeaponIds;
     }
 
     static int __stdcall GetModelForSiren(unsigned int model) {
@@ -687,6 +696,125 @@ public:
         return result;
     }
 
+    static eWeaponType __stdcall GetCurrentWeaponType(int type) {
+        eWeaponType result = WEAPON_MICRO_UZI; unsigned int model;
+        switch (type) {
+        case 1: model = GetRandomModel(GetSwatWeaponModels()); break;
+        case 2: model = GetRandomModel(GetFbiWeaponModels());  break;
+        case 3: model = GetRandomModel(GetArmyWeaponModels()); break;
+        }
+        switch (model) {
+        case MODEL_GRENADE:
+            if (LoadModel(MODEL_GRENADE))
+                result = WEAPON_GRENADE;
+            break;
+        case MODEL_COLT45:
+            if (LoadModel(MODEL_COLT45))
+                result = WEAPON_PISTOL;
+            break;
+        case MODEL_SILENCED:
+            if (LoadModel(MODEL_SILENCED))
+                result = WEAPON_PISTOL_SILENCED;
+            break;
+        case MODEL_DESERT_EAGLE:
+            if (LoadModel(MODEL_DESERT_EAGLE))
+                result = WEAPON_DESERT_EAGLE;
+            break;
+        case MODEL_CHROMEGUN:
+            if (LoadModel(MODEL_CHROMEGUN))
+                result = WEAPON_SHOTGUN;
+            break;
+        case MODEL_SAWNOFF:
+            if (LoadModel(MODEL_SAWNOFF))
+                result = WEAPON_SAWNOFF;
+            break;
+        case MODEL_SHOTGSPA:
+            if (LoadModel(MODEL_SHOTGSPA))
+                result = WEAPON_SPAS12;
+            break;
+        case MODEL_MICRO_UZI:
+            if (LoadModel(MODEL_MICRO_UZI))
+                result = WEAPON_MICRO_UZI;
+            break;
+        case MODEL_MP5LNG:
+            if (LoadModel(MODEL_MP5LNG))
+                result = WEAPON_MP5;
+            break;
+        case MODEL_AK47:
+            if (LoadModel(MODEL_AK47))
+                result = WEAPON_AK47;
+            break;
+        case MODEL_M4:
+            if (LoadModel(MODEL_M4))
+                result = WEAPON_M4;
+            break;
+        case MODEL_TEC9:
+            if (LoadModel(MODEL_TEC9))
+                result = WEAPON_TEC9;
+            break;
+        case MODEL_CUNTGUN:
+            if (LoadModel(MODEL_CUNTGUN))
+                result = WEAPON_COUNTRYRIFLE;
+            break;
+        case MODEL_SNIPER:
+            if (LoadModel(MODEL_SNIPER))
+                result = WEAPON_SNIPERRIFLE;
+            break;
+        case MODEL_ROCKETLA:
+            if (LoadModel(MODEL_ROCKETLA))
+                result = WEAPON_RLAUNCHER;
+            break;
+        
+        case MODEL_MINIGUN:
+            if (LoadModel(MODEL_MINIGUN))
+                result = WEAPON_MINIGUN;
+            break;
+        default:
+            switch (type) {
+            case 1: result = WEAPON_MICRO_UZI; break;
+            case 2: result = WEAPON_MP5;  break;
+            case 3: result = WEAPON_M4; break;
+            }
+        }
+        return result;
+    }
+
+    static int __stdcall GetWeaponAmmo(int type) {
+        int result;
+        switch (type) {
+        case 16:
+        case 35:
+            result = 3; 
+            break;
+        case 22:
+        case 23:
+        case 24:
+            result = 7;
+            break;
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
+        case 30:
+        case 31:
+        case 32:
+            result = 1000;
+            break;
+        case 33:
+        case 34:
+            result = 10;
+            break;
+        case 38:
+            result = 100;
+            break;
+        default:
+            result = 1000; 
+            break;
+        }
+        return result;
+    }
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -837,6 +965,24 @@ public:
                         GetArmyModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("swatweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetSwatWeaponModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("fbiweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetFbiWeaponModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("armyweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetArmyWeaponModels().insert(stoi(line));
+                }
+            }
         }
         
         patch::RedirectJump(0x6D8470, UsesSiren);
@@ -859,6 +1005,7 @@ public:
         patch::RedirectJump(0x6BD408, Patch_6BD408);
         patch::RedirectJump(0x46130F, Patch_46130F);
         patch::RedirectJump(0x48DA65, Patch_48DA65);
+        patch::RedirectJump(0x5DDD9B, Patch_5DDD9B);
 
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
@@ -965,7 +1112,7 @@ public:
                             else
                                 patch::SetShort(0x461BE7, MODEL_ENFORCER, true);
                         }
-                        if (GetSwatModels().size()) {
+                        /*if (GetSwatModels().size()) {
                             if (plugin::Random(0, 2)) {
                                 patch::SetShort(0x5DDD90, 285, true);
                                 patch::SetShort(0x461339, 285, true);
@@ -978,7 +1125,7 @@ public:
                                     patch::SetShort(0x461339, swatId, true);
                                 }
                             }
-                        }
+                        }*/
                     }
                     if (wanted->AreFbiRequired()) {
                         unsigned int fbiranchId = GetRandomModel(GetFbiranchModels());
@@ -1181,6 +1328,8 @@ unsigned int AddSpecialCars::copId;
 int AddSpecialCars::randomFbiCar = 2;
 int AddSpecialCars::randomSwatCar = 2;
 int AddSpecialCars::randomArmyCar = 2;
+int AddSpecialCars::currentWeaponType;
+int AddSpecialCars::weaponAmmo;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1376,5 +1525,32 @@ void __declspec(naked) AddSpecialCars::Patch_48DA65() { // IsCharInAnyPoliceVehi
         push currentModel_Patch_48DA65
         mov jmp_48DAA2, 0x48DAA2
         jmp jmp_48DAA2
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_5DDD9B() { // RandomSwatWeapon
+    __asm {
+        pushad
+        push 1
+        call GetCurrentWeaponType
+        mov currentWeaponType, eax
+        push currentWeaponType
+        call GetWeaponAmmo
+        mov weaponAmmo, eax
+        popad
+        push 1
+        push weaponAmmo
+        push currentWeaponType
+        mov  ecx, esi
+        call CPed::GiveWeapon
+        push 1
+        push 1000
+        push 28
+        mov  ecx, esi
+        call CPed::GiveWeapon
+        push currentWeaponType
+        mov  ecx, esi
+        mov edx, 0x5DDDAD
+        jmp edx
     }
 }
