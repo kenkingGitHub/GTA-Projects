@@ -14,6 +14,7 @@
 #include "CCarAI.h"
 #include "CFont.h"
 
+//#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
 
@@ -1126,21 +1127,22 @@ public:
                 Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
                 Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
                 Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
+                //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
 
         Events::drawMenuBackgroundEvent += [] {
-            CFont::SetScale(ScreenCoord(0.5f), ScreenCoord(1.0f));
-            CFont::SetColor(CRGBA(144, 171, 194, 255));
+            CFont::SetScale(ScreenCoord(0.75f), ScreenCoord(1.5f));
+            CFont::SetColor(CRGBA(172, 203, 241, 255));
             CFont::SetOrientation(ALIGN_LEFT);
-            CFont::SetEdge(1);
-            CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+            //CFont::SetEdge(1);
+            //CFont::SetDropColor(CRGBA(0, 0, 255, 255));
             CFont::SetBackground(false, false);
-            CFont::SetFontStyle(FONT_SUBTITLES);
+            CFont::SetFontStyle(FONT_GOTHIC);
             CFont::SetProportional(true);
             CFont::SetWrapx(600.0f);
-            static char text[128];
-            sprintf(text, "Additional characters and vehicles special services by kenking (24.09.2019)");
+            static char text[64];
+            sprintf(text, "special service by kenking");
             CFont::PrintString(ScreenCoord(5.0f), ScreenCoord(5.0f), text);
         };
 
