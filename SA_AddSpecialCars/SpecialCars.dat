@@ -4,6 +4,8 @@
 #3142
 #end
 
+#---VEHICLES:
+
 copcarla
 end
 
@@ -52,6 +54,10 @@ end
 streakc
 end
 
+#---END VEHICLES
+
+#---PEDS:
+
 copla
 end
 
@@ -75,4 +81,19 @@ end
 
 army
 end
+
+#---END PEDS
+
+#---WEAPONS: ID's 342, 346-353, 355-359, 362, 372
+
+swatweapon
+end
+
+fbiweapon
+end
+
+armyweapon
+end
+
+#---END WEAPONS
 
