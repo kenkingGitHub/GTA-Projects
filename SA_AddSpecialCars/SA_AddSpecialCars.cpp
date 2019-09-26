@@ -274,6 +274,26 @@ public:
     }
     
     static int __stdcall GetModel_Patch_41C0A6(unsigned int model) {
+        if (model == MODEL_COPCARLA || model == MODEL_FBITRUCK || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+            return 169;
+        else if (model == MODEL_COPCARSF || model == MODEL_SWATVAN || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+            return 170;
+        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+            return 171;
+        else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
+            return 172;
+        else if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+            return 96;
+        else if (model == MODEL_FBIRANCH || model == MODEL_PATRIOT || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+            return 63;
+        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+            return 0;
+        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+            return 6;
+        return model - 427;
+    }
+
+    static int __stdcall GetModel_Patch_46130F(unsigned int model) {
         if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
             return 169;
         else if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
@@ -1036,6 +1056,9 @@ public:
         //patch::SetChar(0x42F9FB, 6, true);
 
         static unsigned int spawnCarTime = 0;
+        static bool isEnforcer = true; 
+        static bool isFbiranch = true; 
+        static bool isBarracks = true;
 
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed(-1);
@@ -1119,10 +1142,12 @@ public:
                             if (patch::GetShort(0x461BE7) == MODEL_ENFORCER || patch::GetShort(0x461BE7) == MODEL_SWATVAN)
                                 patch::SetShort(0x461BE7, enforcerId, true);
                             else {
-                                if (plugin::Random(0, 1))
-                                    patch::SetShort(0x461BE7, MODEL_ENFORCER, true);
-                                else
-                                    patch::SetShort(0x461BE7, MODEL_SWATVAN, true);
+                                if (isEnforcer) {
+                                    patch::SetShort(0x461BE7, MODEL_ENFORCER, true); isEnforcer = false;
+                                }
+                                else {
+                                    patch::SetShort(0x461BE7, MODEL_SWATVAN, true); isEnforcer = true;
+                                }
                             }
                         }
                         if (GetSwatModels().size()) {
@@ -1146,10 +1171,12 @@ public:
                             if (patch::GetShort(0x461BCC) == MODEL_FBIRANCH || patch::GetShort(0x461BCC) == MODEL_FBITRUCK)
                                 patch::SetShort(0x461BCC, fbiranchId, true);
                             else {
-                                if (plugin::Random(0, 1))
-                                    patch::SetShort(0x461BCC, MODEL_FBIRANCH, true);
-                                else
-                                    patch::SetShort(0x461BCC, MODEL_FBITRUCK, true);
+                                if (isFbiranch) {
+                                    patch::SetShort(0x461BCC, MODEL_FBIRANCH, true); isFbiranch = false;
+                                }
+                                else {
+                                    patch::SetShort(0x461BCC, MODEL_FBITRUCK, true); isFbiranch = true;
+                                }
                             }
                         }
                         if (GetFbiModels().size()) {
@@ -1173,10 +1200,12 @@ public:
                             if (patch::GetShort(0x461BB1) == MODEL_BARRACKS || patch::GetShort(0x461BB1) == MODEL_PATRIOT)
                                 patch::SetShort(0x461BB1, barracksId, true);
                             else {
-                                if (plugin::Random(0, 1))
-                                    patch::SetShort(0x461BB1, MODEL_BARRACKS, true);
-                                else
-                                    patch::SetShort(0x461BB1, MODEL_PATRIOT, true);
+                                if (isBarracks) {
+                                    patch::SetShort(0x461BB1, MODEL_BARRACKS, true); isBarracks = false;
+                                }
+                                else {
+                                    patch::SetShort(0x461BB1, MODEL_PATRIOT, true); isBarracks = true;
+                                }
                             }
                         }
                         if (GetArmyModels().size()) {
@@ -1527,7 +1556,7 @@ void __declspec(naked) AddSpecialCars::Patch_46130F() { // GenerateRoadBlockCops
         movsx   eax, word ptr [edi+22h]
         pushad
         push eax
-        call GetModel_Patch_41C0A6
+        call GetModel_Patch_46130F
         mov currentModel_Patch_46130F, eax
         popad
         mov eax, currentModel_Patch_46130F
