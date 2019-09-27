@@ -13,6 +13,7 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 #include "CFont.h"
+#include "CCopPed.h"
 
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
@@ -37,16 +38,17 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, 
-        currentWeaponType, weaponAmmo;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo;
     static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
+    static bool isCopbiker, isSwat, isFbi, isArmy;
+    static eWeaponType currentWeaponType;
 
     static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
     static void Patch_6ACA57();    static void Patch_6B1F4F();    static void Patch_41C0A6(); 
     static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
-    static void Patch_5DDD9B();    static void Patch_5DDDDB();    static void Patch_5DDE1B();
+    static void Patch_5DDC99();
 
     static unordered_set<unsigned int> &GetCoplaModels() {
         static unordered_set<unsigned int> coplaIds;
@@ -842,6 +844,155 @@ public:
         return result;
     }
 
+    static int __stdcall GetCurrentCopbikerModel() {
+        if (GetCopbikerModels().size()) {
+            if (isCopbiker) {
+                isCopbiker = false; return CStreaming::ms_DefaultCopBikerModel;
+            }
+            else {
+                unsigned int copbikerId = GetRandomModel(GetCopbikerModels());
+                modelInfo = CModelInfo::ms_modelInfoPtrs[copbikerId];
+                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copbikerId)) {
+                    isCopbiker = true; return copbikerId;
+                }
+                else {
+                    isCopbiker = false; return CStreaming::ms_DefaultCopBikerModel;
+                }
+            }
+        }
+        else
+            return MODEL_SWAT;
+    }
+
+    static int __stdcall GetCurrentSwatModel() {
+        if (GetSwatModels().size()) {
+            if (isSwat) {
+                isSwat = false; return MODEL_SWAT;
+            }
+            else {
+                unsigned int swatId = GetRandomModel(GetSwatModels());
+                modelInfo = CModelInfo::ms_modelInfoPtrs[swatId];
+                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(swatId)) {
+                    isSwat = true; return swatId;
+                }
+                else {
+                    isSwat = false; return MODEL_SWAT;
+                }
+            }
+        }
+        else
+            return MODEL_SWAT;
+    }
+
+    static int __stdcall GetCurrentFbiModel() {
+        if (GetFbiModels().size()) {
+            if (isFbi) {
+                isFbi = false; return MODEL_FBI;
+            }
+            else {
+                unsigned int fbiId = GetRandomModel(GetFbiModels());
+                modelInfo = CModelInfo::ms_modelInfoPtrs[fbiId];
+                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(fbiId)) {
+                    isFbi = true; return fbiId;
+                }
+                else {
+                    isFbi = false; return MODEL_FBI;
+                }
+            }
+        }
+        else
+            return MODEL_FBI;
+    }
+
+    static int __stdcall GetCurrentArmyModel() {
+        if (GetArmyModels().size()) {
+            if (isArmy) {
+                isArmy = false; return MODEL_ARMY;
+            }
+            else {
+                unsigned int armyId = GetRandomModel(GetArmyModels());
+                modelInfo = CModelInfo::ms_modelInfoPtrs[armyId];
+                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(armyId)) {
+                    isArmy = true; return armyId;
+                }
+                else {
+                    isArmy = false; return MODEL_ARMY;
+                }
+            }
+        }
+        else
+            return MODEL_ARMY;
+    }
+
+    static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
+        int copModel;
+        cop->m_copType = copType;
+        switch (copType) {
+        default:
+        case COP_TYPE_CITYCOP:
+            copModel = CStreaming::GetDefaultCopModel();
+            goto LABEL_COP;
+        case COP_TYPE_LAPDM1:
+            //copModel = MODEL_LAPDM1;
+            copModel = GetCurrentCopbikerModel();
+            goto LABEL_COP;
+        case COP_TYPE_CSHER:
+            copModel = MODEL_CSHER;
+        LABEL_COP:
+            cop->SetModelIndex(copModel);
+            cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, 1);
+            cop->GiveDelayedWeapon(WEAPON_PISTOL, 1000);
+            cop->m_nActiveWeaponSlot = 0;
+            cop->m_fArmour = 0.0f;
+            cop->m_nWeaponShootingRate = 30;
+            cop->m_nWeaponAccuracy = 60;
+            break;
+        case COP_TYPE_SWAT1:
+        case COP_TYPE_SWAT2:
+            //cop->SetModelIndex(MODEL_SWAT);
+            //cop->GiveDelayedWeapon(WEAPON_MICRO_UZI, 1000);
+            //cop->SetCurrentWeapon(WEAPON_MICRO_UZI);
+            cop->SetModelIndex(GetCurrentSwatModel());
+            currentWeaponType = GetCurrentWeaponType(1);
+            weaponAmmo = GetWeaponAmmo(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
+            cop->GiveWeapon(WEAPON_MICRO_UZI, 1000, true);
+            cop->SetCurrentWeapon(currentWeaponType);
+            cop->m_fArmour = 50.0f;
+            cop->m_nWeaponShootingRate = 70;
+            cop->m_nWeaponAccuracy = 68;
+            break;
+        case COP_TYPE_FBI:
+            //cop->SetModelIndex(MODEL_FBI);
+            //cop->GiveDelayedWeapon(WEAPON_MP5, 1000);
+            //cop->SetCurrentWeapon(WEAPON_MP5);
+            cop->SetModelIndex(GetCurrentFbiModel());
+            currentWeaponType = GetCurrentWeaponType(2);
+            weaponAmmo = GetWeaponAmmo(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
+            cop->GiveWeapon(WEAPON_MP5, 1000, true);
+            cop->SetCurrentWeapon(currentWeaponType);
+            cop->m_fArmour = 100.0f;
+            cop->m_nWeaponShootingRate = 60;
+            cop->m_nWeaponAccuracy = 76;
+            break;
+        case COP_TYPE_ARMY:
+            //cop->SetModelIndex(MODEL_ARMY);
+            //cop->GiveDelayedWeapon(WEAPON_M4, 1000);
+            //cop->SetCurrentWeapon(WEAPON_M4);
+            cop->SetModelIndex(GetCurrentArmyModel());
+            currentWeaponType = GetCurrentWeaponType(3);
+            weaponAmmo = GetWeaponAmmo(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
+            cop->GiveWeapon(WEAPON_M4, 1000, true);
+            cop->SetCurrentWeapon(currentWeaponType);
+            cop->m_fArmour = 100.0f;
+            cop->m_nWeaponShootingRate = 80;
+            cop->m_nWeaponAccuracy = 84;
+            break;
+        }
+    }
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -1032,9 +1183,7 @@ public:
         patch::RedirectJump(0x6BD408, Patch_6BD408);
         patch::RedirectJump(0x46130F, Patch_46130F);
         patch::RedirectJump(0x48DA65, Patch_48DA65);
-        patch::RedirectJump(0x5DDD9B, Patch_5DDD9B);
-        patch::RedirectJump(0x5DDDDB, Patch_5DDDDB);
-        patch::RedirectJump(0x5DDE1B, Patch_5DDE1B);
+        patch::RedirectJump(0x5DDC99, Patch_5DDC99);
 
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
@@ -1063,23 +1212,8 @@ public:
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
-                if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000)) {
+                /*if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000)) {
                     randomCopTime = CTimer::m_snTimeInMilliseconds;
-                    if (GetCopbikerModels().size()) {
-                        if (CStreaming::ms_DefaultCopBikerModel == 284) {
-                            copId = GetRandomModel(GetCopbikerModels());
-                            modelInfo = CModelInfo::ms_modelInfoPtrs[copId];
-                            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copId)) {
-                                CStreaming::ms_DefaultCopBikerModel = copId;
-                                patch::SetShort(0x5DDD86, copId, true);
-                            }
-                        }
-                        else {
-                            CStreaming::ms_DefaultCopBikerModel = 284;
-                            patch::SetShort(0x5DDD86, 284, true);
-                        }
-                            
-                    }
                     switch (CTheZones::m_CurrLevel) {
                     case 0:
                         if (GetCopruModels().size()) {
@@ -1114,7 +1248,7 @@ public:
                         }
                         break;
                     }
-                }
+                }*/
                 // RandomEmergencyServicesCar
                 CWanted *wanted = FindPlayerWanted(-1);
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
@@ -1150,20 +1284,6 @@ public:
                                 }
                             }
                         }
-                        if (GetSwatModels().size()) {
-                            if (plugin::Random(0, 2)) {
-                                patch::SetShort(0x5DDD90, 285, true);
-                                patch::SetShort(0x461339, 285, true);
-                            }
-                            else {
-                                unsigned int swatId = GetRandomModel(GetSwatModels());
-                                modelInfo = CModelInfo::ms_modelInfoPtrs[swatId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(swatId)) {
-                                    patch::SetShort(0x5DDD90, swatId, true);
-                                    patch::SetShort(0x461339, swatId, true);
-                                }
-                            }
-                        }
                     }
                     if (wanted->AreFbiRequired()) {
                         unsigned int fbiranchId = GetRandomModel(GetFbiranchModels());
@@ -1179,20 +1299,6 @@ public:
                                 }
                             }
                         }
-                        if (GetFbiModels().size()) {
-                            if (plugin::Random(0, 2)) {
-                                patch::SetShort(0x5DDDD0, 286, true);
-                                patch::SetShort(0x461353, 286, true);
-                            }
-                            else {
-                                unsigned int fbiId = GetRandomModel(GetFbiModels());
-                                modelInfo = CModelInfo::ms_modelInfoPtrs[fbiId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(fbiId)) {
-                                    patch::SetShort(0x5DDDD0, fbiId, true);
-                                    patch::SetShort(0x461353, fbiId, true);
-                                }
-                            }
-                        }
                     }
                     if (wanted->AreArmyRequired()) {
                         unsigned int barracksId = GetRandomModel(GetBarracksModels());
@@ -1205,20 +1311,6 @@ public:
                                 }
                                 else {
                                     patch::SetShort(0x461BB1, MODEL_PATRIOT, true); isBarracks = true;
-                                }
-                            }
-                        }
-                        if (GetArmyModels().size()) {
-                            if (plugin::Random(0, 2)) {
-                                patch::SetShort(0x5DDE10, 287, true);
-                                patch::SetShort(0x46136D, 287, true);
-                            }
-                            else {
-                                unsigned int armyId = GetRandomModel(GetArmyModels());
-                                modelInfo = CModelInfo::ms_modelInfoPtrs[armyId];
-                                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(armyId)) {
-                                    patch::SetShort(0x5DDE10, armyId, true);
-                                    patch::SetShort(0x46136D, armyId, true);
                                 }
                             }
                         }
@@ -1321,9 +1413,9 @@ public:
                 Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-                Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
-                Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
-                Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
+                //Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
+                //Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
+                //Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
                 //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
@@ -1378,8 +1470,12 @@ unsigned int AddSpecialCars::copId;
 int AddSpecialCars::randomFbiCar = 2;
 int AddSpecialCars::randomSwatCar = 2;
 int AddSpecialCars::randomArmyCar = 3;
-int AddSpecialCars::currentWeaponType;
+eWeaponType AddSpecialCars::currentWeaponType;
 int AddSpecialCars::weaponAmmo;
+bool AddSpecialCars::isCopbiker = false;
+bool AddSpecialCars::isSwat = false;
+bool AddSpecialCars::isFbi = false;
+bool AddSpecialCars::isArmy = false;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1578,83 +1674,14 @@ void __declspec(naked) AddSpecialCars::Patch_48DA65() { // IsCharInAnyPoliceVehi
     }
 }
 
-void __declspec(naked) AddSpecialCars::Patch_5DDD9B() { // RandomSwatWeapon
+void __declspec(naked) AddSpecialCars::Patch_5DDC99() { // CCopPed::CCopPed
     __asm {
         pushad
-        push 1
-        call GetCurrentWeaponType
-        mov currentWeaponType, eax
-        push currentWeaponType
-        call GetWeaponAmmo
-        mov weaponAmmo, eax
+        push eax
+        push esi
+        call ConstructorCopPed
         popad
-        push 1
-        push weaponAmmo
-        push currentWeaponType
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push 1
-        push 1000
-        push 28
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push currentWeaponType
-        mov  ecx, esi
-        mov edx, 0x5DDDAD
-        jmp edx
-    }
-}
-
-void __declspec(naked) AddSpecialCars::Patch_5DDDDB() { // RandomFbiWeapon
-    __asm {
-        pushad
-        push 2
-        call GetCurrentWeaponType
-        mov currentWeaponType, eax
-        push currentWeaponType
-        call GetWeaponAmmo
-        mov weaponAmmo, eax
-        popad
-        push 1
-        push weaponAmmo
-        push currentWeaponType
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push 1
-        push 1000
-        push 29
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push currentWeaponType
-        mov  ecx, esi
-        mov edx, 0x5DDDED
-        jmp edx
-    }
-}
-
-void __declspec(naked) AddSpecialCars::Patch_5DDE1B() { // RandomArmyWeapon
-    __asm {
-        pushad
-        push 3
-        call GetCurrentWeaponType
-        mov currentWeaponType, eax
-        push currentWeaponType
-        call GetWeaponAmmo
-        mov weaponAmmo, eax
-        popad
-        push 1
-        push weaponAmmo
-        push currentWeaponType
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push 1
-        push 1000
-        push 31
-        mov  ecx, esi
-        call CPed::GiveWeapon
-        push currentWeaponType
-        mov  ecx, esi
-        mov edx, 0x5DDE2D
+        mov edx, 0x5DDCED
         jmp edx
     }
 }
