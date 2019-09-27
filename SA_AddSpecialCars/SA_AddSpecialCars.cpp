@@ -39,9 +39,9 @@ public:
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
         currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo;
-    static unsigned int randomCopTime, randomCopCarTime, randomEmergencyServicesCarTime, copId;
+    static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
-    static bool isCopbiker, isSwat, isFbi, isArmy;
+    static bool isCopbiker, isSwat, isFbi, isArmy, isCop;
     static eWeaponType currentWeaponType;
 
     static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
@@ -693,12 +693,6 @@ public:
         return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
     }
     
-    static void SetRandomCop(unsigned int id) {
-        modelInfo = CModelInfo::ms_modelInfoPtrs[id];
-        if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(id))
-            CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = id;
-    }
-
     static bool __stdcall IsCharInAnyPoliceVehicle(CPed *ped) {
         bool inModel = false;
 
@@ -864,6 +858,33 @@ public:
             return CStreaming::ms_DefaultCopBikerModel;
     }
 
+    static int __stdcall GetCurrentCopModel(unordered_set<unsigned int> IDs) {
+        if (IDs.size()) {
+            unsigned int copId = GetRandomModel(IDs);
+            modelInfo = CModelInfo::ms_modelInfoPtrs[copId];
+            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copId))
+                return copId;
+            else
+                return CStreaming::GetDefaultCopModel();
+        }
+        else
+            return CStreaming::GetDefaultCopModel();
+    }
+
+    static int __stdcall GetCopsModel() {
+        switch (CTheZones::m_CurrLevel) {
+        case 0:
+            return GetCurrentCopModel(GetCopruModels());
+        case 1:
+            return GetCurrentCopModel(GetCoplaModels());
+        case 2:
+            return GetCurrentCopModel(GetCopsfModels());
+        case 3:
+            return GetCurrentCopModel(GetCopvgModels());
+        }
+        return CStreaming::GetDefaultCopModel();
+    }
+
     static int __stdcall GetCurrentSwatModel() {
         if (GetSwatModels().size()) {
             if (isSwat) {
@@ -930,7 +951,13 @@ public:
         switch (copType) {
         default:
         case COP_TYPE_CITYCOP:
-            copModel = CStreaming::GetDefaultCopModel();
+            //copModel = CStreaming::GetDefaultCopModel();
+            if (isCop) {
+                copModel = CStreaming::GetDefaultCopModel(); isCop = false;
+            }
+            else {
+                copModel = GetCopsModel(); isCop = true;
+            }
             goto LABEL_COP;
         case COP_TYPE_LAPDM1:
             //copModel = MODEL_LAPDM1;
@@ -1212,43 +1239,6 @@ public:
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
-                /*if (CTimer::m_snTimeInMilliseconds > (randomCopTime + 60000)) {
-                    randomCopTime = CTimer::m_snTimeInMilliseconds;
-                    switch (CTheZones::m_CurrLevel) {
-                    case 0:
-                        if (GetCopruModels().size()) {
-                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 283) 
-                                SetRandomCop(GetRandomModel(GetCopruModels()));
-                            else
-                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 283;
-                        }
-                        break;
-                    case 1:
-                        if (GetCoplaModels().size()) {
-                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 280) 
-                                SetRandomCop(GetRandomModel(GetCoplaModels()));
-                            else
-                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 280;
-                        }
-                        break;
-                    case 2:
-                        if (GetCopsfModels().size()) {
-                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 281) 
-                                SetRandomCop(GetRandomModel(GetCopsfModels()));
-                            else
-                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 281;
-                        }
-                        break;
-                    case 3:
-                        if (GetCopvgModels().size()) {
-                            if (CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] == 282) 
-                                SetRandomCop(GetRandomModel(GetCopvgModels()));
-                            else
-                                CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel] = 282;
-                        }
-                        break;
-                    }
-                }*/
                 // RandomEmergencyServicesCar
                 CWanted *wanted = FindPlayerWanted(-1);
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
@@ -1405,11 +1395,11 @@ public:
                 Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
                 Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
                 Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-                Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
-                Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
-                Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
-                Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
-                Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
+                //Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
+                //Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
+                //Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
+                //Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
+                //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
                 Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
@@ -1456,7 +1446,6 @@ int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 int AddSpecialCars::currentModel_Patch_46130F;
 int AddSpecialCars::currentModel_Patch_48DA65;
-unsigned int AddSpecialCars::randomCopTime = 0;
 unsigned int AddSpecialCars::randomCopCarTime = 0;
 unsigned int AddSpecialCars::randomEmergencyServicesCarTime = 0;
 unsigned int AddSpecialCars::jmp_6AB360;
@@ -1476,6 +1465,7 @@ bool AddSpecialCars::isCopbiker = false;
 bool AddSpecialCars::isSwat = false;
 bool AddSpecialCars::isFbi = false;
 bool AddSpecialCars::isArmy = false;
+bool AddSpecialCars::isCop = false;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
