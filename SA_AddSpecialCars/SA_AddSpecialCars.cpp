@@ -861,7 +861,7 @@ public:
             }
         }
         else
-            return MODEL_SWAT;
+            return CStreaming::ms_DefaultCopBikerModel;
     }
 
     static int __stdcall GetCurrentSwatModel() {
