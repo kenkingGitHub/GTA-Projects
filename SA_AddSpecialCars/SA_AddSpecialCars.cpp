@@ -16,8 +16,10 @@
 #include "CCopPed.h"
 
 //#include "CHudColours.h"
-//#include "extensions\KeyCheck.h"
+#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
+
+int m_nEmergencyServices;
 
 using namespace plugin;
 using namespace std;
@@ -168,6 +170,11 @@ public:
     static unordered_set<unsigned int> &GetStreakcModels() {
         static unordered_set<unsigned int> streakcIds;
         return streakcIds;
+    }
+
+    static unordered_set<unsigned int> &GetCopWeaponModels() {
+        static unordered_set<unsigned int> copWeaponIds;
+        return copWeaponIds;
     }
 
     static unordered_set<unsigned int> &GetSwatWeaponModels() {
@@ -722,6 +729,7 @@ public:
     static eWeaponType __stdcall GetCurrentWeaponType(int type) {
         eWeaponType result; unsigned int model;
         switch (type) {
+        case 0: model = GetRandomModel(GetCopWeaponModels());  result = WEAPON_PISTOL; break;
         case 1: model = GetRandomModel(GetSwatWeaponModels()); result = WEAPON_MICRO_UZI; break;
         case 2: model = GetRandomModel(GetFbiWeaponModels());  result = WEAPON_MP5; break;
         case 3: model = GetRandomModel(GetArmyWeaponModels()); result = WEAPON_M4; break;
@@ -794,6 +802,7 @@ public:
             break;
         default:
             switch (type) {
+            case 0: result = WEAPON_PISTOL; break;
             case 1: result = WEAPON_MICRO_UZI; break;
             case 2: result = WEAPON_MP5;  break;
             case 3: result = WEAPON_M4; break;
@@ -946,12 +955,11 @@ public:
     }
 
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
-        int copModel;
+        int copModel; CWanted *wanted = FindPlayerWanted(-1);
         cop->m_copType = copType;
         switch (copType) {
         default:
         case COP_TYPE_CITYCOP:
-            //copModel = CStreaming::GetDefaultCopModel();
             if (isCop) {
                 copModel = CStreaming::GetDefaultCopModel(); isCop = false;
             }
@@ -959,14 +967,25 @@ public:
                 copModel = GetCopsModel(); isCop = true;
             }
             goto LABEL_COP;
-        case COP_TYPE_LAPDM1:
-            //copModel = MODEL_LAPDM1;
-            copModel = GetCurrentCopbikerModel();
-            goto LABEL_COP;
         case COP_TYPE_CSHER:
             copModel = MODEL_CSHER;
         LABEL_COP:
             cop->SetModelIndex(copModel);
+            currentWeaponType = GetCurrentWeaponType(0);
+            weaponAmmo = GetWeaponAmmo(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
+            cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, true);
+            cop->GiveWeapon(WEAPON_PISTOL, 1000, true);
+            if (wanted->m_nWantedLevel > 1)
+                cop->SetCurrentWeapon(currentWeaponType);
+            else
+                cop->m_nActiveWeaponSlot = 0;
+            cop->m_fArmour = 0.0f;
+            cop->m_nWeaponShootingRate = 30;
+            cop->m_nWeaponAccuracy = 60;
+            break;
+        case COP_TYPE_LAPDM1:
+            cop->SetModelIndex(GetCurrentCopbikerModel());
             cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, 1);
             cop->GiveDelayedWeapon(WEAPON_PISTOL, 1000);
             cop->m_nActiveWeaponSlot = 0;
@@ -976,9 +995,6 @@ public:
             break;
         case COP_TYPE_SWAT1:
         case COP_TYPE_SWAT2:
-            //cop->SetModelIndex(MODEL_SWAT);
-            //cop->GiveDelayedWeapon(WEAPON_MICRO_UZI, 1000);
-            //cop->SetCurrentWeapon(WEAPON_MICRO_UZI);
             cop->SetModelIndex(GetCurrentSwatModel());
             currentWeaponType = GetCurrentWeaponType(1);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
@@ -990,9 +1006,6 @@ public:
             cop->m_nWeaponAccuracy = 68;
             break;
         case COP_TYPE_FBI:
-            //cop->SetModelIndex(MODEL_FBI);
-            //cop->GiveDelayedWeapon(WEAPON_MP5, 1000);
-            //cop->SetCurrentWeapon(WEAPON_MP5);
             cop->SetModelIndex(GetCurrentFbiModel());
             currentWeaponType = GetCurrentWeaponType(2);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
@@ -1004,9 +1017,6 @@ public:
             cop->m_nWeaponAccuracy = 76;
             break;
         case COP_TYPE_ARMY:
-            //cop->SetModelIndex(MODEL_ARMY);
-            //cop->GiveDelayedWeapon(WEAPON_M4, 1000);
-            //cop->SetCurrentWeapon(WEAPON_M4);
             cop->SetModelIndex(GetCurrentArmyModel());
             currentWeaponType = GetCurrentWeaponType(3);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
@@ -1170,6 +1180,12 @@ public:
                         GetArmyModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("copweapon")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetCopWeaponModels().insert(stoi(line));
+                }
+            }
             if (!line.compare("swatweapon")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
@@ -1186,6 +1202,12 @@ public:
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         GetArmyWeaponModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("emergency")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        m_nEmergencyServices = stoi(line);
                 }
             }
         }
@@ -1237,6 +1259,14 @@ public:
         static bool isBarracks = true;
 
         Events::gameProcessEvent += [] {
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay('P', 1000)) {
+                if (CTimer::m_UserPause)
+                    CTimer::m_UserPause = false;
+                else
+                    CTimer::m_UserPause = true;
+            }
+
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
                 // RandomEmergencyServicesCar
@@ -1307,78 +1337,80 @@ public:
                     }
                 }
                 // Spawn Cars
-                if (CTheZones::m_CurrLevel) {
-                    switch (m_currentState) {
-                    case STATE_FIND:
-                        if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
-                            CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
-                            CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
-                            CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
-                            if (car) {
-                                carPos = car->m_matrix->pos;
-                                carAngle = car->GetHeading();
-                                pilot = car->m_autoPilot;
-                                m_currentState = STATE_WAIT;
-                            }
-                        }
-                        break;
-                    case STATE_WAIT:
-                        if (DistanceBetweenPoints(player->GetPosition(), carPos) < 150.0f) {
-                            CVector cornerA, cornerB;
-                            cornerA.x = carPos.x - 5.0f;
-                            cornerA.y = carPos.y - 7.0f;
-                            cornerA.z = carPos.z - 3.0f;
-                            cornerB.x = carPos.x + 5.0f;
-                            cornerB.y = carPos.y + 7.0f;
-                            cornerB.z = carPos.z + 3.0f;
-                            outCount = 1;
-                            CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
-                            if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
-                                m_currentState = STATE_CREATE;
-                        }
-                        else
-                            m_currentState = STATE_FIND;
-                        break;
-                    case STATE_CREATE:
-                        if (CTheZones::m_CurrLevel) {
-                            int modelCar, modelPed;
-                            if (plugin::Random(0, 1)) {
-                                modelCar = CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
-                                modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
-                            }
-                            else {
-                                modelCar = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
-                                modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
-                            }
-                            if (LoadModel(modelCar) && LoadModel(modelPed)) {
-                                CVehicle *vehicle = nullptr;
-                                vehicle = new CAutomobile(modelCar, 1, true);
-                                if (vehicle) {
-                                    spawnCarTime = CTimer::m_snTimeInMilliseconds;
-                                    vehicle->SetPosn(carPos);
-                                    vehicle->SetHeading(carAngle);
-                                    vehicle->m_nStatus = 4;
-                                    CWorld::Add(vehicle);
-                                    CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
-                                    reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                                    if (modelPed == CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel])
-                                        CCarAI::AddAmbulanceOccupants(vehicle);
-                                    else
-                                        CCarAI::AddFiretruckOccupants(vehicle);
-                                    Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 0.0f, 0.0f, 0.0f);
-                                    vehicle->m_autoPilot = pilot;
-                                    if (plugin::Random(0, 1)) {
-                                        vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
-                                        vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
-                                        vehicle->m_autoPilot.m_nCruiseSpeed = 25;
-                                    }
-                                    else
-                                        vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                if (m_nEmergencyServices) {
+                    if (CTheZones::m_CurrLevel) {
+                        switch (m_currentState) {
+                        case STATE_FIND:
+                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
+                                CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
+                                CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
+                                CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
+                                if (car) {
+                                    carPos = car->m_matrix->pos;
+                                    carAngle = car->GetHeading();
+                                    pilot = car->m_autoPilot;
+                                    m_currentState = STATE_WAIT;
                                 }
                             }
+                            break;
+                        case STATE_WAIT:
+                            if (DistanceBetweenPoints(player->GetPosition(), carPos) < 150.0f) {
+                                CVector cornerA, cornerB;
+                                cornerA.x = carPos.x - 5.0f;
+                                cornerA.y = carPos.y - 7.0f;
+                                cornerA.z = carPos.z - 3.0f;
+                                cornerB.x = carPos.x + 5.0f;
+                                cornerB.y = carPos.y + 7.0f;
+                                cornerB.z = carPos.z + 3.0f;
+                                outCount = 1;
+                                CWorld::FindObjectsIntersectingCube(cornerA, cornerB, &outCount, 2, 0, 0, 1, 1, 1, 0);
+                                if (outCount == 0 && (DistanceBetweenPoints(player->GetPosition(), carPos) > 60.0f))
+                                    m_currentState = STATE_CREATE;
+                            }
+                            else
+                                m_currentState = STATE_FIND;
+                            break;
+                        case STATE_CREATE:
+                            if (CTheZones::m_CurrLevel) {
+                                int modelCar, modelPed;
+                                if (plugin::Random(0, 1)) {
+                                    modelCar = CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
+                                    modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+                                }
+                                else {
+                                    modelCar = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+                                    modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+                                }
+                                if (LoadModel(modelCar) && LoadModel(modelPed)) {
+                                    CVehicle *vehicle = nullptr;
+                                    vehicle = new CAutomobile(modelCar, 1, true);
+                                    if (vehicle) {
+                                        spawnCarTime = CTimer::m_snTimeInMilliseconds;
+                                        vehicle->SetPosn(carPos);
+                                        vehicle->SetHeading(carAngle);
+                                        vehicle->m_nStatus = 4;
+                                        CWorld::Add(vehicle);
+                                        CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
+                                        reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
+                                        if (modelPed == CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel])
+                                            CCarAI::AddAmbulanceOccupants(vehicle);
+                                        else
+                                            CCarAI::AddFiretruckOccupants(vehicle);
+                                        Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 0.0f, 0.0f, 0.0f);
+                                        vehicle->m_autoPilot = pilot;
+                                        if (plugin::Random(0, 1)) {
+                                            vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                                            vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                                            vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                                        }
+                                        else
+                                            vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                                    }
+                                }
+                            }
+                            m_currentState = STATE_FIND;
+                            break;
                         }
-                        m_currentState = STATE_FIND;
-                        break;
                     }
                 }
             }
@@ -1403,9 +1435,7 @@ public:
                 Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
                 Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
                 Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-                //Format("swatBlok = %d, %d", patch::GetShort(0x5DDD90), patch::GetShort(0x461339)),
-                //Format("fbiBlok = %d, %d", patch::GetShort(0x5DDDD0), patch::GetShort(0x461353)),
-                //Format("armyBlok = %d, %d", patch::GetShort(0x5DDE10), patch::GetShort(0x46136D))
+                Format("varitable = %d", m_nEmergencyServices),
                 //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
             }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         };
