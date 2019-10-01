@@ -1416,29 +1416,29 @@ public:
             }
         };
 
-        Events::drawingEvent += [] {
-            gamefont::Print({
-                Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
-                Format("level = %d", CTheZones::m_CurrLevel),
-                Format("copcar ru = %d", CStreaming::ms_aDefaultCopCarModel[0]),
-                Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
-                Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
-                Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
-                Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
-                Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
-                Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-                //Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
-                //Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
-                //Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
-                //Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
-                //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
-                Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
-                Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
-                Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-                Format("varitable = %d", m_nEmergencyServices),
-                //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
-            }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        };
+        //Events::drawingEvent += [] {
+        //    gamefont::Print({
+        //        Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
+        //        Format("level = %d", CTheZones::m_CurrLevel),
+        //        Format("copcar ru = %d", CStreaming::ms_aDefaultCopCarModel[0]),
+        //        Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
+        //        Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
+        //        Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
+        //        Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
+        //        Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
+        //        Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
+        //        //Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
+        //        //Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
+        //        //Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
+        //        //Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
+        //        //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
+        //        Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
+        //        Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
+        //        Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
+        //        Format("varitable = %d", m_nEmergencyServices),
+        //        //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
+        //    }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        //};
 
         Events::drawMenuBackgroundEvent += [] {
             CFont::SetScale(ScreenCoord(0.75f), ScreenCoord(1.5f));
