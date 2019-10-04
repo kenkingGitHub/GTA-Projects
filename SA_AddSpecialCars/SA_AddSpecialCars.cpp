@@ -43,7 +43,7 @@ public:
         currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo;
     static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
-    static bool isCopbiker, isSwat, isFbi, isArmy, isCop;
+    static bool isCopbiker, isSwat, isFbi, isArmy, isCop, isAmbulan, isFiretruck;
     static eWeaponType currentWeaponType;
 
     static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
@@ -209,7 +209,7 @@ public:
             return MODEL_TAXI;
         else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return MODEL_AMBULAN;
-        else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return MODEL_FIRETRUK;
         return model;
     }
@@ -337,7 +337,7 @@ public:
             return 20;
         else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
             return 9;
-        else if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || GetFiretrukModels().find(model) != GetFiretrukModels().end())
             return 0;
         else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || GetFbiranchModels().find(model) != GetFbiranchModels().end())
             return 83;
@@ -381,6 +381,7 @@ public:
             result = true; return result;
         }
         switch (_this->m_nModelIndex) {
+        case MODEL_FIRELA:
         case MODEL_FIRETRUK:                        
         case MODEL_AMBULAN:                         
         case MODEL_MRWHOOP:                         
@@ -719,7 +720,7 @@ public:
         bool result = true;
 
         if (IsLawEnforcementVehicleCheck(vehicle) || vehicle->m_nVehicleSubClass == VEHICLE_BMX 
-            || vehicle->m_nModelIndex == MODEL_BUS || vehicle->m_nModelIndex == MODEL_COACH 
+            || vehicle->m_nModelIndex == MODEL_BUS || vehicle->m_nModelIndex == MODEL_COACH || vehicle->m_nModelIndex == MODEL_FIRELA
             || vehicle->m_nModelIndex == MODEL_AMBULAN || GetAmbulanModels().find(vehicle->m_nModelIndex) != GetAmbulanModels().end()
             || vehicle->m_nModelIndex == MODEL_FIRETRUK || GetFiretrukModels().find(vehicle->m_nModelIndex) != GetFiretrukModels().end())
             result = false;
@@ -1373,12 +1374,21 @@ public:
                         case STATE_CREATE:
                             if (CTheZones::m_CurrLevel) {
                                 int modelCar, modelPed;
-                                if (plugin::Random(0, 1)) {
+                                if (isAmbulan) {
+                                    isAmbulan = false;
                                     modelCar = CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
                                     modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
                                 }
                                 else {
-                                    modelCar = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+                                    isAmbulan = true;
+                                    if (isFiretruck) {
+                                        isFiretruck = false;
+                                        modelCar = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+                                    }
+                                    else {
+                                        isFiretruck = true;
+                                        modelCar = MODEL_FIRELA;
+                                    }
                                     modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
                                 }
                                 if (LoadModel(modelCar) && LoadModel(modelPed)) {
@@ -1496,6 +1506,8 @@ bool AddSpecialCars::isSwat = false;
 bool AddSpecialCars::isFbi = false;
 bool AddSpecialCars::isArmy = false;
 bool AddSpecialCars::isCop = false;
+bool AddSpecialCars::isAmbulan = false;
+bool AddSpecialCars::isFiretruck = false;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
