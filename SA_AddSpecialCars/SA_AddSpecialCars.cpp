@@ -40,17 +40,18 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, 
+        randomArmyCar, weaponAmmo;
     static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
-    static bool isCopbiker, isSwat, isFbi, isArmy, isCop, isAmbulan, isFiretruck;
+    static bool isCopbiker, isSwat, isFbi, isArmy, isCop, isAmbulan, isFiretruck, isMedic, isFireman;
     static eWeaponType currentWeaponType;
 
     static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
     static void Patch_6ACA57();    static void Patch_6B1F4F();    static void Patch_41C0A6(); 
     static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
-    static void Patch_5DDC99();
+    static void Patch_5DDC99();    
 
     static unordered_set<unsigned int> &GetCoplaModels() {
         static unordered_set<unsigned int> coplaIds;
@@ -190,6 +191,21 @@ public:
     static unordered_set<unsigned int> &GetArmyWeaponModels() {
         static unordered_set<unsigned int> armyWeaponIds;
         return armyWeaponIds;
+    }
+
+    static unordered_set<unsigned int> &GetMediclaModels() {
+        static unordered_set<unsigned int> mediclaIds;
+        return mediclaIds;
+    }
+
+    static unordered_set<unsigned int> &GetMedicsfModels() {
+        static unordered_set<unsigned int> medicsfIds;
+        return medicsfIds;
+    }
+
+    static unordered_set<unsigned int> &GetMedicvgModels() {
+        static unordered_set<unsigned int> medicvgIds;
+        return medicvgIds;
     }
 
     static int __stdcall GetModelForSiren(unsigned int model) {
@@ -1205,6 +1221,24 @@ public:
                         GetArmyWeaponModels().insert(stoi(line));
                 }
             }
+            if (!line.compare("medicla")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetMediclaModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("medicsf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetMedicsfModels().insert(stoi(line));
+                }
+            }
+            if (!line.compare("medicvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        GetMedicvgModels().insert(stoi(line));
+                }
+            }
             if (!line.compare("emergency")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
@@ -1342,7 +1376,7 @@ public:
                     if (CTheZones::m_CurrLevel) {
                         switch (m_currentState) {
                         case STATE_FIND:
-                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
+                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
                                 CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
                                 CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
                                 CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
@@ -1508,6 +1542,8 @@ bool AddSpecialCars::isArmy = false;
 bool AddSpecialCars::isCop = false;
 bool AddSpecialCars::isAmbulan = false;
 bool AddSpecialCars::isFiretruck = false;
+bool AddSpecialCars::isMedic = false;
+bool AddSpecialCars::isFireman = false;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
