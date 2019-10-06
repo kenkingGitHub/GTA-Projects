@@ -31,6 +31,7 @@ public:
     }
     
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
+    enum eSpecialType { TYPE_MEDIC, TYPE_FIREMAN, TYPE_COPBIKER, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY };
 
     static eSpawnCarState m_currentState;
     static short outCount;
@@ -864,111 +865,59 @@ public:
         return result;
     }
 
-    static int __stdcall GetCurrentCopbikerModel() {
-        if (GetCopbikerModels().size()) {
-            if (isCopbiker) {
-                isCopbiker = false; return CStreaming::ms_DefaultCopBikerModel;
-            }
-            else {
-                unsigned int copbikerId = GetRandomModel(GetCopbikerModels());
-                modelInfo = CModelInfo::ms_modelInfoPtrs[copbikerId];
-                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copbikerId)) {
-                    isCopbiker = true; return copbikerId;
-                }
-                else {
-                    isCopbiker = false; return CStreaming::ms_DefaultCopBikerModel;
-                }
-            }
+    static int __stdcall GetSpecialModel(eSpecialType type) {
+        int result;
+        switch (type) {
+        case TYPE_MEDIC:
+            result = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+            break;
+        case TYPE_FIREMAN:
+            result = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+            break;
+        case TYPE_COPBIKER:
+            result = CStreaming::ms_DefaultCopBikerModel;
+            break;
+        case TYPE_COP:
+            result = CStreaming::GetDefaultCopModel();
+            break;
+        case TYPE_SWAT:
+            result = MODEL_SWAT;
+            break;
+        case TYPE_FBI:
+            result = MODEL_FBI;
+            break;
+        case TYPE_ARMY:
+            result = MODEL_ARMY;
+            break;
         }
-        else
-            return CStreaming::ms_DefaultCopBikerModel;
+        return result;
     }
 
-    static int __stdcall GetCurrentCopModel(unordered_set<unsigned int> IDs) {
+    static int __stdcall GetCurrentPedModel(unordered_set<unsigned int> IDs, eSpecialType type) {
         if (IDs.size()) {
-            unsigned int copId = GetRandomModel(IDs);
-            modelInfo = CModelInfo::ms_modelInfoPtrs[copId];
-            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(copId))
-                return copId;
+            unsigned int pedId = GetRandomModel(IDs);
+            modelInfo = CModelInfo::ms_modelInfoPtrs[pedId];
+            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(pedId))
+                return pedId;
             else
-                return CStreaming::GetDefaultCopModel();
+                return GetSpecialModel(type);
         }
         else
-            return CStreaming::GetDefaultCopModel();
+            return GetSpecialModel(type);
     }
 
-    static int __stdcall GetCopsModel() {
+    static int __stdcall GetAdditionalCopModel() {
         switch (CTheZones::m_CurrLevel) {
         case 0:
-            return GetCurrentCopModel(GetCopruModels());
+            return GetCurrentPedModel(GetCopruModels(), TYPE_COP);
         case 1:
-            return GetCurrentCopModel(GetCoplaModels());
+            return GetCurrentPedModel(GetCoplaModels(), TYPE_COP);
         case 2:
-            return GetCurrentCopModel(GetCopsfModels());
+            return GetCurrentPedModel(GetCopsfModels(), TYPE_COP);
         case 3:
-            return GetCurrentCopModel(GetCopvgModels());
+            return GetCurrentPedModel(GetCopvgModels(), TYPE_COP);
         }
         return CStreaming::GetDefaultCopModel();
-    }
-
-    static int __stdcall GetCurrentSwatModel() {
-        if (GetSwatModels().size()) {
-            if (isSwat) {
-                isSwat = false; return MODEL_SWAT;
-            }
-            else {
-                unsigned int swatId = GetRandomModel(GetSwatModels());
-                modelInfo = CModelInfo::ms_modelInfoPtrs[swatId];
-                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(swatId)) {
-                    isSwat = true; return swatId;
-                }
-                else {
-                    isSwat = false; return MODEL_SWAT;
-                }
-            }
-        }
-        else
-            return MODEL_SWAT;
-    }
-
-    static int __stdcall GetCurrentFbiModel() {
-        if (GetFbiModels().size()) {
-            if (isFbi) {
-                isFbi = false; return MODEL_FBI;
-            }
-            else {
-                unsigned int fbiId = GetRandomModel(GetFbiModels());
-                modelInfo = CModelInfo::ms_modelInfoPtrs[fbiId];
-                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(fbiId)) {
-                    isFbi = true; return fbiId;
-                }
-                else {
-                    isFbi = false; return MODEL_FBI;
-                }
-            }
-        }
-        else
-            return MODEL_FBI;
-    }
-
-    static int __stdcall GetCurrentArmyModel() {
-        if (GetArmyModels().size()) {
-            if (isArmy) {
-                isArmy = false; return MODEL_ARMY;
-            }
-            else {
-                unsigned int armyId = GetRandomModel(GetArmyModels());
-                modelInfo = CModelInfo::ms_modelInfoPtrs[armyId];
-                if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(armyId)) {
-                    isArmy = true; return armyId;
-                }
-                else {
-                    isArmy = false; return MODEL_ARMY;
-                }
-            }
-        }
-        else
-            return MODEL_ARMY;
     }
 
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
@@ -981,7 +930,7 @@ public:
                 copModel = CStreaming::GetDefaultCopModel(); isCop = false;
             }
             else {
-                copModel = GetCopsModel(); isCop = true;
+                copModel = GetAdditionalCopModel(); isCop = true;
             }
             goto LABEL_COP;
         case COP_TYPE_CSHER:
@@ -1002,7 +951,13 @@ public:
             cop->m_nWeaponAccuracy = 60;
             break;
         case COP_TYPE_LAPDM1:
-            cop->SetModelIndex(GetCurrentCopbikerModel());
+            if (isCopbiker) {
+                copModel = CStreaming::ms_DefaultCopBikerModel; isCopbiker = false;
+            }
+            else {
+                copModel = GetCurrentPedModel(GetCopbikerModels(), TYPE_COPBIKER); isCopbiker = true;
+            }
+            cop->SetModelIndex(copModel);
             cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, 1);
             cop->GiveDelayedWeapon(WEAPON_PISTOL, 1000);
             cop->m_nActiveWeaponSlot = 0;
@@ -1012,7 +967,13 @@ public:
             break;
         case COP_TYPE_SWAT1:
         case COP_TYPE_SWAT2:
-            cop->SetModelIndex(GetCurrentSwatModel());
+            if (isSwat) {
+                copModel = MODEL_SWAT; isSwat = false;
+            }
+            else {
+                copModel = GetCurrentPedModel(GetSwatModels(), TYPE_SWAT); isSwat = true;
+            }
+            cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(1);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
@@ -1023,7 +984,13 @@ public:
             cop->m_nWeaponAccuracy = 68;
             break;
         case COP_TYPE_FBI:
-            cop->SetModelIndex(GetCurrentFbiModel());
+            if (isFbi) {
+                copModel = MODEL_FBI; isFbi = false;
+            }
+            else {
+                copModel = GetCurrentPedModel(GetFbiModels(), TYPE_FBI); isFbi = true;
+            }
+            cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(2);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
@@ -1034,7 +1001,13 @@ public:
             cop->m_nWeaponAccuracy = 76;
             break;
         case COP_TYPE_ARMY:
-            cop->SetModelIndex(GetCurrentArmyModel());
+            if (isArmy) {
+                copModel = MODEL_ARMY; isArmy = false;
+            }
+            else {
+                copModel = GetCurrentPedModel(GetArmyModels(), TYPE_ARMY); isArmy = true;
+            }
+            cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(3);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
@@ -1045,6 +1018,32 @@ public:
             cop->m_nWeaponAccuracy = 84;
             break;
         }
+    }
+
+    static int __stdcall GetAdditionalMedicModel() {
+        switch (CTheZones::m_CurrLevel) {
+        case 0:
+            return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+        case 1:
+            return GetCurrentPedModel(GetMediclaModels(), TYPE_MEDIC);
+        case 2:                          
+            return GetCurrentPedModel(GetMedicsfModels(), TYPE_MEDIC);
+        case 3:                          
+            return GetCurrentPedModel(GetMedicvgModels(), TYPE_MEDIC);
+        }
+        return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+    }
+
+    // CStreaming::GetDefaultMedicModel
+    static int __cdecl GetDefaultMedicModel() {
+        int medicModel;
+        if (isMedic) {
+            medicModel = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel]; isMedic = false;
+        }
+        else {
+            medicModel = GetAdditionalMedicModel(); isMedic = true;
+        }
+        return medicModel;
     }
 
 
@@ -1254,6 +1253,7 @@ public:
         patch::RedirectJump(0x611900, FindSpecificDriverModelForCar_ToUse);
         patch::RedirectJump(0x421980, ChoosePoliceCarModel);
         patch::RedirectJump(0x4479A0, IsCarSprayable);
+        patch::RedirectJump(0x407D20, GetDefaultMedicModel);
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
         patch::RedirectJump(0x4912D0, Patch_4912D0); 
