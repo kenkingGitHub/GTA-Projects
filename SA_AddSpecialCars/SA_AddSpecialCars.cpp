@@ -41,8 +41,8 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, 
-        randomArmyCar, weaponAmmo;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo, 
+        randomCabDriver;
     static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static bool isCopbiker, isSwat, isFbi, isArmy, isCop, isAmbulan, isFiretruck, isMedic, isFireman;
@@ -585,7 +585,7 @@ public:
     // CPopulation::LoadSpecificDriverModelsForCar
     static void __cdecl LoadSpecificDriverModelsForCar(int model) {
         if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
-            int modelDriver = CStreaming::GetDefaultCabDriverModel();
+            int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::RequestModel(modelDriver, 10);
             return;
         }
@@ -617,7 +617,7 @@ public:
     // CPopulation::RemoveSpecificDriverModelsForCar
     static void __cdecl RemoveSpecificDriverModelsForCar(int model) {
         if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
-            int modelDriver = CStreaming::GetDefaultCabDriverModel();
+            int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::SetModelIsDeletable(modelDriver);
             CStreaming::SetModelTxdIsDeletable(modelDriver);
             return;
@@ -659,7 +659,7 @@ public:
     static int __cdecl FindSpecificDriverModelForCar_ToUse(int model) {
         int result; int randomBiker; 
         if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
-            result = CStreaming::GetDefaultCabDriverModel(); return result;
+            result = /*CStreaming::*/GetDefaultCabDriverModel(); return result;
         }
         switch (model) {
         case MODEL_BMX:
@@ -1046,6 +1046,17 @@ public:
         return medicModel;
     }
 
+    // CStreaming::GetDefaultCabDriverModel
+    static int __cdecl GetDefaultCabDriverModel() {
+        if (randomCabDriver < 5)
+            randomCabDriver++;
+        else
+            randomCabDriver = 0;
+        if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]].m_nLoadState != LOADSTATE_LOADED)
+            LoadModel(CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]);
+        return CStreaming::ms_aDefaultCabDriverModel[randomCabDriver];
+    }
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -1254,6 +1265,7 @@ public:
         patch::RedirectJump(0x421980, ChoosePoliceCarModel);
         patch::RedirectJump(0x4479A0, IsCarSprayable);
         patch::RedirectJump(0x407D20, GetDefaultMedicModel);
+        patch::RedirectJump(0x407D50, GetDefaultCabDriverModel);
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
         patch::RedirectJump(0x4912D0, Patch_4912D0); 
@@ -1376,7 +1388,7 @@ public:
                     if (CTheZones::m_CurrLevel) {
                         switch (m_currentState) {
                         case STATE_FIND:
-                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 10000) && !CTheScripts::IsPlayerOnAMission()) {
+                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
                                 CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
                                 CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
                                 CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
@@ -1464,22 +1476,17 @@ public:
         //    gamefont::Print({
         //        Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
         //        Format("level = %d", CTheZones::m_CurrLevel),
-        //        Format("copcar ru = %d", CStreaming::ms_aDefaultCopCarModel[0]),
-        //        Format("copcar la = %d", CStreaming::ms_aDefaultCopCarModel[1]),
-        //        Format("copcar sf = %d", CStreaming::ms_aDefaultCopCarModel[2]),
-        //        Format("copcar vg = %d", CStreaming::ms_aDefaultCopCarModel[3]),
-        //        Format("copbike = %d", CStreaming::ms_DefaultCopBikeModel),
         //        Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
         //        Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-        //        //Format("copru = %d", CStreaming::ms_aDefaultCopModel[0]),
-        //        //Format("copla = %d", CStreaming::ms_aDefaultCopModel[1]),
-        //        //Format("copsf = %d", CStreaming::ms_aDefaultCopModel[2]),
-        //        //Format("copvg = %d", CStreaming::ms_aDefaultCopModel[3]),
+        //        Format("cab1 = %d", CStreaming::ms_aDefaultCabDriverModel[0]),
+        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[1]),
+        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[2]),
+        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[3]),
         //        //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
-        //        Format("armyCarBlok = %d", patch::GetShort(0x461BB1)),
-        //        Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
-        //        Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-        //        Format("varitable = %d", m_nEmergencyServices),
+        //        Format("test = %d", patch::GetInt(0x965524)),
+        //        //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
+        //        //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
+        //        Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
         //        //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
         //    }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         //};
@@ -1544,6 +1551,7 @@ bool AddSpecialCars::isAmbulan = false;
 bool AddSpecialCars::isFiretruck = false;
 bool AddSpecialCars::isMedic = false;
 bool AddSpecialCars::isFireman = false;
+int AddSpecialCars::randomCabDriver = 5;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
