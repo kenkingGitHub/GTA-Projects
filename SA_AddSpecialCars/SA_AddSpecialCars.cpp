@@ -19,10 +19,25 @@
 #include "extensions\KeyCheck.h"
 //#include "CMessages.h"
 
-int m_nEmergencyServices;
 
 using namespace plugin;
 using namespace std;
+
+int m_nEmergencyServices;
+
+unordered_set<unsigned int> 
+/*cop vehicles*/            CopBike_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, CopCarRU_IDs, 
+                            Enforcer_IDs, Swatvan_IDs, Fbiranch_IDs, Barracks_IDs,
+/*cop peds*/                CopBiker_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, CopRU_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
+/*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
+/*taxi cars && peds*/       Taxi_IDs, TaxiDriver_IDs,
+/*emergency cars*/          Ambulan_IDs, Firetruk_IDs,
+/*emergency peds*/          MedicLA_IDs, MedicSF_IDs, MedicVG_IDs, FiremanLA_IDs, FiremanSF_IDs, FiremanVG_IDs,
+/*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
+
+bool isCopbiker = false, isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false, 
+isCabDriver = false, isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
+
 
 class AddSpecialCars {
 public:
@@ -31,7 +46,7 @@ public:
     }
     
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
-    enum eSpecialType { TYPE_MEDIC, TYPE_FIREMAN, TYPE_COPBIKER, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY };
+    enum eSpecialType { TYPE_MEDIC, TYPE_FIREMAN, TYPE_COPBIKER, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI_DRIVER };
 
     static eSpawnCarState m_currentState;
     static short outCount;
@@ -41,11 +56,9 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
         currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo, 
-        randomCabDriver;
+        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo, randomCabDriver;
     static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
-    static bool isCopbiker, isSwat, isFbi, isArmy, isCop, isAmbulan, isFiretruck, isMedic, isFireman;
     static eWeaponType currentWeaponType;
 
     static void Patch_6AB349();    static void Patch_4912D0();    static void Patch_469629();    
@@ -54,210 +67,55 @@ public:
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
     static void Patch_5DDC99();    
 
-    static unordered_set<unsigned int> &GetCoplaModels() {
-        static unordered_set<unsigned int> coplaIds;
-        return coplaIds;
-    }
-    
-    static unordered_set<unsigned int> &GetCopsfModels() {
-        static unordered_set<unsigned int> copsfIds;
-        return copsfIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopvgModels() {
-        static unordered_set<unsigned int> copvgIds;
-        return copvgIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopruModels() {
-        static unordered_set<unsigned int> copruIds;
-        return copruIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopbikerModels() {
-        static unordered_set<unsigned int> copbikerIds;
-        return copbikerIds;
-    }
-
-    static unordered_set<unsigned int> &GetSwatModels() {
-        static unordered_set<unsigned int> swatIds;
-        return swatIds;
-    }
-
-    static unordered_set<unsigned int> &GetFbiModels() {
-        static unordered_set<unsigned int> fbiIds;
-        return fbiIds;
-    }
-
-    static unordered_set<unsigned int> &GetArmyModels() {
-        static unordered_set<unsigned int> armyIds;
-        return armyIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopcarlaModels() {
-        static unordered_set<unsigned int> copcarlaIds;
-        return copcarlaIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopcarsfModels() {
-        static unordered_set<unsigned int> copcarsfIds;
-        return copcarsfIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopcarvgModels() {
-        static unordered_set<unsigned int> copcarvgIds;
-        return copcarvgIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopcarruModels() {
-        static unordered_set<unsigned int> copcarruIds;
-        return copcarruIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopbikeModels() {
-        static unordered_set<unsigned int> copbikeIds;
-        return copbikeIds;
-    }
-
-    static unordered_set<unsigned int> &GetFbiranchModels() {
-        static unordered_set<unsigned int> fbiranchIds;
-        return fbiranchIds;
-    }
-
-    static unordered_set<unsigned int> &GetEnforcerModels() {
-        static unordered_set<unsigned int> enforcerIds;
-        return enforcerIds;
-    }
-
-    static unordered_set<unsigned int> &GetTaxiModels() {
-        static unordered_set<unsigned int> taxiIds;
-        return taxiIds;
-    }
-
-    static unordered_set<unsigned int> &GetAmbulanModels() {
-        static unordered_set<unsigned int> ambulanIds;
-        return ambulanIds;
-    }
-
-    static unordered_set<unsigned int> &GetFiretrukModels() {
-        static unordered_set<unsigned int> firetrukIds;
-        return firetrukIds;
-    }
-
-    static unordered_set<unsigned int> &GetBoxburgModels() {
-        static unordered_set<unsigned int> boxburgIds;
-        return boxburgIds;
-    }
-
-    static unordered_set<unsigned int> &GetBarracksModels() {
-        static unordered_set<unsigned int> barracksIds;
-        return barracksIds;
-    }
-
-    static unordered_set<unsigned int> &GetSwatvanModels() {
-        static unordered_set<unsigned int> swatvanIds;
-        return swatvanIds;
-    }
-
-    static unordered_set<unsigned int> &GetBroadwayModels() {
-        static unordered_set<unsigned int> broadwayIds;
-        return broadwayIds;
-    }
-
-    static unordered_set<unsigned int> &GetStreakModels() {
-        static unordered_set<unsigned int> streakIds;
-        return streakIds;
-    }
-
-    static unordered_set<unsigned int> &GetStreakcModels() {
-        static unordered_set<unsigned int> streakcIds;
-        return streakcIds;
-    }
-
-    static unordered_set<unsigned int> &GetCopWeaponModels() {
-        static unordered_set<unsigned int> copWeaponIds;
-        return copWeaponIds;
-    }
-
-    static unordered_set<unsigned int> &GetSwatWeaponModels() {
-        static unordered_set<unsigned int> swatWeaponIds;
-        return swatWeaponIds;
-    }
-
-    static unordered_set<unsigned int> &GetFbiWeaponModels() {
-        static unordered_set<unsigned int> fbiWeaponIds;
-        return fbiWeaponIds;
-    }
-
-    static unordered_set<unsigned int> &GetArmyWeaponModels() {
-        static unordered_set<unsigned int> armyWeaponIds;
-        return armyWeaponIds;
-    }
-
-    static unordered_set<unsigned int> &GetMediclaModels() {
-        static unordered_set<unsigned int> mediclaIds;
-        return mediclaIds;
-    }
-
-    static unordered_set<unsigned int> &GetMedicsfModels() {
-        static unordered_set<unsigned int> medicsfIds;
-        return medicsfIds;
-    }
-
-    static unordered_set<unsigned int> &GetMedicvgModels() {
-        static unordered_set<unsigned int> medicvgIds;
-        return medicvgIds;
-    }
-
     static int __stdcall GetModelForSiren(unsigned int model) {
-        if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+        if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
             return MODEL_COPCARLA;
-        else if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+        else if (model == MODEL_COPCARSF || CopCarSF_IDs.find(model) != CopCarSF_IDs.end())
             return MODEL_COPCARSF;
-        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+        else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return MODEL_COPCARVG;
-        else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
+        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
             return MODEL_COPCARRU;
-        else if (model == MODEL_FBIRANCH || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+        else if (model == MODEL_FBIRANCH || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return MODEL_FBIRANCH;
-        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+        else if (model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return MODEL_ENFORCER;
-        else if (model == MODEL_TAXI || GetTaxiModels().find(model) != GetTaxiModels().end())
+        else if (model == MODEL_TAXI || Taxi_IDs.find(model) != Taxi_IDs.end())
             return MODEL_TAXI;
-        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+        else if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end())
             return MODEL_AMBULAN;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || Firetruk_IDs.find(model) != Firetruk_IDs.end())
             return MODEL_FIRETRUK;
         return model;
     }
 
     static int __stdcall GetCopbikeModel(unsigned int model) {
-        if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+        if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
             return MODEL_COPBIKE;
         return model;
     }
 
     static int __stdcall GetTaxiModel(unsigned int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end())
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end())
             return MODEL_TAXI;
         return model;
     }
 
     static int __stdcall GetFiretrukModel(unsigned int model) {
-        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+        if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end())
             return MODEL_FIRETRUK;
         return model;
     }
 
     static int __stdcall GetWaterJetsModel(unsigned int model) {
-        if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end() 
-            || model == MODEL_SWATVAN || GetSwatvanModels().find(model) != GetSwatvanModels().end())
+        if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end() 
+            || model == MODEL_SWATVAN || Swatvan_IDs.find(model) != Swatvan_IDs.end())
             return MODEL_FIRETRUK;
         return model;
     }
 
     static int __stdcall GetTurretsModel(unsigned int model) {
-        if (model == MODEL_SWATVAN || GetSwatvanModels().find(model) != GetSwatvanModels().end())
+        if (model == MODEL_SWATVAN || Swatvan_IDs.find(model) != Swatvan_IDs.end())
             return MODEL_SWATVAN;
         return model;
     }
@@ -269,27 +127,27 @@ public:
             if (ped && ped->m_pVehicle) {
                 unsigned int model = ped->m_pVehicle->m_nModelIndex;
                 if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
-                    if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end()) // Paramedic
+                    if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end()) // Paramedic
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_BOXBURG) {
-                    if (model == MODEL_BOXBURG || GetBoxburgModels().find(model) != GetBoxburgModels().end()) // Burglary
+                    if (model == MODEL_BOXBURG || Boxburg_IDs.find(model) != Boxburg_IDs.end()) // Burglary
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
-                    if (model == MODEL_FIRETRUK || GetFiretrukModels().find(model) != GetFiretrukModels().end()) // Firefighter
+                    if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end()) // Firefighter
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_BROADWAY) {
-                    if (model == MODEL_BROADWAY || GetBroadwayModels().find(model) != GetBroadwayModels().end()) // Pimping
+                    if (model == MODEL_BROADWAY || Broadway_IDs.find(model) != Broadway_IDs.end()) // Pimping
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_STREAK) {
-                    if (model == MODEL_STREAK || GetStreakModels().find(model) != GetStreakModels().end()) // Freight Train
+                    if (model == MODEL_STREAK || Streak_IDs.find(model) != Streak_IDs.end()) // Freight Train
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_STREAKC) {
-                    if (model == MODEL_STREAKC || GetStreakcModels().find(model) != GetStreakcModels().end()) 
+                    if (model == MODEL_STREAKC || Streakc_IDs.find(model) != Streakc_IDs.end()) 
                         inModel = true;
                 }
                 else if (model == CTheScripts::ScriptParams[1].uParam)
@@ -300,67 +158,67 @@ public:
     }
     
     static int __stdcall GetModel_Patch_41C0A6(unsigned int model) {
-        if (model == MODEL_COPCARLA || model == MODEL_FBITRUCK || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+        if (model == MODEL_COPCARLA || model == MODEL_FBITRUCK || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
             return 169;
-        else if (model == MODEL_COPCARSF || model == MODEL_SWATVAN || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+        else if (model == MODEL_COPCARSF || model == MODEL_SWATVAN || CopCarSF_IDs.find(model) != CopCarSF_IDs.end())
             return 170;
-        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+        else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 171;
-        else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
+        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
             return 172;
-        else if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
             return 96;
-        else if (model == MODEL_FBIRANCH || model == MODEL_PATRIOT || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+        else if (model == MODEL_FBIRANCH || model == MODEL_PATRIOT || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 63;
-        else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+        else if (model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return 0;
-        else if (model == MODEL_BARRACKS || GetBarracksModels().find(model) != GetBarracksModels().end())
+        else if (model == MODEL_BARRACKS || Barracks_IDs.find(model) != Barracks_IDs.end())
             return 6;
         return model - 427;
     }
 
     static int __stdcall GetModel_Patch_46130F(unsigned int model) {
-        if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+        if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
             return 169;
-        else if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+        else if (model == MODEL_COPCARSF || CopCarSF_IDs.find(model) != CopCarSF_IDs.end())
             return 170;
-        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+        else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 171;
-        else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
+        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
             return 172;
-        else if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
             return 96;
-        else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+        else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 63;
-        else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+        else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return 0;
-        else if (model == MODEL_BARRACKS || model == MODEL_PATRIOT || GetBarracksModels().find(model) != GetBarracksModels().end())
+        else if (model == MODEL_BARRACKS || model == MODEL_PATRIOT || Barracks_IDs.find(model) != Barracks_IDs.end())
             return 6;
         return model - 427;
     }
 
     static int __stdcall GetModel_Patch_42BBC8(unsigned int model) {
-        if (model == MODEL_COPCARLA || GetCopcarlaModels().find(model) != GetCopcarlaModels().end())
+        if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
             return 189;
-        else if (model == MODEL_COPCARSF || GetCopcarsfModels().find(model) != GetCopcarsfModels().end())
+        else if (model == MODEL_COPCARSF || CopCarSF_IDs.find(model) != CopCarSF_IDs.end())
             return 190;
-        else if (model == MODEL_COPCARVG || GetCopcarvgModels().find(model) != GetCopcarvgModels().end())
+        else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 191;
-        else if (model == MODEL_COPCARRU || GetCopcarruModels().find(model) != GetCopcarruModels().end())
+        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
             return 192;
-        else if (model == MODEL_COPBIKE || GetCopbikeModels().find(model) != GetCopbikeModels().end())
+        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
             return 116;
-        else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+        else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return 20;
-        else if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+        else if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end())
             return 9;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || GetFiretrukModels().find(model) != GetFiretrukModels().end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || Firetruk_IDs.find(model) != Firetruk_IDs.end())
             return 0;
-        else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || GetFbiranchModels().find(model) != GetFbiranchModels().end())
+        else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 83;
-        else if (model == MODEL_BARRACKS || model == MODEL_PATRIOT || GetBarracksModels().find(model) != GetBarracksModels().end())
+        else if (model == MODEL_BARRACKS || model == MODEL_PATRIOT || Barracks_IDs.find(model) != Barracks_IDs.end())
             return 26;
-        else if (model == MODEL_STREAKC || GetStreakcModels().find(model) != GetStreakcModels().end())
+        else if (model == MODEL_STREAKC || Streakc_IDs.find(model) != Streakc_IDs.end())
             return 163;
         return model - 407;
     }
@@ -376,15 +234,15 @@ public:
         bool result = false; 
 
         if (_this->IsLawEnforcementVehicle() || _this->m_nModelIndex == MODEL_PATRIOT
-            || GetCopcarlaModels().find(_this->m_nModelIndex) != GetCopcarlaModels().end()
-            || GetCopcarsfModels().find(_this->m_nModelIndex) != GetCopcarsfModels().end()
-            || GetCopcarvgModels().find(_this->m_nModelIndex) != GetCopcarvgModels().end()
-            || GetCopcarruModels().find(_this->m_nModelIndex) != GetCopcarruModels().end()
-            || GetCopbikeModels().find(_this->m_nModelIndex) != GetCopbikeModels().end()
-            || GetFbiranchModels().find(_this->m_nModelIndex) != GetFbiranchModels().end()
-            || GetEnforcerModels().find(_this->m_nModelIndex) != GetEnforcerModels().end()
-            || GetBarracksModels().find(_this->m_nModelIndex) != GetBarracksModels().end()
-            || GetSwatvanModels().find(_this->m_nModelIndex) != GetSwatvanModels().end())
+            || CopCarLA_IDs.find(_this->m_nModelIndex) != CopCarLA_IDs.end()
+            || CopCarSF_IDs.find(_this->m_nModelIndex) != CopCarSF_IDs.end()
+            || CopCarVG_IDs.find(_this->m_nModelIndex) != CopCarVG_IDs.end()
+            || CopCarRU_IDs.find(_this->m_nModelIndex) != CopCarRU_IDs.end()
+            || CopBike_IDs.find(_this->m_nModelIndex) != CopBike_IDs.end()
+            || Fbiranch_IDs.find(_this->m_nModelIndex) != Fbiranch_IDs.end()
+            || Enforcer_IDs.find(_this->m_nModelIndex) != Enforcer_IDs.end()
+            || Barracks_IDs.find(_this->m_nModelIndex) != Barracks_IDs.end()
+            || Swatvan_IDs.find(_this->m_nModelIndex) != Swatvan_IDs.end())
             result = true;
         return result;
     }
@@ -393,8 +251,8 @@ public:
     static bool __fastcall UsesSiren(CVehicle *_this) {
         bool result; 
 
-        if (GetAmbulanModels().find(_this->m_nModelIndex) != GetAmbulanModels().end()
-            || GetFiretrukModels().find(_this->m_nModelIndex) != GetFiretrukModels().end()) {
+        if (Ambulan_IDs.find(_this->m_nModelIndex) != Ambulan_IDs.end()
+            || Firetruk_IDs.find(_this->m_nModelIndex) != Firetruk_IDs.end()) {
             result = true; return result;
         }
         switch (_this->m_nModelIndex) {
@@ -420,7 +278,7 @@ public:
         
         if (CTimer::m_snTimeInMilliseconds > (randomCopCarTime + 30000)) {
             randomCopCarTime = CTimer::m_snTimeInMilliseconds;
-            unsigned int copbikeId = GetRandomModel(GetCopbikeModels());
+            unsigned int copbikeId = GetRandomModel(CopBike_IDs);
             if (CModelInfo::IsBikeModel(copbikeId)) {
                 if (CStreaming::ms_DefaultCopBikeModel == MODEL_COPBIKE)
                     CStreaming::ms_DefaultCopBikeModel = copbikeId;
@@ -430,7 +288,7 @@ public:
             unsigned int copcarruId, copcarlaId, copcarsfId, copcarvgId;
             switch (CTheZones::m_CurrLevel) {
             case 0:
-                copcarruId = GetRandomModel(GetCopcarruModels());
+                copcarruId = GetRandomModel(CopCarRU_IDs);
                 if (CModelInfo::IsCarModel(copcarruId)) {
                     if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARRU)
                         CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarruId;
@@ -439,7 +297,7 @@ public:
                 }
                 break;
             case 1:
-                copcarlaId = GetRandomModel(GetCopcarlaModels());
+                copcarlaId = GetRandomModel(CopCarLA_IDs);
                 if (CModelInfo::IsCarModel(copcarlaId)) {
                     if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARLA)
                         CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarlaId;
@@ -448,7 +306,7 @@ public:
                 }
                 break;
             case 2:
-                copcarsfId = GetRandomModel(GetCopcarsfModels());
+                copcarsfId = GetRandomModel(CopCarSF_IDs);
                 if (CModelInfo::IsCarModel(copcarsfId)) {
                     if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARSF)
                         CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarsfId;
@@ -457,7 +315,7 @@ public:
                 }
                 break;
             case 3:
-                copcarvgId = GetRandomModel(GetCopcarvgModels());
+                copcarvgId = GetRandomModel(CopCarVG_IDs);
                 if (CModelInfo::IsCarModel(copcarvgId)) {
                     if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARVG)
                         CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarvgId;
@@ -511,7 +369,7 @@ public:
                 randomSwatCar = 0;
             switch (randomSwatCar) {
             case 0:
-                enforcerId = GetRandomModel(GetEnforcerModels());
+                enforcerId = GetRandomModel(Enforcer_IDs);
                 if (CModelInfo::IsCarModel(enforcerId) && LoadModel(enforcerId))
                     return enforcerId;
                 else
@@ -537,7 +395,7 @@ public:
                     randomFbiCar = 0;
                 switch (randomFbiCar) {
                 case 0:
-                    fbiranchId = GetRandomModel(GetFbiranchModels());
+                    fbiranchId = GetRandomModel(Fbiranch_IDs);
                     if (CModelInfo::IsCarModel(fbiranchId) && LoadModel(fbiranchId)) 
                         return fbiranchId;
                     else
@@ -563,7 +421,7 @@ public:
                     randomArmyCar = 0;
                 switch (randomArmyCar) {
                 case 0:
-                    barracksId = GetRandomModel(GetBarracksModels());
+                    barracksId = GetRandomModel(Barracks_IDs);
                     if (CModelInfo::IsCarModel(barracksId) && LoadModel(barracksId)) 
                         return barracksId;
                     else
@@ -584,7 +442,7 @@ public:
 
     // CPopulation::LoadSpecificDriverModelsForCar
     static void __cdecl LoadSpecificDriverModelsForCar(int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
             int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::RequestModel(modelDriver, 10);
             return;
@@ -616,7 +474,7 @@ public:
 
     // CPopulation::RemoveSpecificDriverModelsForCar
     static void __cdecl RemoveSpecificDriverModelsForCar(int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
             int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::SetModelIsDeletable(modelDriver);
             CStreaming::SetModelTxdIsDeletable(modelDriver);
@@ -658,7 +516,7 @@ public:
     // CPopulation::FindSpecificDriverModelForCar_ToUse
     static int __cdecl FindSpecificDriverModelForCar_ToUse(int model) {
         int result; int randomBiker; 
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || GetTaxiModels().find(model) != GetTaxiModels().end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
             result = /*CStreaming::*/GetDefaultCabDriverModel(); return result;
         }
         switch (model) {
@@ -738,8 +596,8 @@ public:
 
         if (IsLawEnforcementVehicleCheck(vehicle) || vehicle->m_nVehicleSubClass == VEHICLE_BMX 
             || vehicle->m_nModelIndex == MODEL_BUS || vehicle->m_nModelIndex == MODEL_COACH || vehicle->m_nModelIndex == MODEL_FIRELA
-            || vehicle->m_nModelIndex == MODEL_AMBULAN || GetAmbulanModels().find(vehicle->m_nModelIndex) != GetAmbulanModels().end()
-            || vehicle->m_nModelIndex == MODEL_FIRETRUK || GetFiretrukModels().find(vehicle->m_nModelIndex) != GetFiretrukModels().end())
+            || vehicle->m_nModelIndex == MODEL_AMBULAN || Ambulan_IDs.find(vehicle->m_nModelIndex) != Ambulan_IDs.end()
+            || vehicle->m_nModelIndex == MODEL_FIRETRUK || Firetruk_IDs.find(vehicle->m_nModelIndex) != Firetruk_IDs.end())
             result = false;
         return result;
     }
@@ -747,10 +605,10 @@ public:
     static eWeaponType __stdcall GetCurrentWeaponType(int type) {
         eWeaponType result; unsigned int model;
         switch (type) {
-        case 0: model = GetRandomModel(GetCopWeaponModels());  result = WEAPON_PISTOL; break;
-        case 1: model = GetRandomModel(GetSwatWeaponModels()); result = WEAPON_MICRO_UZI; break;
-        case 2: model = GetRandomModel(GetFbiWeaponModels());  result = WEAPON_MP5; break;
-        case 3: model = GetRandomModel(GetArmyWeaponModels()); result = WEAPON_M4; break;
+        case 0: model = GetRandomModel(CopWeapon_IDs);  result = WEAPON_PISTOL; break;
+        case 1: model = GetRandomModel(SwatWeapon_IDs); result = WEAPON_MICRO_UZI; break;
+        case 2: model = GetRandomModel(FbiWeapon_IDs);  result = WEAPON_MP5; break;
+        case 3: model = GetRandomModel(ArmyWeapon_IDs); result = WEAPON_M4; break;
         }
         switch (model) {
         case MODEL_GRENADE:
@@ -889,6 +747,15 @@ public:
         case TYPE_ARMY:
             result = MODEL_ARMY;
             break;
+        case TYPE_TAXI_DRIVER:
+            if (randomCabDriver < 5)
+                randomCabDriver++;
+            else
+                randomCabDriver = 0;
+            if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]].m_nLoadState != LOADSTATE_LOADED)
+                LoadModel(CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]);
+            result = CStreaming::ms_aDefaultCabDriverModel[randomCabDriver];
+            break;
         }
         return result;
     }
@@ -909,13 +776,13 @@ public:
     static int __stdcall GetAdditionalCopModel() {
         switch (CTheZones::m_CurrLevel) {
         case 0:
-            return GetCurrentPedModel(GetCopruModels(), TYPE_COP);
+            return GetCurrentPedModel(CopRU_IDs, TYPE_COP);
         case 1:
-            return GetCurrentPedModel(GetCoplaModels(), TYPE_COP);
+            return GetCurrentPedModel(CopLA_IDs, TYPE_COP);
         case 2:
-            return GetCurrentPedModel(GetCopsfModels(), TYPE_COP);
+            return GetCurrentPedModel(CopSF_IDs, TYPE_COP);
         case 3:
-            return GetCurrentPedModel(GetCopvgModels(), TYPE_COP);
+            return GetCurrentPedModel(CopVG_IDs, TYPE_COP);
         }
         return CStreaming::GetDefaultCopModel();
     }
@@ -955,7 +822,7 @@ public:
                 copModel = CStreaming::ms_DefaultCopBikerModel; isCopbiker = false;
             }
             else {
-                copModel = GetCurrentPedModel(GetCopbikerModels(), TYPE_COPBIKER); isCopbiker = true;
+                copModel = GetCurrentPedModel(CopBiker_IDs, TYPE_COPBIKER); isCopbiker = true;
             }
             cop->SetModelIndex(copModel);
             cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, 1);
@@ -971,7 +838,7 @@ public:
                 copModel = MODEL_SWAT; isSwat = false;
             }
             else {
-                copModel = GetCurrentPedModel(GetSwatModels(), TYPE_SWAT); isSwat = true;
+                copModel = GetCurrentPedModel(Swat_IDs, TYPE_SWAT); isSwat = true;
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(1);
@@ -988,7 +855,7 @@ public:
                 copModel = MODEL_FBI; isFbi = false;
             }
             else {
-                copModel = GetCurrentPedModel(GetFbiModels(), TYPE_FBI); isFbi = true;
+                copModel = GetCurrentPedModel(Fbi_IDs, TYPE_FBI); isFbi = true;
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(2);
@@ -1005,7 +872,7 @@ public:
                 copModel = MODEL_ARMY; isArmy = false;
             }
             else {
-                copModel = GetCurrentPedModel(GetArmyModels(), TYPE_ARMY); isArmy = true;
+                copModel = GetCurrentPedModel(Army_IDs, TYPE_ARMY); isArmy = true;
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(3);
@@ -1025,11 +892,11 @@ public:
         case 0:
             return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
         case 1:
-            return GetCurrentPedModel(GetMediclaModels(), TYPE_MEDIC);
+            return GetCurrentPedModel(MedicLA_IDs, TYPE_MEDIC);
         case 2:                          
-            return GetCurrentPedModel(GetMedicsfModels(), TYPE_MEDIC);
+            return GetCurrentPedModel(MedicSF_IDs, TYPE_MEDIC);
         case 3:                          
-            return GetCurrentPedModel(GetMedicvgModels(), TYPE_MEDIC);
+            return GetCurrentPedModel(MedicVG_IDs, TYPE_MEDIC);
         }
         return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
     }
@@ -1046,15 +913,42 @@ public:
         return medicModel;
     }
 
+    static int __stdcall GetAdditionalFiremanModel() {
+        switch (CTheZones::m_CurrLevel) {
+        case 0:
+            return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+        case 1:
+            return GetCurrentPedModel(FiremanLA_IDs, TYPE_FIREMAN);
+        case 2:
+            return GetCurrentPedModel(FiremanSF_IDs, TYPE_FIREMAN);
+        case 3:
+            return GetCurrentPedModel(FiremanVG_IDs, TYPE_FIREMAN);
+        }
+        return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+    }
+
+    // CStreaming::GetDefaultFiremanModel
+    static int __cdecl GetDefaultFiremanModel() {
+        int firemanModel;
+        if (isFireman) {
+            firemanModel = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel]; isFireman = false;
+        }
+        else {
+            firemanModel = GetAdditionalFiremanModel(); isFireman = true;
+        }
+        return firemanModel;
+    }
+
     // CStreaming::GetDefaultCabDriverModel
     static int __cdecl GetDefaultCabDriverModel() {
-        if (randomCabDriver < 5)
-            randomCabDriver++;
-        else
-            randomCabDriver = 0;
-        if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]].m_nLoadState != LOADSTATE_LOADED)
-            LoadModel(CStreaming::ms_aDefaultCabDriverModel[randomCabDriver]);
-        return CStreaming::ms_aDefaultCabDriverModel[randomCabDriver];
+        int cabDriverModel;
+        if (isCabDriver) {
+            cabDriverModel = GetSpecialModel(TYPE_TAXI_DRIVER); isCabDriver = false;
+        }
+        else {
+            cabDriverModel = GetCurrentPedModel(TaxiDriver_IDs, TYPE_TAXI_DRIVER); isCabDriver = true;
+        }
+        return cabDriverModel;
     }
 
 
@@ -1066,187 +960,211 @@ public:
             if (!line.compare("copcarla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopcarlaModels().insert(stoi(line));
+                        CopCarLA_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copcarsf")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopcarsfModels().insert(stoi(line));
+                        CopCarSF_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copcarvg")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopcarvgModels().insert(stoi(line));
+                        CopCarVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copcarru")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopcarruModels().insert(stoi(line));
+                        CopCarRU_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copbike")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopbikeModels().insert(stoi(line));
+                        CopBike_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("fbiranch")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetFbiranchModels().insert(stoi(line));
+                        Fbiranch_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("enforcer")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetEnforcerModels().insert(stoi(line));
+                        Enforcer_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("taxi")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetTaxiModels().insert(stoi(line));
+                        Taxi_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("taxidriver")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        TaxiDriver_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("ambulan")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetAmbulanModels().insert(stoi(line));
+                        Ambulan_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("firetruk")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetFiretrukModels().insert(stoi(line));
+                        Firetruk_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("boxburg")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetBoxburgModels().insert(stoi(line));
+                        Boxburg_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("barracks")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetBarracksModels().insert(stoi(line));
+                        Barracks_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("swatvan")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetSwatvanModels().insert(stoi(line));
+                        Swatvan_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("broadway")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetBroadwayModels().insert(stoi(line));
+                        Broadway_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("streak")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetStreakModels().insert(stoi(line));
+                        Streak_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("streakc")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetStreakcModels().insert(stoi(line));
+                        Streakc_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCoplaModels().insert(stoi(line));
+                        CopLA_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copsf")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopsfModels().insert(stoi(line));
+                        CopSF_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copvg")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopvgModels().insert(stoi(line));
+                        CopVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copru")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopruModels().insert(stoi(line));
+                        CopRU_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copbiker")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopbikerModels().insert(stoi(line));
+                        CopBiker_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("swat")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetSwatModels().insert(stoi(line));
+                        Swat_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("fbi")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetFbiModels().insert(stoi(line));
+                        Fbi_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("army")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetArmyModels().insert(stoi(line));
+                        Army_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copweapon")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetCopWeaponModels().insert(stoi(line));
+                        CopWeapon_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("swatweapon")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetSwatWeaponModels().insert(stoi(line));
+                        SwatWeapon_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("fbiweapon")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetFbiWeaponModels().insert(stoi(line));
+                        FbiWeapon_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("armyweapon")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetArmyWeaponModels().insert(stoi(line));
+                        ArmyWeapon_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("medicla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetMediclaModels().insert(stoi(line));
+                        MedicLA_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("medicsf")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetMedicsfModels().insert(stoi(line));
+                        MedicSF_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("medicvg")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        GetMedicvgModels().insert(stoi(line));
+                        MedicVG_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firemanla")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiremanLA_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firemansf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiremanSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firemanvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiremanVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("emergency")) {
@@ -1265,6 +1183,7 @@ public:
         patch::RedirectJump(0x421980, ChoosePoliceCarModel);
         patch::RedirectJump(0x4479A0, IsCarSprayable);
         patch::RedirectJump(0x407D20, GetDefaultMedicModel);
+        patch::RedirectJump(0x407D40, GetDefaultFiremanModel);
         patch::RedirectJump(0x407D50, GetDefaultCabDriverModel);
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
@@ -1301,9 +1220,6 @@ public:
         //patch::SetChar(0x42F9FB, 6, true);
 
         static unsigned int spawnCarTime = 0;
-        static bool isEnforcer = true; 
-        static bool isFbiranch = true; 
-        static bool isBarracks = true;
 
         Events::gameProcessEvent += [] {
             KeyCheck::Update();
@@ -1321,14 +1237,14 @@ public:
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                     randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
                     if (CTheZones::m_CurrLevel) {
-                        unsigned int ambulanceId = GetRandomModel(GetAmbulanModels());
+                        unsigned int ambulanceId = GetRandomModel(Ambulan_IDs);
                         if (CModelInfo::IsCarModel(ambulanceId)) {
                             if (plugin::Random(0, 1))
                                 CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = ambulanceId;
                             else
                                 CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = MODEL_AMBULAN;
                         }
-                        unsigned int firetrukId = GetRandomModel(GetFiretrukModels());
+                        unsigned int firetrukId = GetRandomModel(Firetruk_IDs);
                         if (CModelInfo::IsCarModel(firetrukId)) {
                             if (plugin::Random(0, 1))
                                 CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = firetrukId;
@@ -1338,7 +1254,7 @@ public:
                     }
                     // RoadBlocks
                     if (wanted->AreSwatRequired()) {
-                        unsigned int enforcerId = GetRandomModel(GetEnforcerModels());
+                        unsigned int enforcerId = GetRandomModel(Enforcer_IDs);
                         if (CModelInfo::IsCarModel(enforcerId)) {
                             if (patch::GetShort(0x461BE7) == MODEL_ENFORCER || patch::GetShort(0x461BE7) == MODEL_SWATVAN)
                                 patch::SetShort(0x461BE7, enforcerId, true);
@@ -1353,7 +1269,7 @@ public:
                         }
                     }
                     if (wanted->AreFbiRequired()) {
-                        unsigned int fbiranchId = GetRandomModel(GetFbiranchModels());
+                        unsigned int fbiranchId = GetRandomModel(Fbiranch_IDs);
                         if (CModelInfo::IsCarModel(fbiranchId)) {
                             if (patch::GetShort(0x461BCC) == MODEL_FBIRANCH || patch::GetShort(0x461BCC) == MODEL_FBITRUCK)
                                 patch::SetShort(0x461BCC, fbiranchId, true);
@@ -1368,7 +1284,7 @@ public:
                         }
                     }
                     if (wanted->AreArmyRequired()) {
-                        unsigned int barracksId = GetRandomModel(GetBarracksModels());
+                        unsigned int barracksId = GetRandomModel(Barracks_IDs);
                         if (CModelInfo::IsCarModel(barracksId)) {
                             if (patch::GetShort(0x461BB1) == MODEL_BARRACKS || patch::GetShort(0x461BB1) == MODEL_PATRIOT)
                                 patch::SetShort(0x461BB1, barracksId, true);
@@ -1542,15 +1458,6 @@ int AddSpecialCars::randomSwatCar = 2;
 int AddSpecialCars::randomArmyCar = 3;
 eWeaponType AddSpecialCars::currentWeaponType;
 int AddSpecialCars::weaponAmmo;
-bool AddSpecialCars::isCopbiker = false;
-bool AddSpecialCars::isSwat = false;
-bool AddSpecialCars::isFbi = false;
-bool AddSpecialCars::isArmy = false;
-bool AddSpecialCars::isCop = false;
-bool AddSpecialCars::isAmbulan = false;
-bool AddSpecialCars::isFiretruck = false;
-bool AddSpecialCars::isMedic = false;
-bool AddSpecialCars::isFireman = false;
 int AddSpecialCars::randomCabDriver = 5;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
