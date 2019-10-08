@@ -16,7 +16,7 @@
 #include "CCopPed.h"
 
 //#include "CHudColours.h"
-#include "extensions\KeyCheck.h"
+//#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
 
 
@@ -38,6 +38,9 @@ unordered_set<unsigned int>
 bool isCopbiker = false, isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false, 
 isCabDriver = false, isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
 
+int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
+unsigned int randomCopCarTime = 0, randomEmergencyServicesCarTime = 0, spawnCarTime = 0;
+
 
 class AddSpecialCars {
 public:
@@ -54,10 +57,9 @@ public:
     static float carAngle;
     static CAutoPilot pilot;
     static CBaseModelInfo *modelInfo;
-    static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentWaterJetsModel, 
-        currentTurretsModel, currentModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, currentModel_Patch_613A68, 
-        currentModel_Patch_46130F, currentModel_Patch_48DA65, randomFbiCar, randomSwatCar, randomArmyCar, weaponAmmo, randomCabDriver;
-    static unsigned int randomCopCarTime, randomEmergencyServicesCarTime, copId;
+    static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
+        currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
+        currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -1219,21 +1221,19 @@ public:
         
         //patch::SetChar(0x42F9FB, 6, true);
 
-        static unsigned int spawnCarTime = 0;
-
         Events::gameProcessEvent += [] {
-            KeyCheck::Update();
+            /*KeyCheck::Update();
             if (KeyCheck::CheckWithDelay('P', 1000)) {
                 if (CTimer::m_UserPause)
                     CTimer::m_UserPause = false;
                 else
                     CTimer::m_UserPause = true;
-            }
+            }*/
 
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
-                // RandomEmergencyServicesCar
                 CWanted *wanted = FindPlayerWanted(-1);
+                // RandomEmergencyServicesCar
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
                     randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
                     if (CTheZones::m_CurrLevel) {
@@ -1391,18 +1391,14 @@ public:
         //Events::drawingEvent += [] {
         //    gamefont::Print({
         //        Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
-        //        Format("level = %d", CTheZones::m_CurrLevel),
-        //        Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
-        //        Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-        //        Format("cab1 = %d", CStreaming::ms_aDefaultCabDriverModel[0]),
-        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[1]),
-        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[2]),
-        //        Format("cab2 = %d", CStreaming::ms_aDefaultCabDriverModel[3]),
+        //        //Format("level = %d", CTheZones::m_CurrLevel),
+        //        //Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
+        //        //Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
         //        //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
-        //        Format("test = %d", patch::GetInt(0x965524)),
+        //        //Format("test = %d", patch::GetInt(0x965524)),
         //        //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
         //        //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-        //        Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
+        //        //Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
         //        //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
         //    }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
         //};
@@ -1443,8 +1439,6 @@ int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 int AddSpecialCars::currentModel_Patch_46130F;
 int AddSpecialCars::currentModel_Patch_48DA65;
-unsigned int AddSpecialCars::randomCopCarTime = 0;
-unsigned int AddSpecialCars::randomEmergencyServicesCarTime = 0;
 unsigned int AddSpecialCars::jmp_6AB360;
 unsigned int AddSpecialCars::jmp_469658;
 unsigned int AddSpecialCars::jmp_41C0AF;
@@ -1452,13 +1446,7 @@ unsigned int AddSpecialCars::jmp_42BBCE;
 unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
 unsigned int AddSpecialCars::jmp_48DAA2;
-unsigned int AddSpecialCars::copId;
-int AddSpecialCars::randomFbiCar = 2;
-int AddSpecialCars::randomSwatCar = 2;
-int AddSpecialCars::randomArmyCar = 3;
 eWeaponType AddSpecialCars::currentWeaponType;
-int AddSpecialCars::weaponAmmo;
-int AddSpecialCars::randomCabDriver = 5;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
