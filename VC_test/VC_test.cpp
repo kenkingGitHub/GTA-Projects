@@ -1,80 +1,267 @@
+#include "plugin.h"
+#include <vector>
+#include <fstream>
+#include <string>
+#include "extensions\KeyCheck.h"
+#include "CMessages.h"
+
+using namespace plugin;
+using namespace std;
+
+//#pragma pack(push, 4)
+struct MyVehicleSampleData {
+    char name[16];
+    int m_nModelId;
+    int m_nEngineFarSample;
+    int m_nEngineNearSample;
+    int m_nHornSample;
+    int m_nHornFreq;
+    int m_nSirenSample;
+    int m_nSirenFreq;
+    int m_nDoorSounds;
+};
+//#pragma pack(pop)
+
+    MyVehicleSampleData dataSound;
+    vector<MyVehicleSampleData> carSound;
+
+class Test {
+public:
+    static int currentValue;
+
+    // cAudioManager::ProcessVehicleSirenOrAlarm
+    static void Patch_5F0420();    static void Patch_5F0448();
+
+    // cAudioManager::ProcessVehicleEngine
+    static void Patch_5F2799();    static void Patch_5F27F2();
+    static void Patch_5F281D();    static void Patch_5F2873();
+
+    // cAudioManager::ProcessPlayersVehicleEngine
+    static void Patch_5F1427();
+
+    static int __stdcall GetVehicleSettingsIndex(int id) {
+        for (unsigned int i = 0; i < carSound.size(); i++) {
+            if (carSound[i].m_nModelId == id)
+                return i;
+        }
+        return 0;
+    }
+
+    static int __stdcall GetEngineFarSample(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nEngineFarSample; }
+    static int __stdcall GetEngineNearSample(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nEngineNearSample; }
+    static int __stdcall GetHornSample(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nHornSample; }
+    static int __stdcall GetHornFreq(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nHornFreq; }
+    static int __stdcall GetSirenSample(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nSirenSample; }
+    static int __stdcall GetSirenFreq(int id_130) { return carSound[GetVehicleSettingsIndex(id_130 + 130)].m_nSirenFreq; }
+
+    Test() {
+        ifstream stream(GAME_PATH("data\\carsound.cfg"));
+        if (!stream.is_open())
+            return;
+        for (string line; getline(stream, line); ) {
+            if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                if (sscanf(line.c_str(), "%s %d %d %d %d %d %d %d %d", &dataSound.name, &dataSound.m_nModelId, &dataSound.m_nEngineFarSample, &dataSound.m_nEngineNearSample, &dataSound.m_nHornSample, &dataSound.m_nHornFreq, &dataSound.m_nSirenSample, &dataSound.m_nSirenFreq, &dataSound.m_nDoorSounds) == 9)
+                    carSound.push_back(dataSound);
+        }
+
+        patch::RedirectJump(0x5F0420, Patch_5F0420);
+        patch::RedirectJump(0x5F0448, Patch_5F0448);
+        
+        patch::RedirectJump(0x5F2799, Patch_5F2799);
+        patch::RedirectJump(0x5F27F2, Patch_5F27F2);
+        patch::RedirectJump(0x5F281D, Patch_5F281D);
+        patch::RedirectJump(0x5F2873, Patch_5F2873);
+
+        patch::RedirectJump(0x5F1427, Patch_5F1427);
+
+        Events::gameProcessEvent += [] {
+            KeyCheck::Update();
+            if (KeyCheck::CheckWithDelay('M', 1000)) {
+                int i = 106;
+                static char message[256];
+                snprintf(message, 256, "name %s far %d near %d;", carSound[i].name, carSound[i].m_nEngineFarSample, carSound[i].m_nEngineNearSample);
+                CMessages::AddMessageJumpQ(message, 10000, false);
+            }
+        };
+
+        /*Events::drawingEvent += [] {
+            gamefont::Print({
+                Format("test = %d", index)
+            }, 10, 100, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        };*/
+
+    }
+} test;
+
+int Test::currentValue;
+
+void __declspec(naked) Test::Patch_5F0420() {
+    __asm {
+        mov ecx, [ebp + 20]
+        pushad
+        push ecx
+        call GetSirenSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov[esi + 1Ch], eax
+        mov ecx, [ebp + 20]
+        pushad
+        push ecx
+        call GetSirenFreq
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov edx, 0x5F0446
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F0448() {
+    __asm {
+        mov  ecx, [ebp + 20]
+        pushad
+        push ecx
+        call GetHornSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov[esi + 1Ch], eax
+        mov  ecx, [ebp + 20]
+        pushad
+        push ecx
+        call GetHornFreq
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov edx, 0x5F0471
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F2799() {
+    __asm {
+        mov  esi, [edi + 20]
+        pushad
+        push esi
+        call GetEngineNearSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        add eax, 284
+        mov[ebx + 1Ch], eax
+        mov edx, 0x5F27B5
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F27F2() {
+    __asm {
+        mov  ecx, [edi + 20]
+        pushad
+        push ecx
+        call GetEngineFarSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov edx, 0x5F2805
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F281D() {
+    __asm {
+        mov  esi, [edi + 20]
+        pushad
+        push esi
+        call GetEngineNearSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        add eax, 284
+        mov[ebx + 1Ch], eax
+        mov edx, 0x5F2839
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F2873() {
+    __asm {
+        mov  ecx, [edi + 20]
+        pushad
+        push ecx
+        call GetEngineFarSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov edx, 0x5F2886
+        jmp edx
+    }
+}
+
+void __declspec(naked) Test::Patch_5F1427() {
+    __asm {
+        mov  eax, [esi + 20]
+        pushad
+        push eax
+        call GetEngineNearSample
+        mov currentValue, eax
+        popad
+        mov eax, currentValue
+        mov[esp + 20], eax
+        mov edx, 0x5F1449
+        jmp edx
+    }
+}
+
+
+
+
+
 //#include "plugin.h"
 //#include "extensions\ScriptCommands.h"
 //#include "eScriptCommands.h"
 //#include "extensions\KeyCheck.h"
-//#include "CMessages.h"
+//
+//#include "CModelInfo.h"
 //
 //using namespace plugin;
 //
 //class Test {
 //public:
+//    enum eAudioState { STATE_LOAD, STATE_PLAY, STATE_CLEAR };
+//    static eAudioState m_currentState;
+//    
 //    Test() {
+//        //CModelInfo::AddVehicleModel(237);
+//
 //        Events::gameProcessEvent += [] {
-//            CPed *player = FindPlayerPed();
-//            if (player) {
-//                int pickup;
+//            switch (m_currentState) {
+//            case STATE_LOAD:
 //                KeyCheck::Update();
 //                if (KeyCheck::CheckWithDelay('M', 2000)) {
-//                    CVector pos = player->TransformFromObjectSpace(CVector(0.0f, 5.0f, 0.0f));
-//                    //Command<COMMAND_REQUEST_MODEL>(335, 2);
-//                    //Command<COMMAND_LOAD_ALL_MODELS_NOW>(false);
-//                    //if (Command<COMMAND_HAS_MODEL_LOADED>(335)) {
-//                        Command<COMMAND_CREATE_PICKUP>(411, 3, pos.x, pos.y, pos.z, &pickup);
-//                        //Command<COMMAND_MARK_MODEL_AS_NO_LONGER_NEEDED>(335);
-//                    //}
+//                    Command<COMMAND_LOAD_MISSION_AUDIO>(1, "FIN_1a");
+//                    m_currentState = STATE_PLAY;
 //                }
-//                if (Command<COMMAND_HAS_PICKUP_BEEN_COLLECTED>(pickup))
-//                    CMessages::AddMessageJumpQ(L"message", 2000, 1);
+//                break;
+//            case STATE_PLAY:
+//                if (Command<COMMAND_HAS_MISSION_AUDIO_LOADED>(1)) {
+//                    Command<COMMAND_PLAY_MISSION_AUDIO>(1);
+//                    m_currentState = STATE_CLEAR;
+//                }
+//                break;
+//            case STATE_CLEAR:
+//                if (Command<COMMAND_HAS_MISSION_AUDIO_FINISHED>(1)) {
+//                    Command<COMMAND_CLEAR_MISSION_AUDIO>(1);
+//                    m_currentState = STATE_LOAD;
+//                }
+//                break;
 //            }
 //        };
 //    }
 //} test;
-
-
-#include "plugin.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
-#include "extensions\KeyCheck.h"
-
-#include "CModelInfo.h"
-
-using namespace plugin;
-
-class Test {
-public:
-    enum eAudioState { STATE_LOAD, STATE_PLAY, STATE_CLEAR };
-    static eAudioState m_currentState;
-    
-    Test() {
-        //CModelInfo::AddVehicleModel(237);
-
-        Events::gameProcessEvent += [] {
-            switch (m_currentState) {
-            case STATE_LOAD:
-                KeyCheck::Update();
-                if (KeyCheck::CheckWithDelay('M', 2000)) {
-                    Command<COMMAND_LOAD_MISSION_AUDIO>(1, "FIN_1a");
-                    m_currentState = STATE_PLAY;
-                }
-                break;
-            case STATE_PLAY:
-                if (Command<COMMAND_HAS_MISSION_AUDIO_LOADED>(1)) {
-                    Command<COMMAND_PLAY_MISSION_AUDIO>(1);
-                    m_currentState = STATE_CLEAR;
-                }
-                break;
-            case STATE_CLEAR:
-                if (Command<COMMAND_HAS_MISSION_AUDIO_FINISHED>(1)) {
-                    Command<COMMAND_CLEAR_MISSION_AUDIO>(1);
-                    m_currentState = STATE_LOAD;
-                }
-                break;
-            }
-        };
-    }
-} test;
-
-Test::eAudioState Test::m_currentState = STATE_LOAD;
+//
+//Test::eAudioState Test::m_currentState = STATE_LOAD;
 
 //#include "plugin.h"
 //#include "CTheScripts.h"
