@@ -18,15 +18,17 @@
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
-
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
 
 using namespace plugin;
 using namespace std;
 
-int m_nEmergencyServices;
+int m_nEmergencyServices, m_CurrLevel;
 
 unordered_set<unsigned int> 
-/*cop vehicles*/            CopBike_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, CopCarRU_IDs, 
+/*cop vehicles*/            CopBikeLA_IDs, CopBikeSF_IDs, CopBikeVG_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, 
+                            CopCarRed_IDs, CopCarFlint_IDs, CopCarBone_IDs, 
                             Enforcer_IDs, Swatvan_IDs, Fbiranch_IDs, Barracks_IDs,
 /*cop peds*/                CopBiker_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, CopRU_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
 /*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
@@ -35,12 +37,13 @@ unordered_set<unsigned int>
 /*emergency peds*/          MedicLA_IDs, MedicSF_IDs, MedicVG_IDs, FiremanLA_IDs, FiremanSF_IDs, FiremanVG_IDs,
 /*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
 
-bool isCopbiker = false, isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false, 
+bool isCopbike = false, isCopbiker = false, isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
 isCabDriver = false, isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
 unsigned int randomCopCarTime = 0, randomEmergencyServicesCarTime = 0, spawnCarTime = 0;
 
+int ms_aDefaultCopCarModel[] = { 599, 596, 597, 598, 599, 599, 599 };
 
 class AddSpecialCars {
 public:
@@ -76,7 +79,7 @@ public:
             return MODEL_COPCARSF;
         else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return MODEL_COPCARVG;
-        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
+        else if (model == MODEL_COPCARRU || CopCarRed_IDs.find(model) != CopCarRed_IDs.end() || CopCarFlint_IDs.find(model) != CopCarFlint_IDs.end() || CopCarBone_IDs.find(model) != CopCarBone_IDs.end())
             return MODEL_COPCARRU;
         else if (model == MODEL_FBIRANCH || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return MODEL_FBIRANCH;
@@ -92,7 +95,8 @@ public:
     }
 
     static int __stdcall GetCopbikeModel(unsigned int model) {
-        if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
+        if (model == MODEL_COPBIKE || CopBikeLA_IDs.find(model) != CopBikeLA_IDs.end() 
+            || CopBikeSF_IDs.find(model) != CopBikeSF_IDs.end() || CopBikeVG_IDs.find(model) != CopBikeVG_IDs.end())
             return MODEL_COPBIKE;
         return model;
     }
@@ -166,9 +170,9 @@ public:
             return 170;
         else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 171;
-        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
+        else if (model == MODEL_COPCARRU || CopCarRed_IDs.find(model) != CopCarRed_IDs.end() || CopCarFlint_IDs.find(model) != CopCarFlint_IDs.end() || CopCarBone_IDs.find(model) != CopCarBone_IDs.end())
             return 172;
-        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
+        else if (model == MODEL_COPBIKE || CopBikeLA_IDs.find(model) != CopBikeLA_IDs.end() || CopBikeSF_IDs.find(model) != CopBikeSF_IDs.end() || CopBikeVG_IDs.find(model) != CopBikeVG_IDs.end())
             return 96;
         else if (model == MODEL_FBIRANCH || model == MODEL_PATRIOT || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 63;
@@ -186,9 +190,9 @@ public:
             return 170;
         else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 171;
-        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
+        else if (model == MODEL_COPCARRU || CopCarRed_IDs.find(model) != CopCarRed_IDs.end() || CopCarFlint_IDs.find(model) != CopCarFlint_IDs.end() || CopCarBone_IDs.find(model) != CopCarBone_IDs.end())
             return 172;
-        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
+        else if (model == MODEL_COPBIKE || CopBikeLA_IDs.find(model) != CopBikeLA_IDs.end() || CopBikeSF_IDs.find(model) != CopBikeSF_IDs.end() || CopBikeVG_IDs.find(model) != CopBikeVG_IDs.end())
             return 96;
         else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 63;
@@ -206,9 +210,9 @@ public:
             return 190;
         else if (model == MODEL_COPCARVG || CopCarVG_IDs.find(model) != CopCarVG_IDs.end())
             return 191;
-        else if (model == MODEL_COPCARRU || CopCarRU_IDs.find(model) != CopCarRU_IDs.end())
+        else if (model == MODEL_COPCARRU || CopCarRed_IDs.find(model) != CopCarRed_IDs.end() || CopCarFlint_IDs.find(model) != CopCarFlint_IDs.end() || CopCarBone_IDs.find(model) != CopCarBone_IDs.end())
             return 192;
-        else if (model == MODEL_COPBIKE || CopBike_IDs.find(model) != CopBike_IDs.end())
+        else if (model == MODEL_COPBIKE || CopBikeLA_IDs.find(model) != CopBikeLA_IDs.end() || CopBikeSF_IDs.find(model) != CopBikeSF_IDs.end() || CopBikeVG_IDs.find(model) != CopBikeVG_IDs.end())
             return 116;
         else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return 20;
@@ -239,8 +243,12 @@ public:
             || CopCarLA_IDs.find(_this->m_nModelIndex) != CopCarLA_IDs.end()
             || CopCarSF_IDs.find(_this->m_nModelIndex) != CopCarSF_IDs.end()
             || CopCarVG_IDs.find(_this->m_nModelIndex) != CopCarVG_IDs.end()
-            || CopCarRU_IDs.find(_this->m_nModelIndex) != CopCarRU_IDs.end()
-            || CopBike_IDs.find(_this->m_nModelIndex) != CopBike_IDs.end()
+            || CopCarRed_IDs.find(_this->m_nModelIndex) != CopCarRed_IDs.end()
+            || CopCarFlint_IDs.find(_this->m_nModelIndex) != CopCarFlint_IDs.end()
+            || CopCarBone_IDs.find(_this->m_nModelIndex) != CopCarBone_IDs.end()
+            || CopBikeLA_IDs.find(_this->m_nModelIndex) != CopBikeLA_IDs.end()
+            || CopBikeSF_IDs.find(_this->m_nModelIndex) != CopBikeSF_IDs.end()
+            || CopBikeVG_IDs.find(_this->m_nModelIndex) != CopBikeVG_IDs.end()
             || Fbiranch_IDs.find(_this->m_nModelIndex) != Fbiranch_IDs.end()
             || Enforcer_IDs.find(_this->m_nModelIndex) != Enforcer_IDs.end()
             || Barracks_IDs.find(_this->m_nModelIndex) != Barracks_IDs.end()
@@ -275,56 +283,25 @@ public:
     }
 
     // CStreaming::GetDefaultCopCarModel
-    static int __cdecl GetDefaultCopCarModel(unsigned int a1) {
+    /*static int __cdecl GetDefaultCopCarModel(unsigned int a1) {
         int result, v2, i; 
         
         if (CTimer::m_snTimeInMilliseconds > (randomCopCarTime + 30000)) {
             randomCopCarTime = CTimer::m_snTimeInMilliseconds;
-            unsigned int copbikeId = GetRandomModel(CopBike_IDs);
+            unsigned int copbikeId = GetRandomModel(CopBikeLA_IDs);
             if (CModelInfo::IsBikeModel(copbikeId)) {
                 if (CStreaming::ms_DefaultCopBikeModel == MODEL_COPBIKE)
                     CStreaming::ms_DefaultCopBikeModel = copbikeId;
                 else
                     CStreaming::ms_DefaultCopBikeModel = MODEL_COPBIKE;
             }
-            unsigned int copcarruId, copcarlaId, copcarsfId, copcarvgId;
-            switch (CTheZones::m_CurrLevel) {
-            case 0:
-                copcarruId = GetRandomModel(CopCarRU_IDs);
-                if (CModelInfo::IsCarModel(copcarruId)) {
-                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARRU)
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarruId;
-                    else
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARRU;
-                }
-                break;
-            case 1:
-                copcarlaId = GetRandomModel(CopCarLA_IDs);
-                if (CModelInfo::IsCarModel(copcarlaId)) {
-                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARLA)
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarlaId;
-                    else
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARLA;
-                }
-                break;
-            case 2:
-                copcarsfId = GetRandomModel(CopCarSF_IDs);
-                if (CModelInfo::IsCarModel(copcarsfId)) {
-                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARSF)
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarsfId;
-                    else
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARSF;
-                }
-                break;
-            case 3:
-                copcarvgId = GetRandomModel(CopCarVG_IDs);
-                if (CModelInfo::IsCarModel(copcarvgId)) {
-                    if (CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] == MODEL_COPCARVG)
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = copcarvgId;
-                    else
-                        CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel] = MODEL_COPCARVG;
-                }
-                break;
+            switch (m_CurrLevel) {
+            case 1: return GetCurrentVehicleModel(CopCarLA_IDs);
+            case 2: return GetCurrentVehicleModel(CopCarSF_IDs);
+            case 3: return GetCurrentVehicleModel(CopCarVG_IDs);
+            case 4: return GetCurrentVehicleModel(CopCarRed_IDs);
+            case 5: return GetCurrentVehicleModel(CopCarFlint_IDs);
+            case 6: return GetCurrentVehicleModel(CopCarBone_IDs);
             }
         }
 
@@ -354,6 +331,62 @@ public:
             }
         }
         return result;
+    }*/
+
+    static int __stdcall GetCurrentBikeModel(unordered_set<unsigned int> IDs) {
+        int copbikeId = GetRandomModel(IDs);
+        if (CModelInfo::IsBikeModel(copbikeId)) {
+            if (CStreaming::ms_aInfoForModel[copbikeId].m_nLoadState == LOADSTATE_LOADED)
+                return copbikeId;
+            else {
+                if (LoadModel(copbikeId))
+                    return copbikeId;
+                else
+                    return -1;
+            }
+        }
+        else
+            return -1;
+    }
+
+    static int __stdcall GetCurrentVehicleModel(unordered_set<unsigned int> IDs) {
+        int vehicleId = GetRandomModel(IDs);
+        if (CModelInfo::IsCarModel(vehicleId)) {
+            if (CStreaming::ms_aInfoForModel[vehicleId].m_nLoadState == LOADSTATE_LOADED)
+                return vehicleId;
+            else {
+                if (LoadModel(vehicleId))
+                    return vehicleId;
+                else
+                    return -1;
+            }
+        }
+        else
+            return -1;
+    }
+
+    static int __cdecl GetDefaultCopCarModel() {
+        switch (m_CurrLevel) {
+        case 1:
+            if (!CStreaming::m_bCopBikeLoaded)
+                return GetCurrentVehicleModel(CopCarLA_IDs);
+            else
+                return GetCurrentBikeModel(CopBikeLA_IDs);
+        case 2:
+            if (!CStreaming::m_bCopBikeLoaded)
+                return GetCurrentVehicleModel(CopCarSF_IDs);
+            else
+                return GetCurrentBikeModel(CopBikeSF_IDs);
+        case 3:
+            if (!CStreaming::m_bCopBikeLoaded)
+                return GetCurrentVehicleModel(CopCarVG_IDs);
+            else
+                return GetCurrentBikeModel(CopBikeVG_IDs);
+        case 4: return GetCurrentVehicleModel(CopCarRed_IDs);
+        case 5: return GetCurrentVehicleModel(CopCarFlint_IDs);
+        case 6: return GetCurrentVehicleModel(CopCarBone_IDs);
+        default: return -1;
+        }
     }
 
     // CCarCtrl::ChoosePoliceCarModel
@@ -439,7 +472,7 @@ public:
                 }
             }
         }
-        return CStreaming::GetDefaultCopCarModel(a1);
+        return GetDefaultCopCarModel();
     }
 
     // CPopulation::LoadSpecificDriverModelsForCar
@@ -977,16 +1010,40 @@ public:
                         CopCarVG_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("copcarru")) {
+            if (!line.compare("copcarred")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        CopCarRU_IDs.insert(stoi(line));
+                        CopCarRed_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("copbike")) {
+            if (!line.compare("copcarflint")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        CopBike_IDs.insert(stoi(line));
+                        CopCarFlint_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copcarbone")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopCarBone_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbikela")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBikeLA_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbikesf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBikeSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbikevg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBikeVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("fbiranch")) {
@@ -1178,7 +1235,7 @@ public:
         }
         
         patch::RedirectJump(0x6D8470, UsesSiren);
-        patch::RedirectJump(0x407C50, GetDefaultCopCarModel);
+        //patch::RedirectJump(0x407C50, GetDefaultCopCarModel);
         patch::RedirectJump(0x6117F0, LoadSpecificDriverModelsForCar);
         patch::RedirectJump(0x6119D0, RemoveSpecificDriverModelsForCar);
         patch::RedirectJump(0x611900, FindSpecificDriverModelForCar_ToUse);
@@ -1232,6 +1289,21 @@ public:
 
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "LA"))
+                    m_CurrLevel = 1;
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "SF"))
+                    m_CurrLevel = 2;
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "VE"))
+                    m_CurrLevel = 3;
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "RED"))
+                    m_CurrLevel = 4;
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "FLINTC") 
+                    || Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "WHET")
+                    || Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "ROBAD"))
+                    m_CurrLevel = 5;
+                if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "BONE"))
+                    m_CurrLevel = 6;
+
                 CWanted *wanted = FindPlayerWanted(-1);
                 // RandomEmergencyServicesCar
                 if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
@@ -1388,20 +1460,17 @@ public:
             }
         };
 
-        //Events::drawingEvent += [] {
-        //    gamefont::Print({
-        //        Format("wanted = %d", FindPlayerWanted(-1)->m_nWantedLevel),
-        //        //Format("level = %d", CTheZones::m_CurrLevel),
-        //        //Format("ambulan = %d", CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel]),
-        //        //Format("firetruk = %d", CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel]),
-        //        //Format("copbiker = %d", CStreaming::ms_DefaultCopBikerModel),
-        //        //Format("test = %d", patch::GetInt(0x965524)),
-        //        //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
-        //        //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-        //        //Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
-        //        //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
-        //    }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        //};
+        Events::drawingEvent += [] {
+            gamefont::Print({
+                Format("CopBikeL = %d", CStreaming::m_bCopBikeLoaded),
+                Format("level = %d", CTheZones::m_CurrLevel),
+                Format("my level = %d", m_CurrLevel)
+                //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
+                //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
+                //Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
+                //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
+            }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        };
 
         Events::drawMenuBackgroundEvent += [] {
             CFont::SetScale(ScreenCoord(0.75f), ScreenCoord(1.5f));
