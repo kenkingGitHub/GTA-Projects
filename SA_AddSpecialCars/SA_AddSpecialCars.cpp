@@ -62,7 +62,7 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
         currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
-        currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65;
+        currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -70,7 +70,7 @@ public:
     static void Patch_6ACA57();    static void Patch_6B1F4F();    static void Patch_41C0A6(); 
     static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
-    static void Patch_5DDC99();    
+    static void Patch_5DDC99();    static void Patch_461BED();    static void Patch_461C0A();
 
     static int __stdcall GetModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
@@ -368,20 +368,20 @@ public:
     static int __cdecl GetDefaultCopCarModel() {
         switch (m_CurrLevel) {
         case 1:
-            if (!CStreaming::m_bCopBikeLoaded)
-                return GetCurrentVehicleModel(CopCarLA_IDs);
-            else
+            if (CStreaming::m_bCopBikeLoaded)
                 return GetCurrentBikeModel(CopBikeLA_IDs);
+            else
+                return GetCurrentVehicleModel(CopCarLA_IDs);
         case 2:
-            if (!CStreaming::m_bCopBikeLoaded)
-                return GetCurrentVehicleModel(CopCarSF_IDs);
-            else
+            if (CStreaming::m_bCopBikeLoaded)
                 return GetCurrentBikeModel(CopBikeSF_IDs);
-        case 3:
-            if (!CStreaming::m_bCopBikeLoaded)
-                return GetCurrentVehicleModel(CopCarVG_IDs);
             else
+                return GetCurrentVehicleModel(CopCarSF_IDs);
+        case 3:
+            if (CStreaming::m_bCopBikeLoaded)
                 return GetCurrentBikeModel(CopBikeVG_IDs);
+            else
+                return GetCurrentVehicleModel(CopCarVG_IDs);
         case 4: return GetCurrentVehicleModel(CopCarRed_IDs);
         case 5: return GetCurrentVehicleModel(CopCarFlint_IDs);
         case 6: return GetCurrentVehicleModel(CopCarBone_IDs);
@@ -1259,6 +1259,9 @@ public:
         patch::RedirectJump(0x48DA65, Patch_48DA65);
         patch::RedirectJump(0x5DDC99, Patch_5DDC99);
 
+        patch::RedirectJump(0x461BED, Patch_461BED);
+        patch::RedirectJump(0x461C0A, Patch_461C0A);
+
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DD23, IsLawEnforcementVehicleCheck);
@@ -1516,6 +1519,7 @@ unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
 unsigned int AddSpecialCars::jmp_48DAA2;
 eWeaponType AddSpecialCars::currentWeaponType;
+int AddSpecialCars::currentModel_Patch_461BED;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1723,5 +1727,30 @@ void __declspec(naked) AddSpecialCars::Patch_5DDC99() { // CCopPed::CCopPed
         popad
         mov edx, 0x5DDCED
         jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_461BED() {
+    __asm {
+        pushad
+        call GetDefaultCopCarModel
+        mov currentModel_Patch_461BED, eax
+        popad
+        mov eax, currentModel_Patch_461BED
+        mov ecx, 0x461BF6
+        jmp ecx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_461C0A() {
+    __asm {
+        pushad
+        call GetDefaultCopCarModel
+        mov currentModel_Patch_461BED, eax
+        popad
+        mov eax, currentModel_Patch_461BED
+        mov ebp, eax
+        mov ecx, 0x461C15
+        jmp ecx
     }
 }
