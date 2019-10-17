@@ -30,20 +30,19 @@ unordered_set<unsigned int>
 /*cop vehicles*/            CopBikeLA_IDs, CopBikeSF_IDs, CopBikeVG_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, 
                             CopCarRed_IDs, CopCarFlint_IDs, CopCarBone_IDs, 
                             Enforcer_IDs, Swatvan_IDs, Fbiranch_IDs, Barracks_IDs,
-/*cop peds*/                CopBiker_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, CopRU_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
+/*cop peds*/                CopBiker_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, CopRed_IDs, CopFlint_IDs, 
+                            CopBone_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
 /*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
 /*taxi cars && peds*/       Taxi_IDs, TaxiDriver_IDs,
-/*emergency cars*/          Ambulan_IDs, Firetruk_IDs,
+/*emergency cars*/          AmbulanLA_IDs, AmbulanSF_IDs, AmbulanVG_IDs, FiretrukLA_IDs, FiretrukSF_IDs, FiretrukVG_IDs,
 /*emergency peds*/          MedicLA_IDs, MedicSF_IDs, MedicVG_IDs, FiremanLA_IDs, FiremanSF_IDs, FiremanVG_IDs,
 /*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
 
-bool isCopbike = false, isCopbiker = false, isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
+bool isCopbike = false, isCopbiker = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
 isCabDriver = false, isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
-unsigned int randomCopCarTime = 0, randomEmergencyServicesCarTime = 0, spawnCarTime = 0;
-
-int ms_aDefaultCopCarModel[] = { 599, 596, 597, 598, 599, 599, 599 };
+unsigned int randomCopCarTime = 0, randomRoadBlocksTime = 0, spawnCarTime = 0;
 
 class AddSpecialCars {
 public:
@@ -52,7 +51,7 @@ public:
     }
     
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
-    enum eSpecialType { TYPE_MEDIC, TYPE_FIREMAN, TYPE_COPBIKER, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI_DRIVER };
+    enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COPBIKE, TYPE_COPBIKER, TYPE_COP, TYPE_COP_CAR, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI_DRIVER };
 
     static eSpawnCarState m_currentState;
     static short outCount;
@@ -87,9 +86,9 @@ public:
             return MODEL_ENFORCER;
         else if (model == MODEL_TAXI || Taxi_IDs.find(model) != Taxi_IDs.end())
             return MODEL_TAXI;
-        else if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end())
+        else if (model == MODEL_AMBULAN || AmbulanLA_IDs.find(model) != AmbulanLA_IDs.end() || AmbulanSF_IDs.find(model) != AmbulanSF_IDs.end() || AmbulanVG_IDs.find(model) != AmbulanVG_IDs.end())
             return MODEL_AMBULAN;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || Firetruk_IDs.find(model) != Firetruk_IDs.end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || FiretrukLA_IDs.find(model) != FiretrukLA_IDs.end() || FiretrukSF_IDs.find(model) != FiretrukSF_IDs.end() || FiretrukVG_IDs.find(model) != FiretrukVG_IDs.end())
             return MODEL_FIRETRUK;
         return model;
     }
@@ -108,13 +107,14 @@ public:
     }
 
     static int __stdcall GetFiretrukModel(unsigned int model) {
-        if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end())
+        if (model == MODEL_FIRETRUK || FiretrukLA_IDs.find(model) != FiretrukLA_IDs.end() || FiretrukSF_IDs.find(model) != FiretrukSF_IDs.end() || FiretrukVG_IDs.find(model) != FiretrukVG_IDs.end())
             return MODEL_FIRETRUK;
         return model;
     }
 
     static int __stdcall GetWaterJetsModel(unsigned int model) {
-        if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end() 
+        if (model == MODEL_FIRETRUK || FiretrukLA_IDs.find(model) != FiretrukLA_IDs.end()
+            || FiretrukSF_IDs.find(model) != FiretrukSF_IDs.end() || FiretrukVG_IDs.find(model) != FiretrukVG_IDs.end()
             || model == MODEL_SWATVAN || Swatvan_IDs.find(model) != Swatvan_IDs.end())
             return MODEL_FIRETRUK;
         return model;
@@ -133,7 +133,10 @@ public:
             if (ped && ped->m_pVehicle) {
                 unsigned int model = ped->m_pVehicle->m_nModelIndex;
                 if (CTheScripts::ScriptParams[1].uParam == MODEL_AMBULAN) {
-                    if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end()) // Paramedic
+                    if (model == MODEL_AMBULAN 
+                        || AmbulanLA_IDs.find(model) != AmbulanLA_IDs.end()
+                        || AmbulanSF_IDs.find(model) != AmbulanSF_IDs.end() 
+                        || AmbulanVG_IDs.find(model) != AmbulanVG_IDs.end()) // Paramedic
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_BOXBURG) {
@@ -141,7 +144,10 @@ public:
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_FIRETRUK) {
-                    if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end()) // Firefighter
+                    if (model == MODEL_FIRETRUK 
+                        || FiretrukLA_IDs.find(model) != FiretrukLA_IDs.end()
+                        || FiretrukSF_IDs.find(model) != FiretrukSF_IDs.end() 
+                        || FiretrukVG_IDs.find(model) != FiretrukVG_IDs.end()) // Firefighter
                         inModel = true;
                 }
                 else if (CTheScripts::ScriptParams[1].uParam == MODEL_BROADWAY) {
@@ -216,9 +222,9 @@ public:
             return 116;
         else if (model == MODEL_ENFORCER || model == MODEL_SWATVAN || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return 20;
-        else if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end())
+        else if (model == MODEL_AMBULAN || AmbulanLA_IDs.find(model) != AmbulanLA_IDs.end() || AmbulanSF_IDs.find(model) != AmbulanSF_IDs.end() || AmbulanVG_IDs.find(model) != AmbulanVG_IDs.end())
             return 9;
-        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || Firetruk_IDs.find(model) != Firetruk_IDs.end())
+        else if (model == MODEL_FIRETRUK || model == MODEL_FIRELA || FiretrukLA_IDs.find(model) != FiretrukLA_IDs.end() || FiretrukSF_IDs.find(model) != FiretrukSF_IDs.end() || FiretrukVG_IDs.find(model) != FiretrukVG_IDs.end())
             return 0;
         else if (model == MODEL_FBIRANCH || model == MODEL_FBITRUCK || Fbiranch_IDs.find(model) != Fbiranch_IDs.end())
             return 83;
@@ -261,8 +267,12 @@ public:
     static bool __fastcall UsesSiren(CVehicle *_this) {
         bool result; 
 
-        if (Ambulan_IDs.find(_this->m_nModelIndex) != Ambulan_IDs.end()
-            || Firetruk_IDs.find(_this->m_nModelIndex) != Firetruk_IDs.end()) {
+        if (AmbulanLA_IDs.find(_this->m_nModelIndex) != AmbulanLA_IDs.end()
+            || AmbulanSF_IDs.find(_this->m_nModelIndex) != AmbulanSF_IDs.end()
+            || AmbulanVG_IDs.find(_this->m_nModelIndex) != AmbulanVG_IDs.end()
+            || FiretrukLA_IDs.find(_this->m_nModelIndex) != FiretrukLA_IDs.end()
+            || FiretrukSF_IDs.find(_this->m_nModelIndex) != FiretrukSF_IDs.end() 
+            || FiretrukVG_IDs.find(_this->m_nModelIndex) != FiretrukVG_IDs.end()) {
             result = true; return result;
         }
         switch (_this->m_nModelIndex) {
@@ -333,59 +343,27 @@ public:
         return result;
     }*/
 
-    static int __stdcall GetCurrentBikeModel(unordered_set<unsigned int> IDs) {
-        int copbikeId = GetRandomModel(IDs);
-        if (CModelInfo::IsBikeModel(copbikeId)) {
-            if (CStreaming::ms_aInfoForModel[copbikeId].m_nLoadState == LOADSTATE_LOADED)
-                return copbikeId;
-            else {
-                if (LoadModel(copbikeId))
-                    return copbikeId;
-                else
-                    return -1;
-            }
-        }
-        else
-            return -1;
-    }
-
-    static int __stdcall GetCurrentVehicleModel(unordered_set<unsigned int> IDs) {
-        int vehicleId = GetRandomModel(IDs);
-        if (CModelInfo::IsCarModel(vehicleId)) {
-            if (CStreaming::ms_aInfoForModel[vehicleId].m_nLoadState == LOADSTATE_LOADED)
-                return vehicleId;
-            else {
-                if (LoadModel(vehicleId))
-                    return vehicleId;
-                else
-                    return -1;
-            }
-        }
-        else
-            return -1;
-    }
-
     static int __cdecl GetDefaultCopCarModel() {
         switch (m_CurrLevel) {
         case 1:
             if (CStreaming::m_bCopBikeLoaded)
-                return GetCurrentBikeModel(CopBikeLA_IDs);
+                return GetCurrentVehicleModel(CopBikeLA_IDs, TYPE_COPBIKE);
             else
-                return GetCurrentVehicleModel(CopCarLA_IDs);
+                return GetCurrentVehicleModel(CopCarLA_IDs, TYPE_COP_CAR);
         case 2:
             if (CStreaming::m_bCopBikeLoaded)
-                return GetCurrentBikeModel(CopBikeSF_IDs);
+                return GetCurrentVehicleModel(CopBikeSF_IDs, TYPE_COPBIKE);
             else
-                return GetCurrentVehicleModel(CopCarSF_IDs);
+                return GetCurrentVehicleModel(CopCarSF_IDs, TYPE_COP_CAR);
         case 3:
             if (CStreaming::m_bCopBikeLoaded)
-                return GetCurrentBikeModel(CopBikeVG_IDs);
+                return GetCurrentVehicleModel(CopBikeVG_IDs, TYPE_COPBIKE);
             else
-                return GetCurrentVehicleModel(CopCarVG_IDs);
-        case 4: return GetCurrentVehicleModel(CopCarRed_IDs);
-        case 5: return GetCurrentVehicleModel(CopCarFlint_IDs);
-        case 6: return GetCurrentVehicleModel(CopCarBone_IDs);
-        default: return -1;
+                return GetCurrentVehicleModel(CopCarVG_IDs, TYPE_COP_CAR);
+        case 4: return GetCurrentVehicleModel(CopCarRed_IDs, TYPE_COP_CAR);
+        case 5: return GetCurrentVehicleModel(CopCarFlint_IDs, TYPE_COP_CAR);
+        case 6: return GetCurrentVehicleModel(CopCarBone_IDs, TYPE_COP_CAR);
+        default: return CStreaming::GetDefaultCopCarModel(0);
         }
     }
 
@@ -630,9 +608,15 @@ public:
         bool result = true;
 
         if (IsLawEnforcementVehicleCheck(vehicle) || vehicle->m_nVehicleSubClass == VEHICLE_BMX 
-            || vehicle->m_nModelIndex == MODEL_BUS || vehicle->m_nModelIndex == MODEL_COACH || vehicle->m_nModelIndex == MODEL_FIRELA
-            || vehicle->m_nModelIndex == MODEL_AMBULAN || Ambulan_IDs.find(vehicle->m_nModelIndex) != Ambulan_IDs.end()
-            || vehicle->m_nModelIndex == MODEL_FIRETRUK || Firetruk_IDs.find(vehicle->m_nModelIndex) != Firetruk_IDs.end())
+            || vehicle->m_nModelIndex == MODEL_BUS || vehicle->m_nModelIndex == MODEL_COACH 
+            || vehicle->m_nModelIndex == MODEL_FIRELA || vehicle->m_nModelIndex == MODEL_AMBULAN 
+            || AmbulanLA_IDs.find(vehicle->m_nModelIndex) != AmbulanLA_IDs.end()
+            || AmbulanSF_IDs.find(vehicle->m_nModelIndex) != AmbulanSF_IDs.end() 
+            || AmbulanVG_IDs.find(vehicle->m_nModelIndex) != AmbulanVG_IDs.end()
+            || vehicle->m_nModelIndex == MODEL_FIRETRUK 
+            || FiretrukLA_IDs.find(vehicle->m_nModelIndex) != FiretrukLA_IDs.end()
+            || FiretrukSF_IDs.find(vehicle->m_nModelIndex) != FiretrukSF_IDs.end() 
+            || FiretrukVG_IDs.find(vehicle->m_nModelIndex) != FiretrukVG_IDs.end())
             result = false;
         return result;
     }
@@ -758,30 +742,20 @@ public:
         return result;
     }
 
-    static int __stdcall GetSpecialModel(eSpecialType type) {
+    static int __stdcall GetSpecialModel(eSpecialModel type) {
         int result;
         switch (type) {
-        case TYPE_MEDIC:
-            result = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
-            break;
-        case TYPE_FIREMAN:
-            result = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
-            break;
-        case TYPE_COPBIKER:
-            result = CStreaming::ms_DefaultCopBikerModel;
-            break;
-        case TYPE_COP:
-            result = CStreaming::GetDefaultCopModel();
-            break;
-        case TYPE_SWAT:
-            result = MODEL_SWAT;
-            break;
-        case TYPE_FBI:
-            result = MODEL_FBI;
-            break;
-        case TYPE_ARMY:
-            result = MODEL_ARMY;
-            break;
+        case TYPE_AMBULAN:   result = CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];   break;
+        case TYPE_MEDIC:     result = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];       break;
+        case TYPE_FIRETRUK:  result = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];  break;
+        case TYPE_FIREMAN:   result = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];     break;
+        case TYPE_COPBIKE:   result = CStreaming::ms_DefaultCopBikeModel;                              break;
+        case TYPE_COPBIKER:  result = CStreaming::ms_DefaultCopBikerModel;                             break;
+        case TYPE_COP_CAR:   result = CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel];      break;
+        case TYPE_COP:       result = CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel];         break;
+        case TYPE_SWAT:      result = MODEL_SWAT;                                                      break;
+        case TYPE_FBI:       result = MODEL_FBI;                                                       break;
+        case TYPE_ARMY:      result = MODEL_ARMY;                                                      break;
         case TYPE_TAXI_DRIVER:
             if (randomCabDriver < 5)
                 randomCabDriver++;
@@ -795,12 +769,20 @@ public:
         return result;
     }
 
-    static int __stdcall GetCurrentPedModel(unordered_set<unsigned int> IDs, eSpecialType type) {
+    static int __stdcall GetCurrentPedModel(unordered_set<unsigned int> IDs, eSpecialModel type) {
         if (IDs.size()) {
-            unsigned int pedId = GetRandomModel(IDs);
+            int pedId = GetRandomModel(IDs);
             modelInfo = CModelInfo::ms_modelInfoPtrs[pedId];
-            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED && LoadModel(pedId))
-                return pedId;
+            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_PED) {
+                if (CStreaming::ms_aInfoForModel[pedId].m_nLoadState == LOADSTATE_LOADED)
+                    return pedId;
+                else {
+                    if (LoadModel(pedId))
+                        return pedId;
+                    else
+                        return GetSpecialModel(type);
+                }
+            }
             else
                 return GetSpecialModel(type);
         }
@@ -808,18 +790,32 @@ public:
             return GetSpecialModel(type);
     }
 
-    static int __stdcall GetAdditionalCopModel() {
-        switch (CTheZones::m_CurrLevel) {
-        case 0:
-            return GetCurrentPedModel(CopRU_IDs, TYPE_COP);
-        case 1:
-            return GetCurrentPedModel(CopLA_IDs, TYPE_COP);
-        case 2:
-            return GetCurrentPedModel(CopSF_IDs, TYPE_COP);
-        case 3:
-            return GetCurrentPedModel(CopVG_IDs, TYPE_COP);
+    static int __stdcall GetCurrentVehicleModel(unordered_set<unsigned int> IDs, eSpecialModel type) {
+        int vehicleId = GetRandomModel(IDs);
+        if (CModelInfo::IsCarModel(vehicleId) || CModelInfo::IsBikeModel(vehicleId)) {
+            if (CStreaming::ms_aInfoForModel[vehicleId].m_nLoadState == LOADSTATE_LOADED)
+                return vehicleId;
+            else {
+                if (LoadModel(vehicleId))
+                    return vehicleId;
+                else
+                    GetSpecialModel(type);
+            }
         }
-        return CStreaming::GetDefaultCopModel();
+        else
+            GetSpecialModel(type);
+    }
+
+    static int __stdcall GetDefaultCopModel() {
+        switch (m_CurrLevel) {
+        case 1: return GetCurrentPedModel(CopLA_IDs, TYPE_COP);
+        case 2: return GetCurrentPedModel(CopSF_IDs, TYPE_COP);
+        case 3: return GetCurrentPedModel(CopVG_IDs, TYPE_COP);
+        case 4: return GetCurrentPedModel(CopRed_IDs, TYPE_COP);
+        case 5: return GetCurrentPedModel(CopFlint_IDs, TYPE_COP);
+        case 6: return GetCurrentPedModel(CopBone_IDs, TYPE_COP);
+        default: return CStreaming::GetDefaultCopModel();
+        }
     }
 
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
@@ -828,12 +824,7 @@ public:
         switch (copType) {
         default:
         case COP_TYPE_CITYCOP:
-            if (isCop) {
-                copModel = CStreaming::GetDefaultCopModel(); isCop = false;
-            }
-            else {
-                copModel = GetAdditionalCopModel(); isCop = true;
-            }
+            copModel = GetDefaultCopModel();
             goto LABEL_COP;
         case COP_TYPE_CSHER:
             copModel = MODEL_CSHER;
@@ -922,56 +913,48 @@ public:
         }
     }
 
-    static int __stdcall GetAdditionalMedicModel() {
-        switch (CTheZones::m_CurrLevel) {
-        case 0:
-            return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
-        case 1:
-            return GetCurrentPedModel(MedicLA_IDs, TYPE_MEDIC);
-        case 2:                          
-            return GetCurrentPedModel(MedicSF_IDs, TYPE_MEDIC);
-        case 3:                          
-            return GetCurrentPedModel(MedicVG_IDs, TYPE_MEDIC);
-        }
-        return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
-    }
-
     // CStreaming::GetDefaultMedicModel
-    static int __cdecl GetDefaultMedicModel() {
-        int medicModel;
-        if (isMedic) {
-            medicModel = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel]; isMedic = false;
-        }
-        else {
-            medicModel = GetAdditionalMedicModel(); isMedic = true;
-        }
-        return medicModel;
-    }
-
-    static int __stdcall GetAdditionalFiremanModel() {
+    static int __stdcall GetDefaultMedicModel() {
         switch (CTheZones::m_CurrLevel) {
-        case 0:
-            return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
-        case 1:
-            return GetCurrentPedModel(FiremanLA_IDs, TYPE_FIREMAN);
-        case 2:
-            return GetCurrentPedModel(FiremanSF_IDs, TYPE_FIREMAN);
-        case 3:
-            return GetCurrentPedModel(FiremanVG_IDs, TYPE_FIREMAN);
+        default:
+        case 0:  return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentPedModel(MedicLA_IDs, TYPE_MEDIC);
+        case 2:  return GetCurrentPedModel(MedicSF_IDs, TYPE_MEDIC);
+        case 3:  return GetCurrentPedModel(MedicVG_IDs, TYPE_MEDIC);
         }
-        return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+    }
+    
+    // CStreaming::GetDefaultFiremanModel
+    static int __stdcall GetDefaultFiremanModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentPedModel(FiremanLA_IDs, TYPE_FIREMAN);
+        case 2:  return GetCurrentPedModel(FiremanSF_IDs, TYPE_FIREMAN);
+        case 3:  return GetCurrentPedModel(FiremanVG_IDs, TYPE_FIREMAN);
+        }
     }
 
-    // CStreaming::GetDefaultFiremanModel
-    static int __cdecl GetDefaultFiremanModel() {
-        int firemanModel;
-        if (isFireman) {
-            firemanModel = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel]; isFireman = false;
+    // CStreaming::GetDefaultFireEngineModel
+    static int __stdcall GetDefaultFireEngineModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentVehicleModel(FiretrukLA_IDs, TYPE_FIRETRUK);
+        case 2:  return GetCurrentVehicleModel(FiretrukSF_IDs, TYPE_FIRETRUK);
+        case 3:  return GetCurrentVehicleModel(FiretrukVG_IDs, TYPE_FIRETRUK);
         }
-        else {
-            firemanModel = GetAdditionalFiremanModel(); isFireman = true;
+    }
+
+    // CStreaming::GetDefaultAmbulanceModel
+    static int __stdcall GetDefaultAmbulanceModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentVehicleModel(AmbulanLA_IDs, TYPE_AMBULAN);
+        case 2:  return GetCurrentVehicleModel(AmbulanSF_IDs, TYPE_AMBULAN);
+        case 3:  return GetCurrentVehicleModel(AmbulanVG_IDs, TYPE_AMBULAN);
         }
-        return firemanModel;
     }
 
     // CStreaming::GetDefaultCabDriverModel
@@ -1070,16 +1053,40 @@ public:
                         TaxiDriver_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("ambulan")) {
+            if (!line.compare("ambulanla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        Ambulan_IDs.insert(stoi(line));
+                        AmbulanLA_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("firetruk")) {
+            if (!line.compare("ambulansf")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        Firetruk_IDs.insert(stoi(line));
+                        AmbulanSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("ambulanvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        AmbulanVG_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firetrukla")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiretrukLA_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firetruksf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiretrukSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("firetrukvg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        FiretrukVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("boxburg")) {
@@ -1136,10 +1143,22 @@ public:
                         CopVG_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("copru")) {
+            if (!line.compare("copred")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        CopRU_IDs.insert(stoi(line));
+                        CopRed_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copflint")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopFlint_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbone")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBone_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("copbiker")) {
@@ -1243,6 +1262,8 @@ public:
         patch::RedirectJump(0x4479A0, IsCarSprayable);
         patch::RedirectJump(0x407D20, GetDefaultMedicModel);
         patch::RedirectJump(0x407D40, GetDefaultFiremanModel);
+        patch::RedirectJump(0x407D30, GetDefaultAmbulanceModel);
+        patch::RedirectJump(0x407DC0, GetDefaultFireEngineModel);
         patch::RedirectJump(0x407D50, GetDefaultCabDriverModel);
 
         patch::RedirectJump(0x6AB349, Patch_6AB349);
@@ -1308,26 +1329,9 @@ public:
                     m_CurrLevel = 6;
 
                 CWanted *wanted = FindPlayerWanted(-1);
-                // RandomEmergencyServicesCar
-                if (CTimer::m_snTimeInMilliseconds > (randomEmergencyServicesCarTime + 30000)) {
-                    randomEmergencyServicesCarTime = CTimer::m_snTimeInMilliseconds;
-                    if (CTheZones::m_CurrLevel) {
-                        unsigned int ambulanceId = GetRandomModel(Ambulan_IDs);
-                        if (CModelInfo::IsCarModel(ambulanceId)) {
-                            if (plugin::Random(0, 1))
-                                CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = ambulanceId;
-                            else
-                                CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel] = MODEL_AMBULAN;
-                        }
-                        unsigned int firetrukId = GetRandomModel(Firetruk_IDs);
-                        if (CModelInfo::IsCarModel(firetrukId)) {
-                            if (plugin::Random(0, 1))
-                                CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = firetrukId;
-                            else
-                                CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel] = MODEL_FIRETRUK;
-                        }
-                    }
-                    // RoadBlocks
+                // RoadBlocks
+                if (CTimer::m_snTimeInMilliseconds > (randomRoadBlocksTime + 30000)) {
+                    randomRoadBlocksTime = CTimer::m_snTimeInMilliseconds;
                     if (wanted->AreSwatRequired()) {
                         unsigned int enforcerId = GetRandomModel(Enforcer_IDs);
                         if (CModelInfo::IsCarModel(enforcerId)) {
@@ -1413,20 +1417,20 @@ public:
                                 int modelCar, modelPed;
                                 if (isAmbulan) {
                                     isAmbulan = false;
-                                    modelCar = CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
-                                    modelPed = CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+                                    modelCar = GetDefaultAmbulanceModel();
+                                    modelPed = GetDefaultMedicModel();
                                 }
                                 else {
                                     isAmbulan = true;
                                     if (isFiretruck) {
                                         isFiretruck = false;
-                                        modelCar = CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+                                        modelCar = GetDefaultFireEngineModel();
                                     }
                                     else {
                                         isFiretruck = true;
                                         modelCar = MODEL_FIRELA;
                                     }
-                                    modelPed = CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+                                    modelPed = GetDefaultFiremanModel();
                                 }
                                 if (LoadModel(modelCar) && LoadModel(modelPed)) {
                                     CVehicle *vehicle = nullptr;
