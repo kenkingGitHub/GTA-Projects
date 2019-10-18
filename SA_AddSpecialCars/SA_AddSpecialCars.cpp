@@ -14,12 +14,12 @@
 #include "CCarAI.h"
 #include "CFont.h"
 #include "CCopPed.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
 
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
-#include "extensions\ScriptCommands.h"
-#include "eScriptCommands.h"
 
 using namespace plugin;
 using namespace std;
@@ -30,19 +30,19 @@ unordered_set<unsigned int>
 /*cop vehicles*/            CopBikeLA_IDs, CopBikeSF_IDs, CopBikeVG_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, 
                             CopCarRed_IDs, CopCarFlint_IDs, CopCarBone_IDs, 
                             Enforcer_IDs, Swatvan_IDs, Fbiranch_IDs, Barracks_IDs,
-/*cop peds*/                CopBiker_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, CopRed_IDs, CopFlint_IDs, 
-                            CopBone_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
+/*cop peds*/                CopBikerLA_IDs, CopBikerSF_IDs, CopBikerVG_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, 
+                            CopRed_IDs, CopFlint_IDs, CopBone_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
 /*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
 /*taxi cars && peds*/       Taxi_IDs, TaxiDriver_IDs,
 /*emergency cars*/          AmbulanLA_IDs, AmbulanSF_IDs, AmbulanVG_IDs, FiretrukLA_IDs, FiretrukSF_IDs, FiretrukVG_IDs,
 /*emergency peds*/          MedicLA_IDs, MedicSF_IDs, MedicVG_IDs, FiremanLA_IDs, FiremanSF_IDs, FiremanVG_IDs,
 /*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
 
-bool isCopbike = false, isCopbiker = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
-isCabDriver = false, isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
+bool isSwat = false, isFbi = false, isArmy = false, isAmbulan = false, isFiretruck = false, isCabDriver = false,  
+isEnforcer = true, isFbiranch = true, isBarracks = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
-unsigned int randomCopCarTime = 0, randomRoadBlocksTime = 0, spawnCarTime = 0;
+unsigned int randomRoadBlocksTime = 0, spawnCarTime = 0;
 
 class AddSpecialCars {
 public:
@@ -291,57 +291,6 @@ public:
         }
         return result;
     }
-
-    // CStreaming::GetDefaultCopCarModel
-    /*static int __cdecl GetDefaultCopCarModel(unsigned int a1) {
-        int result, v2, i; 
-        
-        if (CTimer::m_snTimeInMilliseconds > (randomCopCarTime + 30000)) {
-            randomCopCarTime = CTimer::m_snTimeInMilliseconds;
-            unsigned int copbikeId = GetRandomModel(CopBikeLA_IDs);
-            if (CModelInfo::IsBikeModel(copbikeId)) {
-                if (CStreaming::ms_DefaultCopBikeModel == MODEL_COPBIKE)
-                    CStreaming::ms_DefaultCopBikeModel = copbikeId;
-                else
-                    CStreaming::ms_DefaultCopBikeModel = MODEL_COPBIKE;
-            }
-            switch (m_CurrLevel) {
-            case 1: return GetCurrentVehicleModel(CopCarLA_IDs);
-            case 2: return GetCurrentVehicleModel(CopCarSF_IDs);
-            case 3: return GetCurrentVehicleModel(CopCarVG_IDs);
-            case 4: return GetCurrentVehicleModel(CopCarRed_IDs);
-            case 5: return GetCurrentVehicleModel(CopCarFlint_IDs);
-            case 6: return GetCurrentVehicleModel(CopCarBone_IDs);
-            }
-        }
-
-        if (!CStreaming::m_bCopBikeLoaded || a1 || CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikerModel].m_nLoadState != 1 || (result = CStreaming::ms_DefaultCopBikeModel, CStreaming::ms_aInfoForModel[CStreaming::ms_DefaultCopBikeModel].m_nLoadState != 1))
-        {
-            result = CStreaming::ms_aDefaultCopCarModel[CTheZones::m_CurrLevel];
-            if (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[CTheZones::m_CurrLevel]].m_nLoadState != 1 || CStreaming::ms_aInfoForModel[result].m_nLoadState != 1)
-            {
-                v2 = 5;
-                if (a1)
-                    v2 = 4;
-                i = 0;
-                if (v2 <= 0)
-                {
-                LABEL_13:
-                    result = -1;
-                }
-                else
-                {
-                    while (CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopModel[i]].m_nLoadState != 1 || CStreaming::ms_aInfoForModel[CStreaming::ms_aDefaultCopCarModel[i]].m_nLoadState != 1)
-                    {
-                        if (++i >= v2)
-                            goto LABEL_13;
-                    }
-                    result = CStreaming::ms_aDefaultCopCarModel[i];
-                }
-            }
-        }
-        return result;
-    }*/
 
     static int __cdecl GetDefaultCopCarModel() {
         switch (m_CurrLevel) {
@@ -799,11 +748,11 @@ public:
                 if (LoadModel(vehicleId))
                     return vehicleId;
                 else
-                    GetSpecialModel(type);
+                    return GetSpecialModel(type);
             }
         }
         else
-            GetSpecialModel(type);
+            return GetSpecialModel(type);
     }
 
     static int __stdcall GetDefaultCopModel() {
@@ -816,6 +765,72 @@ public:
         case 6: return GetCurrentPedModel(CopBone_IDs, TYPE_COP);
         default: return CStreaming::GetDefaultCopModel();
         }
+    }
+
+    static int __stdcall GetDefaultCopBikerModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_DefaultCopBikerModel;
+        case 1:  return GetCurrentPedModel(CopBikerLA_IDs, TYPE_COPBIKER);
+        case 2:  return GetCurrentPedModel(CopBikerSF_IDs, TYPE_COPBIKER);
+        case 3:  return GetCurrentPedModel(CopBikerVG_IDs, TYPE_COPBIKER);
+        }
+    }
+
+    // CStreaming::GetDefaultMedicModel
+    static int __stdcall GetDefaultMedicModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentPedModel(MedicLA_IDs, TYPE_MEDIC);
+        case 2:  return GetCurrentPedModel(MedicSF_IDs, TYPE_MEDIC);
+        case 3:  return GetCurrentPedModel(MedicVG_IDs, TYPE_MEDIC);
+        }
+    }
+    
+    // CStreaming::GetDefaultFiremanModel
+    static int __stdcall GetDefaultFiremanModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentPedModel(FiremanLA_IDs, TYPE_FIREMAN);
+        case 2:  return GetCurrentPedModel(FiremanSF_IDs, TYPE_FIREMAN);
+        case 3:  return GetCurrentPedModel(FiremanVG_IDs, TYPE_FIREMAN);
+        }
+    }
+
+    // CStreaming::GetDefaultFireEngineModel
+    static int __stdcall GetDefaultFireEngineModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentVehicleModel(FiretrukLA_IDs, TYPE_FIRETRUK);
+        case 2:  return GetCurrentVehicleModel(FiretrukSF_IDs, TYPE_FIRETRUK);
+        case 3:  return GetCurrentVehicleModel(FiretrukVG_IDs, TYPE_FIRETRUK);
+        }
+    }
+
+    // CStreaming::GetDefaultAmbulanceModel
+    static int __stdcall GetDefaultAmbulanceModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
+        case 1:  return GetCurrentVehicleModel(AmbulanLA_IDs, TYPE_AMBULAN);
+        case 2:  return GetCurrentVehicleModel(AmbulanSF_IDs, TYPE_AMBULAN);
+        case 3:  return GetCurrentVehicleModel(AmbulanVG_IDs, TYPE_AMBULAN);
+        }
+    }
+
+    // CStreaming::GetDefaultCabDriverModel
+    static int __cdecl GetDefaultCabDriverModel() {
+        int cabDriverModel;
+        if (isCabDriver) {
+            cabDriverModel = GetSpecialModel(TYPE_TAXI_DRIVER); isCabDriver = false;
+        }
+        else {
+            cabDriverModel = GetCurrentPedModel(TaxiDriver_IDs, TYPE_TAXI_DRIVER); isCabDriver = true;
+        }
+        return cabDriverModel;
     }
 
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
@@ -844,12 +859,7 @@ public:
             cop->m_nWeaponAccuracy = 60;
             break;
         case COP_TYPE_LAPDM1:
-            if (isCopbiker) {
-                copModel = CStreaming::ms_DefaultCopBikerModel; isCopbiker = false;
-            }
-            else {
-                copModel = GetCurrentPedModel(CopBiker_IDs, TYPE_COPBIKER); isCopbiker = true;
-            }
+            copModel = GetDefaultCopBikerModel();
             cop->SetModelIndex(copModel);
             cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, 1);
             cop->GiveDelayedWeapon(WEAPON_PISTOL, 1000);
@@ -912,63 +922,6 @@ public:
             break;
         }
     }
-
-    // CStreaming::GetDefaultMedicModel
-    static int __stdcall GetDefaultMedicModel() {
-        switch (CTheZones::m_CurrLevel) {
-        default:
-        case 0:  return CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel];
-        case 1:  return GetCurrentPedModel(MedicLA_IDs, TYPE_MEDIC);
-        case 2:  return GetCurrentPedModel(MedicSF_IDs, TYPE_MEDIC);
-        case 3:  return GetCurrentPedModel(MedicVG_IDs, TYPE_MEDIC);
-        }
-    }
-    
-    // CStreaming::GetDefaultFiremanModel
-    static int __stdcall GetDefaultFiremanModel() {
-        switch (CTheZones::m_CurrLevel) {
-        default:
-        case 0:  return CStreaming::ms_aDefaultFiremanModel[CTheZones::m_CurrLevel];
-        case 1:  return GetCurrentPedModel(FiremanLA_IDs, TYPE_FIREMAN);
-        case 2:  return GetCurrentPedModel(FiremanSF_IDs, TYPE_FIREMAN);
-        case 3:  return GetCurrentPedModel(FiremanVG_IDs, TYPE_FIREMAN);
-        }
-    }
-
-    // CStreaming::GetDefaultFireEngineModel
-    static int __stdcall GetDefaultFireEngineModel() {
-        switch (CTheZones::m_CurrLevel) {
-        default:
-        case 0:  return CStreaming::ms_aDefaultFireEngineModel[CTheZones::m_CurrLevel];
-        case 1:  return GetCurrentVehicleModel(FiretrukLA_IDs, TYPE_FIRETRUK);
-        case 2:  return GetCurrentVehicleModel(FiretrukSF_IDs, TYPE_FIRETRUK);
-        case 3:  return GetCurrentVehicleModel(FiretrukVG_IDs, TYPE_FIRETRUK);
-        }
-    }
-
-    // CStreaming::GetDefaultAmbulanceModel
-    static int __stdcall GetDefaultAmbulanceModel() {
-        switch (CTheZones::m_CurrLevel) {
-        default:
-        case 0:  return CStreaming::ms_aDefaultAmbulanceModel[CTheZones::m_CurrLevel];
-        case 1:  return GetCurrentVehicleModel(AmbulanLA_IDs, TYPE_AMBULAN);
-        case 2:  return GetCurrentVehicleModel(AmbulanSF_IDs, TYPE_AMBULAN);
-        case 3:  return GetCurrentVehicleModel(AmbulanVG_IDs, TYPE_AMBULAN);
-        }
-    }
-
-    // CStreaming::GetDefaultCabDriverModel
-    static int __cdecl GetDefaultCabDriverModel() {
-        int cabDriverModel;
-        if (isCabDriver) {
-            cabDriverModel = GetSpecialModel(TYPE_TAXI_DRIVER); isCabDriver = false;
-        }
-        else {
-            cabDriverModel = GetCurrentPedModel(TaxiDriver_IDs, TYPE_TAXI_DRIVER); isCabDriver = true;
-        }
-        return cabDriverModel;
-    }
-
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -1161,10 +1114,22 @@ public:
                         CopBone_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("copbiker")) {
+            if (!line.compare("copbikerla")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        CopBiker_IDs.insert(stoi(line));
+                        CopBikerLA_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbikersf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBikerSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("copbikervg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        CopBikerVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("swat")) {
@@ -1253,8 +1218,19 @@ public:
             }
         }
         
+        if (!CopCarLA_IDs.size() || !CopCarSF_IDs.size() || !CopCarVG_IDs.size() 
+            || !CopCarRed_IDs.size() || !CopCarFlint_IDs.size() || !CopCarBone_IDs.size() 
+            || !CopBikeLA_IDs.size() || !CopBikeSF_IDs.size() || !CopBikeVG_IDs.size() 
+            || !AmbulanLA_IDs.size() || !AmbulanSF_IDs.size() || !AmbulanVG_IDs.size()
+            || !FiretrukLA_IDs.size() || !FiretrukSF_IDs.size() || !FiretrukVG_IDs.size() 
+            || !CopLA_IDs.size() || !CopSF_IDs.size() || !CopVG_IDs.size()
+            || !CopRed_IDs.size() || !CopFlint_IDs.size() || !CopBone_IDs.size()
+            || !CopBikerLA_IDs.size() || !CopBikerSF_IDs.size() || !CopBikerVG_IDs.size()
+            || !MedicLA_IDs.size() || !MedicSF_IDs.size() || !MedicVG_IDs.size()
+            || !FiremanLA_IDs.size() || !FiremanLA_IDs.size() || !FiremanLA_IDs.size())
+            return;
+
         patch::RedirectJump(0x6D8470, UsesSiren);
-        //patch::RedirectJump(0x407C50, GetDefaultCopCarModel);
         patch::RedirectJump(0x6117F0, LoadSpecificDriverModelsForCar);
         patch::RedirectJump(0x6119D0, RemoveSpecificDriverModelsForCar);
         patch::RedirectJump(0x611900, FindSpecificDriverModelForCar_ToUse);
@@ -1279,7 +1255,6 @@ public:
         patch::RedirectJump(0x46130F, Patch_46130F);
         patch::RedirectJump(0x48DA65, Patch_48DA65);
         patch::RedirectJump(0x5DDC99, Patch_5DDC99);
-
         patch::RedirectJump(0x461BED, Patch_461BED);
         patch::RedirectJump(0x461C0A, Patch_461C0A);
 
@@ -1469,7 +1444,7 @@ public:
 
         Events::drawingEvent += [] {
             gamefont::Print({
-                Format("CopBikeL = %d", CStreaming::m_bCopBikeLoaded),
+                /*Format("CopBike load = %d", CStreaming::m_bCopBikeLoaded),*/
                 Format("level = %d", CTheZones::m_CurrLevel),
                 Format("my level = %d", m_CurrLevel)
                 //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),

@@ -1,6 +1,6 @@
 # Emergency Services: enable 1; disable 0;
 emergency
-1
+0
 end
 
 #example
@@ -11,19 +11,70 @@ end
 
 #---VEHICLES:
 
+#---Los Santos
 copcarla
+596
 end
 
+copbikela
+523
+end
+
+ambulanla
+416
+end
+
+firetrukla
+407
+end
+
+#---San Fierro
 copcarsf
+597
 end
 
+copbikesf
+523
+end
+
+ambulansf
+416
+end
+
+firetruksf
+407
+end
+
+#---Las Venturas
 copcarvg
+598
 end
 
-copcarru
+copbikevg
+523
 end
 
-copbike
+ambulanvg
+416
+end
+
+firetrukvg
+407
+end
+
+#---Red County
+copcarred
+599
+end
+
+#---Flint County && Whetstone && Tierra Robada
+copcarflint
+599
+end
+
+#---Bone County 
+copcarbone
+599
 end
 
 fbiranch
@@ -33,12 +84,6 @@ enforcer
 end
 
 taxi
-end
-
-ambulan
-end
-
-firetruk
 end
 
 boxburg
@@ -63,19 +108,70 @@ end
 
 #---PEDS:
 
+#---Los Santos
 copla
+280
 end
 
+copbikerla
+284
+end
+
+medicla
+274
+end
+
+firemanla
+277
+end
+
+#---San Fierro
 copsf
+281
 end
 
+copbikersf
+284
+end
+
+medicsf
+276
+end
+
+firemansf
+279
+end
+
+#---Las Venturas
 copvg
+282
 end
 
-copru
+copbikervg
+284
 end
 
-copbiker
+medicvg
+275
+end
+
+firemanvg
+278
+end
+
+#---Red County
+copred
+283
+end
+
+#---Flint County && Whetstone && Tierra Robada
+copflint
+283
+end
+
+#---Bone County
+copbone
+283
 end
 
 swat
@@ -87,30 +183,12 @@ end
 army
 end
 
-medicla
-end
-
-medicsf
-end
-
-medicvg
-end
-
-firemanla
-end
-
-firemansf
-end
-
-firemanvg
-end
-
 taxidriver
 end
 
 #---END PEDS
 
-#---WEAPONS: ID's 342, 346-353, 355-359, 362, 372
+#---WEAPONS:
 
 copweapon
 end
