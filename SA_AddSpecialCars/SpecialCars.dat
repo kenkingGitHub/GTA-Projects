@@ -28,6 +28,11 @@ firetrukla
 407
 end
 
+taxila
+420
+438
+end
+
 #---San Fierro
 copcarsf
 597
@@ -45,6 +50,11 @@ firetruksf
 407
 end
 
+taxisf
+420
+438
+end
+
 #---Las Venturas
 copcarvg
 598
@@ -60,6 +70,11 @@ end
 
 firetrukvg
 407
+end
+
+taxivg
+420
+438
 end
 
 #---Red County
@@ -81,9 +96,6 @@ fbiranch
 end
 
 enforcer
-end
-
-taxi
 end
 
 boxburg

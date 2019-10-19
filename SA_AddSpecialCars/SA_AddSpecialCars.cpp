@@ -16,6 +16,7 @@
 #include "CCopPed.h"
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
+#include "CCarCtrl.h"
 
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
@@ -33,7 +34,7 @@ unordered_set<unsigned int>
 /*cop peds*/                CopBikerLA_IDs, CopBikerSF_IDs, CopBikerVG_IDs, CopLA_IDs, CopSF_IDs, CopVG_IDs, 
                             CopRed_IDs, CopFlint_IDs, CopBone_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
 /*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
-/*taxi cars && peds*/       Taxi_IDs, TaxiDriver_IDs,
+/*taxi cars && peds*/       TaxiLA_IDs, TaxiSF_IDs, TaxiVG_IDs, TaxiDriver_IDs,
 /*emergency cars*/          AmbulanLA_IDs, AmbulanSF_IDs, AmbulanVG_IDs, FiretrukLA_IDs, FiretrukSF_IDs, FiretrukVG_IDs,
 /*emergency peds*/          MedicLA_IDs, MedicSF_IDs, MedicVG_IDs, FiremanLA_IDs, FiremanSF_IDs, FiremanVG_IDs,
 /*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
@@ -42,7 +43,7 @@ bool isSwat = false, isFbi = false, isArmy = false, isAmbulan = false, isFiretru
 isEnforcer = true, isFbiranch = true, isBarracks = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
-unsigned int randomRoadBlocksTime = 0, spawnCarTime = 0;
+unsigned int randomRoadBlocksTime = 0, spawnEmergencyServicesTime = 0;
 
 class AddSpecialCars {
 public:
@@ -51,7 +52,7 @@ public:
     }
     
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
-    enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COPBIKE, TYPE_COPBIKER, TYPE_COP, TYPE_COP_CAR, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI_DRIVER };
+    enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COPBIKE, TYPE_COPBIKER, TYPE_COP, TYPE_COP_CAR, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI, TYPE_TAXI_DRIVER };
 
     static eSpawnCarState m_currentState;
     static short outCount;
@@ -61,7 +62,8 @@ public:
     static CBaseModelInfo *modelInfo;
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
         currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
-        currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED;
+        currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED,
+        currentModel_Patch_43069E, currentModel_Patch_431DD8;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -70,6 +72,7 @@ public:
     static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
     static void Patch_5DDC99();    static void Patch_461BED();    static void Patch_461C0A();
+    static void Patch_43069E();    
 
     static int __stdcall GetModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
@@ -84,7 +87,7 @@ public:
             return MODEL_FBIRANCH;
         else if (model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return MODEL_ENFORCER;
-        else if (model == MODEL_TAXI || Taxi_IDs.find(model) != Taxi_IDs.end())
+        else if (model == MODEL_TAXI || TaxiLA_IDs.find(model) != TaxiLA_IDs.end() || TaxiSF_IDs.find(model) != TaxiSF_IDs.end() || TaxiVG_IDs.find(model) != TaxiVG_IDs.end())
             return MODEL_TAXI;
         else if (model == MODEL_AMBULAN || AmbulanLA_IDs.find(model) != AmbulanLA_IDs.end() || AmbulanSF_IDs.find(model) != AmbulanSF_IDs.end() || AmbulanVG_IDs.find(model) != AmbulanVG_IDs.end())
             return MODEL_AMBULAN;
@@ -101,7 +104,7 @@ public:
     }
 
     static int __stdcall GetTaxiModel(unsigned int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end())
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || TaxiLA_IDs.find(model) != TaxiLA_IDs.end() || TaxiSF_IDs.find(model) != TaxiSF_IDs.end() || TaxiVG_IDs.find(model) != TaxiVG_IDs.end())
             return MODEL_TAXI;
         return model;
     }
@@ -404,7 +407,8 @@ public:
 
     // CPopulation::LoadSpecificDriverModelsForCar
     static void __cdecl LoadSpecificDriverModelsForCar(int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || TaxiLA_IDs.find(model) != TaxiLA_IDs.end()
+            || TaxiSF_IDs.find(model) != TaxiSF_IDs.end() || TaxiVG_IDs.find(model) != TaxiVG_IDs.end()) {
             int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::RequestModel(modelDriver, 10);
             return;
@@ -436,7 +440,8 @@ public:
 
     // CPopulation::RemoveSpecificDriverModelsForCar
     static void __cdecl RemoveSpecificDriverModelsForCar(int model) {
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || TaxiLA_IDs.find(model) != TaxiLA_IDs.end()
+            || TaxiSF_IDs.find(model) != TaxiSF_IDs.end() || TaxiVG_IDs.find(model) != TaxiVG_IDs.end()) {
             int modelDriver = /*CStreaming::*/GetDefaultCabDriverModel();
             CStreaming::SetModelIsDeletable(modelDriver);
             CStreaming::SetModelTxdIsDeletable(modelDriver);
@@ -478,7 +483,8 @@ public:
     // CPopulation::FindSpecificDriverModelForCar_ToUse
     static int __cdecl FindSpecificDriverModelForCar_ToUse(int model) {
         int result; int randomBiker; 
-        if (model == MODEL_TAXI || model == MODEL_CABBIE || Taxi_IDs.find(model) != Taxi_IDs.end()) {
+        if (model == MODEL_TAXI || model == MODEL_CABBIE || TaxiLA_IDs.find(model) != TaxiLA_IDs.end()
+            || TaxiSF_IDs.find(model) != TaxiSF_IDs.end() || TaxiVG_IDs.find(model) != TaxiVG_IDs.end()) {
             result = /*CStreaming::*/GetDefaultCabDriverModel(); return result;
         }
         switch (model) {
@@ -691,6 +697,33 @@ public:
         return result;
     }
 
+    static int __stdcall GetEmergencyServicesModel(int model) {
+        int modelReplacement;
+        if (CTheZones::m_CurrLevel) {
+            if (model == MODEL_TAXI || model == MODEL_CABBIE) {
+                /*if (m_nEmergencyServices && CTimer::m_snTimeInMilliseconds > (spawnEmergencyServicesTime + 60000)) {
+                    spawnEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
+                    if (plugin::Random(0, 1)) {
+                        modelReplacement = GetDefaultAmbulanceModel();
+                        if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
+                            model = modelReplacement;
+                    }
+                    else {
+                        modelReplacement = GetDefaultFireEngineModel();
+                        if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
+                            model = modelReplacement;
+                    }
+                }*/
+                //else {
+                    modelReplacement = GetDefaultTaxiModel();
+                    if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
+                        model = modelReplacement;
+                //}
+            }
+        }
+        return model;
+    }
+
     static int __stdcall GetSpecialModel(eSpecialModel type) {
         int result;
         switch (type) {
@@ -705,6 +738,7 @@ public:
         case TYPE_SWAT:      result = MODEL_SWAT;                                                      break;
         case TYPE_FBI:       result = MODEL_FBI;                                                       break;
         case TYPE_ARMY:      result = MODEL_ARMY;                                                      break;
+        case TYPE_TAXI:      result = MODEL_TAXI;                                                      break;
         case TYPE_TAXI_DRIVER:
             if (randomCabDriver < 5)
                 randomCabDriver++;
@@ -831,6 +865,16 @@ public:
             cabDriverModel = GetCurrentPedModel(TaxiDriver_IDs, TYPE_TAXI_DRIVER); isCabDriver = true;
         }
         return cabDriverModel;
+    }
+
+    static int __stdcall GetDefaultTaxiModel() {
+        switch (CTheZones::m_CurrLevel) {
+        default:
+        case 0:  return MODEL_TAXI;
+        case 1:  return GetCurrentVehicleModel(TaxiLA_IDs, TYPE_TAXI);
+        case 2:  return GetCurrentVehicleModel(TaxiSF_IDs, TYPE_TAXI);
+        case 3:  return GetCurrentVehicleModel(TaxiVG_IDs, TYPE_TAXI);
+        }
     }
 
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
@@ -994,10 +1038,22 @@ public:
                         Enforcer_IDs.insert(stoi(line));
                 }
             }
-            if (!line.compare("taxi")) {
+            if (!line.compare("taxila")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
-                        Taxi_IDs.insert(stoi(line));
+                        TaxiLA_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("taxisf")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        TaxiSF_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("taxivg")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        TaxiVG_IDs.insert(stoi(line));
                 }
             }
             if (!line.compare("taxidriver")) {
@@ -1227,7 +1283,8 @@ public:
             || !CopRed_IDs.size() || !CopFlint_IDs.size() || !CopBone_IDs.size()
             || !CopBikerLA_IDs.size() || !CopBikerSF_IDs.size() || !CopBikerVG_IDs.size()
             || !MedicLA_IDs.size() || !MedicSF_IDs.size() || !MedicVG_IDs.size()
-            || !FiremanLA_IDs.size() || !FiremanLA_IDs.size() || !FiremanLA_IDs.size())
+            || !FiremanLA_IDs.size() || !FiremanSF_IDs.size() || !FiremanVG_IDs.size()
+            || !TaxiLA_IDs.size() || !TaxiSF_IDs.size() || !TaxiVG_IDs.size())
             return;
 
         patch::RedirectJump(0x6D8470, UsesSiren);
@@ -1257,6 +1314,7 @@ public:
         patch::RedirectJump(0x5DDC99, Patch_5DDC99);
         patch::RedirectJump(0x461BED, Patch_461BED);
         patch::RedirectJump(0x461C0A, Patch_461C0A);
+        patch::RedirectJump(0x43069E, Patch_43069E); 
 
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
@@ -1358,7 +1416,7 @@ public:
                     if (CTheZones::m_CurrLevel) {
                         switch (m_currentState) {
                         case STATE_FIND:
-                            if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
+                            if (CTimer::m_snTimeInMilliseconds > (spawnEmergencyServicesTime + 60000) && !CTheScripts::IsPlayerOnAMission()) {
                                 CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 130.0f, 0.0f));
                                 CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 60.0f, 0.0f));
                                 CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
@@ -1389,11 +1447,12 @@ public:
                             break;
                         case STATE_CREATE:
                             if (CTheZones::m_CurrLevel) {
-                                int modelCar, modelPed;
+                                int modelCar, modelPed; bool isMedic;
                                 if (isAmbulan) {
                                     isAmbulan = false;
                                     modelCar = GetDefaultAmbulanceModel();
                                     modelPed = GetDefaultMedicModel();
+                                    isMedic = true;
                                 }
                                 else {
                                     isAmbulan = true;
@@ -1406,19 +1465,20 @@ public:
                                         modelCar = MODEL_FIRELA;
                                     }
                                     modelPed = GetDefaultFiremanModel();
+                                    isMedic = false;
                                 }
                                 if (LoadModel(modelCar) && LoadModel(modelPed)) {
                                     CVehicle *vehicle = nullptr;
                                     vehicle = new CAutomobile(modelCar, 1, true);
                                     if (vehicle) {
-                                        spawnCarTime = CTimer::m_snTimeInMilliseconds;
+                                        spawnEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
                                         vehicle->SetPosn(carPos);
                                         vehicle->SetHeading(carAngle);
                                         vehicle->m_nStatus = 4;
                                         CWorld::Add(vehicle);
                                         CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
                                         reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                                        if (modelPed == CStreaming::ms_aDefaultMedicModel[CTheZones::m_CurrLevel])
+                                        if (isMedic)
                                             CCarAI::AddAmbulanceOccupants(vehicle);
                                         else
                                             CCarAI::AddFiretruckOccupants(vehicle);
@@ -1490,6 +1550,8 @@ int AddSpecialCars::currentModel_Patch_42BBC8;
 int AddSpecialCars::currentModel_Patch_613A68;
 int AddSpecialCars::currentModel_Patch_46130F;
 int AddSpecialCars::currentModel_Patch_48DA65;
+int AddSpecialCars::currentModel_Patch_461BED;
+int AddSpecialCars::currentModel_Patch_43069E;
 unsigned int AddSpecialCars::jmp_6AB360;
 unsigned int AddSpecialCars::jmp_469658;
 unsigned int AddSpecialCars::jmp_41C0AF;
@@ -1498,7 +1560,6 @@ unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
 unsigned int AddSpecialCars::jmp_48DAA2;
 eWeaponType AddSpecialCars::currentWeaponType;
-int AddSpecialCars::currentModel_Patch_461BED;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1730,6 +1791,23 @@ void __declspec(naked) AddSpecialCars::Patch_461C0A() {
         mov eax, currentModel_Patch_461BED
         mov ebp, eax
         mov ecx, 0x461C15
+        jmp ecx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_43069E() {
+    __asm {
+        mov  eax, edi
+        pushad
+        push eax
+        call GetEmergencyServicesModel
+        mov currentModel_Patch_43069E, eax
+        popad
+        mov eax, currentModel_Patch_43069E
+        push 1
+        push eax
+        call CCarCtrl::GetNewVehicleDependingOnCarModel
+        mov ecx, 0x4306A6
         jmp ecx
     }
 }
