@@ -16,26 +16,18 @@
 #include "CCopPed.h"
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
-
 #include "CCarCtrl.h"
-#include "CCheat.h"
-//#include "CGameLogic.h"
 
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
 
-bool __cdecl /*CGameLogic::*/LaRiotsActiveHere() {
-    return ((bool(__cdecl *)())0x441C10)();
-}
-
 bool &/*CCarCtrl::*/bCarIsBeingCreated = *(bool *)0x9690CC;
-bool &gbLARiots = *(bool *)0xB72958;
 
 using namespace plugin;
 using namespace std;
 
-int m_nEmergencyServices, m_CurrLevel;
+int m_nEmergencyServices, m_nTime, m_CurrLevel;
 
 unordered_set<unsigned int> 
 /*cop vehicles*/            CopBikeLA_IDs, CopBikeSF_IDs, CopBikeVG_IDs, CopCarLA_IDs, CopCarSF_IDs, CopCarVG_IDs, 
@@ -53,7 +45,7 @@ bool isSwat = false, isFbi = false, isArmy = false, isAmbulan = false, isFiretru
 isEnforcer = true, isFbiranch = true, isBarracks = true, isMedic = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
-unsigned int randomRoadBlocksTime = 0, spawnEmergencyServicesTime = 0;
+unsigned int randomRoadBlocksTime = 0, m_nGenerateEmergencyServicesTime = 0;
 
 class AddSpecialCars {
 public:
@@ -73,7 +65,7 @@ public:
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
         currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
         currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED,
-        currentModel_Patch_43069E, isGenerateEmergency;
+        currentModel_Patch_43069E;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -711,8 +703,8 @@ public:
         int modelReplacement;
         if (CTheZones::m_CurrLevel) {
             if (model == MODEL_TAXI || model == MODEL_CABBIE) {
-                if (m_nEmergencyServices && CTimer::m_snTimeInMilliseconds > (spawnEmergencyServicesTime + 10000)) {
-                    spawnEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
+                if (m_nEmergencyServices && CTimer::m_snTimeInMilliseconds > (m_nGenerateEmergencyServicesTime + m_nTime * 1000)) {
+                    m_nGenerateEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
                     if (isMedic) {
                         isMedic = false;
                         modelReplacement = GetDefaultAmbulanceModel();
@@ -989,23 +981,25 @@ public:
             vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
     }
 
-    static bool __stdcall IsGenerateEmergencyCar(CVehicle *vehicle) {
-        bool result = false; int modelIndex = vehicle->m_nModelIndex;
+    static void __stdcall GenerateEmergencyCar(CVehicle *vehicle, int type) {
+        int modelIndex = vehicle->m_nModelIndex;
         if (AmbulanLA_IDs.find(modelIndex) != AmbulanLA_IDs.end()
             || AmbulanSF_IDs.find(modelIndex) != AmbulanSF_IDs.end()
             || AmbulanVG_IDs.find(modelIndex) != AmbulanVG_IDs.end()) {
             CCarAI::AddAmbulanceOccupants(vehicle);
             SetSiren(vehicle);
-            result = true;
         }
         else if (FiretrukLA_IDs.find(modelIndex) != FiretrukLA_IDs.end()
             || FiretrukSF_IDs.find(modelIndex) != FiretrukSF_IDs.end()
             || FiretrukVG_IDs.find(modelIndex) != FiretrukVG_IDs.end()) {
             CCarAI::AddFiretruckOccupants(vehicle);
             SetSiren(vehicle);
-            result = true;
         }
-        return result;
+        else {
+            /*CCarCtrl::*/bCarIsBeingCreated = true;
+            CCarCtrl::SetUpDriverAndPassengersForVehicle(vehicle, type, 0, 0, 0, 99);
+            /*CCarCtrl::*/bCarIsBeingCreated = false;
+        }
     }
 
     AddSpecialCars() {
@@ -1313,6 +1307,12 @@ public:
                         m_nEmergencyServices = stoi(line);
                 }
             }
+            if (!line.compare("time")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        m_nTime = stoi(line);
+                }
+            }
         }
         
         if (!CopCarLA_IDs.size() || !CopCarSF_IDs.size() || !CopCarVG_IDs.size() 
@@ -1514,7 +1514,6 @@ unsigned int AddSpecialCars::jmp_613A71;
 unsigned int AddSpecialCars::jmp_6BD415;
 unsigned int AddSpecialCars::jmp_48DAA2;
 eWeaponType AddSpecialCars::currentWeaponType;
-int AddSpecialCars::isGenerateEmergency;
 
 void __declspec(naked) AddSpecialCars::Patch_6AB349() { // Siren
     __asm {
@@ -1770,21 +1769,11 @@ void __declspec(naked) AddSpecialCars::Patch_43069E() {
 void __declspec(naked) AddSpecialCars::Patch_431EC0() {
     __asm {
         pushad
+        push ebx
         push esi
-        call IsGenerateEmergencyCar
-        mov isGenerateEmergency, eax
+        call GenerateEmergencyCar
         popad
-        mov ecx, 1
-        cmp ecx, isGenerateEmergency
-        jz SET_TRUE
-        push    99
-        push    0
-        push    0
-        push    0
-        mov ecx, 0x431EC8
+        mov ecx, 0x431EE0
         jmp ecx
-        SET_TRUE :
-            mov ecx, 0x431EE0
-            jmp ecx
     }
 }

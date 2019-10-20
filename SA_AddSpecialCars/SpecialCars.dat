@@ -3,6 +3,12 @@ emergency
 0
 end
 
+# time to generate a car in game minutes (real seconds)
+time
+10
+end
+#----------------------------------------
+
 #example
 #612
 #613
