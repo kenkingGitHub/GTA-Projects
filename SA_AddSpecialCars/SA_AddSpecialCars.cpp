@@ -16,11 +16,21 @@
 #include "CCopPed.h"
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
+
 #include "CCarCtrl.h"
+#include "CCheat.h"
+//#include "CGameLogic.h"
 
 //#include "CHudColours.h"
 //#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
+
+bool __cdecl /*CGameLogic::*/LaRiotsActiveHere() {
+    return ((bool(__cdecl *)())0x441C10)();
+}
+
+bool &/*CCarCtrl::*/bCarIsBeingCreated = *(bool *)0x9690CC;
+bool &gbLARiots = *(bool *)0xB72958;
 
 using namespace plugin;
 using namespace std;
@@ -40,7 +50,7 @@ unordered_set<unsigned int>
 /*mission vehicles*/        Boxburg_IDs, Broadway_IDs, Streak_IDs, Streakc_IDs;
 
 bool isSwat = false, isFbi = false, isArmy = false, isAmbulan = false, isFiretruck = false, isCabDriver = false,  
-isEnforcer = true, isFbiranch = true, isBarracks = true;
+isEnforcer = true, isFbiranch = true, isBarracks = true, isMedic = true;
 
 int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
 unsigned int randomRoadBlocksTime = 0, spawnEmergencyServicesTime = 0;
@@ -63,7 +73,7 @@ public:
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
         currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
         currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED,
-        currentModel_Patch_43069E, currentModel_Patch_431DD8;
+        currentModel_Patch_43069E;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -72,7 +82,7 @@ public:
     static void Patch_42BBC8();    static void Patch_613A68();    static void Patch_6ACA51();    
     static void Patch_6BD408();    static void Patch_46130F();    static void Patch_48DA65(); // IsCharInAnyPoliceVehicle
     static void Patch_5DDC99();    static void Patch_461BED();    static void Patch_461C0A();
-    static void Patch_43069E();    
+    static void Patch_43069E();    static void Patch_431D7D();
 
     static int __stdcall GetModelForSiren(unsigned int model) {
         if (model == MODEL_COPCARLA || CopCarLA_IDs.find(model) != CopCarLA_IDs.end())
@@ -701,24 +711,26 @@ public:
         int modelReplacement;
         if (CTheZones::m_CurrLevel) {
             if (model == MODEL_TAXI || model == MODEL_CABBIE) {
-                /*if (m_nEmergencyServices && CTimer::m_snTimeInMilliseconds > (spawnEmergencyServicesTime + 60000)) {
+                if (m_nEmergencyServices && CTimer::m_snTimeInMilliseconds > (spawnEmergencyServicesTime + 10000)) {
                     spawnEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
-                    if (plugin::Random(0, 1)) {
+                    if (isMedic) {
+                        isMedic = false;
                         modelReplacement = GetDefaultAmbulanceModel();
                         if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
                             model = modelReplacement;
                     }
                     else {
+                        isMedic = true;
                         modelReplacement = GetDefaultFireEngineModel();
                         if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
                             model = modelReplacement;
                     }
-                }*/
-                //else {
+                }
+                else {
                     modelReplacement = GetDefaultTaxiModel();
                     if (CStreaming::ms_aInfoForModel[modelReplacement].m_nLoadState == LOADSTATE_LOADED)
                         model = modelReplacement;
-                //}
+                }
             }
         }
         return model;
@@ -966,6 +978,134 @@ public:
             break;
         }
     }
+
+
+    static void __stdcall GenerateOneRandomCar(CVehicle *vehicle, int type, bool enable) {
+        int modelIndex = vehicle->m_nModelIndex;
+        if (enable)
+        {
+            if (modelIndex != MODEL_FREEWAY
+                && modelIndex != MODEL_PCJ600
+                && modelIndex != MODEL_FCR900
+                && modelIndex != MODEL_NRG500
+                && modelIndex != MODEL_BF400
+                && modelIndex != MODEL_WAYFARER
+                || gbLARiots
+                || plugin::Random(0, 7)
+                || !CCarCtrl::CreateConvoy(vehicle, type))
+            {
+                if (AmbulanLA_IDs.find(modelIndex) != AmbulanLA_IDs.end()
+                    || AmbulanSF_IDs.find(modelIndex) != AmbulanSF_IDs.end()
+                    || AmbulanVG_IDs.find(modelIndex) != AmbulanVG_IDs.end()) {
+                    CCarAI::AddAmbulanceOccupants(vehicle);
+                    if (plugin::Random(0, 1)) {
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                        vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                        vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                    }
+                    else
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                }
+                else if (FiretrukLA_IDs.find(modelIndex) != FiretrukLA_IDs.end()
+                    || FiretrukSF_IDs.find(modelIndex) != FiretrukSF_IDs.end()
+                    || FiretrukVG_IDs.find(modelIndex) != FiretrukVG_IDs.end()) {
+                    CCarAI::AddFiretruckOccupants(vehicle);
+                    if (plugin::Random(0, 1)) {
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                        vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                        vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                    }
+                    else
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                }
+                else {
+                    CCarCtrl::SetUpDriverAndPassengersForVehicle(vehicle, type, 1, 1, 0, 99);
+                    char cruiseSpeed = vehicle->m_autoPilot.m_nCruiseSpeed;
+                    vehicle->m_nType |= 0x18;
+                    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                    vehicle->m_autoPilot.m_nCruiseSpeed = cruiseSpeed + 10;
+                    float multiplier = (float)(cruiseSpeed + 10);
+                    CVector topDirection = vehicle->GetTopDirection();
+                    CVector inVec = operator*(topDirection, multiplier);
+                    CVector moveSpeed = operator*(inVec, 0.02f);
+                    vehicle->m_vecMoveSpeed.x = moveSpeed.x;
+                    vehicle->m_vecMoveSpeed.y = moveSpeed.y;
+                    vehicle->m_vecMoveSpeed.z = moveSpeed.z;
+                    if (/*CGameLogic::*/LaRiotsActiveHere() || CCheat::m_aCheatsActive[31]) {
+                        CPed *driver = vehicle->m_pDriver;
+                        if (driver)
+                            driver->m_nPedFlags.bHitSomethingLastFrame = 1;
+                    }
+                    vehicle->m_nVehicleFlags.bMadDriver = 1;
+                }
+            }
+            else
+            {
+                if (AmbulanLA_IDs.find(modelIndex) != AmbulanLA_IDs.end()
+                    || AmbulanSF_IDs.find(modelIndex) != AmbulanSF_IDs.end()
+                    || AmbulanVG_IDs.find(modelIndex) != AmbulanVG_IDs.end()) {
+                    CCarAI::AddAmbulanceOccupants(vehicle);
+                    if (plugin::Random(0, 1)) {
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                        vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                        vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                    }
+                    else
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                }
+                else if (FiretrukLA_IDs.find(modelIndex) != FiretrukLA_IDs.end()
+                    || FiretrukSF_IDs.find(modelIndex) != FiretrukSF_IDs.end()
+                    || FiretrukVG_IDs.find(modelIndex) != FiretrukVG_IDs.end()) {
+                    CCarAI::AddFiretruckOccupants(vehicle);
+                    if (plugin::Random(0, 1)) {
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                        vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                        vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                    }
+                    else
+                        vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+                }
+                else
+                    CCarCtrl::SetUpDriverAndPassengersForVehicle(vehicle, type, 1, 1, 0, 99);
+            }
+        }
+        else if (type == 13 || type == 24)
+        {
+            CCarAI::AddPoliceCarOccupants(vehicle, 0);
+        }
+        else
+        {
+            /*CCarCtrl::*/bCarIsBeingCreated = true;
+            if (AmbulanLA_IDs.find(modelIndex) != AmbulanLA_IDs.end()
+                || AmbulanSF_IDs.find(modelIndex) != AmbulanSF_IDs.end()
+                || AmbulanVG_IDs.find(modelIndex) != AmbulanVG_IDs.end()) {
+                CCarAI::AddAmbulanceOccupants(vehicle);
+                if (plugin::Random(0, 1)) {
+                    vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                    vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                }
+                else
+                    vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+            }
+            else if (FiretrukLA_IDs.find(modelIndex) != FiretrukLA_IDs.end()
+                || FiretrukSF_IDs.find(modelIndex) != FiretrukSF_IDs.end()
+                || FiretrukVG_IDs.find(modelIndex) != FiretrukVG_IDs.end()) {
+                CCarAI::AddFiretruckOccupants(vehicle);
+                if (plugin::Random(0, 1)) {
+                    vehicle->m_nVehicleFlags.bSirenOrAlarm = true;
+                    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVINGSTYLE_AVOID_CARS;
+                    vehicle->m_autoPilot.m_nCruiseSpeed = 25;
+                }
+                else
+                    vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+            }
+            else 
+                CCarCtrl::SetUpDriverAndPassengersForVehicle(vehicle, type, 0, 0, 0, 99);
+            /*CCarCtrl::*/bCarIsBeingCreated = false;
+        }
+    }
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -1316,6 +1456,8 @@ public:
         patch::RedirectJump(0x461C0A, Patch_461C0A);
         patch::RedirectJump(0x43069E, Patch_43069E); 
 
+        patch::RedirectJump(0x431D7D, Patch_431D7D);
+
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DD23, IsLawEnforcementVehicleCheck);
@@ -1412,7 +1554,7 @@ public:
                     }
                 }
                 // Spawn Cars
-                if (m_nEmergencyServices) {
+                /*if (m_nEmergencyServices) {
                     if (CTheZones::m_CurrLevel) {
                         switch (m_currentState) {
                         case STATE_FIND:
@@ -1447,7 +1589,7 @@ public:
                             break;
                         case STATE_CREATE:
                             if (CTheZones::m_CurrLevel) {
-                                int modelCar, modelPed; bool isMedic;
+                                int modelCar, modelPed; 
                                 if (isAmbulan) {
                                     isAmbulan = false;
                                     modelCar = GetDefaultAmbulanceModel();
@@ -1498,7 +1640,7 @@ public:
                             break;
                         }
                     }
-                }
+                }*/
             }
         };
 
@@ -1808,6 +1950,20 @@ void __declspec(naked) AddSpecialCars::Patch_43069E() {
         push eax
         call CCarCtrl::GetNewVehicleDependingOnCarModel
         mov ecx, 0x4306A6
+        jmp ecx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_431D7D() {
+    __asm {
+        mov  eax, [esp + 71]
+        pushad
+        push eax
+        push ebx
+        push esi
+        call GenerateOneRandomCar
+        popad
+        mov ecx, 0x431EE0
         jmp ecx
     }
 }
