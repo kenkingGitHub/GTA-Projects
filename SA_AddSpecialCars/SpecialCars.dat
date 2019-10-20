@@ -5,7 +5,7 @@ end
 
 # time to generate a car in game minutes (real seconds)
 time
-10
+30
 end
 #----------------------------------------
 

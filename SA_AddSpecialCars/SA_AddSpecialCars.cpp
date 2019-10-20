@@ -65,7 +65,7 @@ public:
     static int currentModelForSiren, currentModelCopbike, currentModelTaxi, currentModelFiretruk, currentModel,
         currentWaterJetsModel, currentTurretsModel, currentModel_Patch_41C0A6, currentModel_Patch_42BBC8, 
         currentModel_Patch_613A68, currentModel_Patch_46130F, currentModel_Patch_48DA65, currentModel_Patch_461BED,
-        currentModel_Patch_43069E;
+        currentModel_Patch_43069E, currentModel_Patch_431EC0;
     static unsigned int jmp_6AB360, jmp_469658, jmp_41C0AF, jmp_42BBCE, jmp_613A71, jmp_6BD415, jmp_48DAA2;
     static eWeaponType currentWeaponType;
 
@@ -537,15 +537,6 @@ public:
         return false;
     }
 
-    static CVehicle *GetRandomCar(float x1, float y1, float x2, float y2) {
-        std::vector<CVehicle *> vehicles;
-        for (auto vehicle : CPools::ms_pVehiclePool) {
-            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_pDriver && vehicle->IsWithinArea(x1, y1, x2, y2))
-                vehicles.push_back(vehicle);
-        }
-        return vehicles.empty() ? nullptr : vehicles[plugin::Random(0, vehicles.size() - 1)];
-    }
-    
     static bool __stdcall IsCharInAnyPoliceVehicle(CPed *ped) {
         bool inModel = false;
 
@@ -981,25 +972,23 @@ public:
             vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
     }
 
-    static void __stdcall GenerateEmergencyCar(CVehicle *vehicle, int type) {
+    static int __stdcall GenerateEmergencyCar(CVehicle *vehicle) {
         int modelIndex = vehicle->m_nModelIndex;
         if (AmbulanLA_IDs.find(modelIndex) != AmbulanLA_IDs.end()
             || AmbulanSF_IDs.find(modelIndex) != AmbulanSF_IDs.end()
             || AmbulanVG_IDs.find(modelIndex) != AmbulanVG_IDs.end()) {
             CCarAI::AddAmbulanceOccupants(vehicle);
             SetSiren(vehicle);
+            return 416;
         }
         else if (FiretrukLA_IDs.find(modelIndex) != FiretrukLA_IDs.end()
             || FiretrukSF_IDs.find(modelIndex) != FiretrukSF_IDs.end()
             || FiretrukVG_IDs.find(modelIndex) != FiretrukVG_IDs.end()) {
             CCarAI::AddFiretruckOccupants(vehicle);
             SetSiren(vehicle);
+            return 416;
         }
-        else {
-            /*CCarCtrl::*/bCarIsBeingCreated = true;
-            CCarCtrl::SetUpDriverAndPassengersForVehicle(vehicle, type, 0, 0, 0, 99);
-            /*CCarCtrl::*/bCarIsBeingCreated = false;
-        }
+        return modelIndex;
     }
 
     AddSpecialCars() {
@@ -1506,6 +1495,7 @@ int AddSpecialCars::currentModel_Patch_46130F;
 int AddSpecialCars::currentModel_Patch_48DA65;
 int AddSpecialCars::currentModel_Patch_461BED;
 int AddSpecialCars::currentModel_Patch_43069E;
+int AddSpecialCars::currentModel_Patch_431EC0;
 unsigned int AddSpecialCars::jmp_6AB360;
 unsigned int AddSpecialCars::jmp_469658;
 unsigned int AddSpecialCars::jmp_41C0AF;
@@ -1768,12 +1758,22 @@ void __declspec(naked) AddSpecialCars::Patch_43069E() {
 
 void __declspec(naked) AddSpecialCars::Patch_431EC0() {
     __asm {
+        mov ecx, 416
         pushad
-        push ebx
         push esi
         call GenerateEmergencyCar
+        mov currentModel_Patch_431EC0, eax
         popad
-        mov ecx, 0x431EE0
+        cmp ecx, currentModel_Patch_431EC0
+        jz SET_TRUE
+        push    99
+        push    0
+        push    0
+        push    0
+        mov ecx, 0x431EC8
         jmp ecx
+        SET_TRUE :
+            mov ecx, 0x431EE0
+            jmp ecx
     }
 }
