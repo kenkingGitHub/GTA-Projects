@@ -1,21 +1,74 @@
 #include "plugin.h"
-#include "CWorld.h"
 
 using namespace plugin;
 
 class Test {
 public:
     Test() {
-        Events::drawingEvent += [] {
-            gamefont::Print({
-                Format("test = %d", CWorld::Players[CWorld::PlayerInFocus].m_nPlayerState)
-            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::White);
+        Events::gameProcessEvent += [] {
+            CPed *player = FindPlayerPed();
+            if (player) {
+                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 7.0f)) {
+                        vehicle->m_autoPilot.m_nAnimationId = TEMPACT_REVERSE;
+                        vehicle->m_autoPilot.m_nAnimationTime = 20000;
+                    }
+                }
+            }
         };
     }
 } test;
 
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
+//#include "CModelInfo.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//
+//    static void EntityType(CEntity *entity) {
+//        if (CModelInfo::ms_modelInfoPtrs[entity->m_nModelIndex]->m_nType == MODEL_INFO_PED)
+//            CMessages::AddMessageJumpQ(L"ped", 2000, 0);
+//        if (CModelInfo::ms_modelInfoPtrs[entity->m_nModelIndex]->m_nType == MODEL_INFO_VEHICLE)
+//            CMessages::AddMessageJumpQ(L"vehicle", 2000, 0);
+//    }
+//
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                CPed *player = FindPlayerPed();
+//                if (player) {
+//                    if (player->m_pVehicle && player->m_bInVehicle)
+//                        EntityType(player->m_pVehicle);
+//                    else
+//                        EntityType(player);
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 
+//#include "plugin.h"
+//#include "CWorld.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::drawingEvent += [] {
+//            gamefont::Print({
+//                Format("test = %d", CWorld::Players[CWorld::PlayerInFocus].m_nPlayerState)
+//            }, 10, 200, 1, FONT_DEFAULT, 0.75f, 0.75f, color::White);
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include <vector>
@@ -232,7 +285,6 @@ public:
 //        jmp edx
 //    }
 //}
-
 
 
 //#include "plugin.h"

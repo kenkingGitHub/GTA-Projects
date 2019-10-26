@@ -1375,6 +1375,27 @@ public:
                     CTimer::m_UserPause = true;
             }*/
 
+            for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+                    if (vehicle->m_nModelIndex == MODEL_TAXI || vehicle->m_nModelIndex == MODEL_CABBIE || TaxiLA_IDs.find(vehicle->m_nModelIndex) != TaxiLA_IDs.end() || TaxiSF_IDs.find(vehicle->m_nModelIndex) != TaxiSF_IDs.end() || TaxiVG_IDs.find(vehicle->m_nModelIndex) != TaxiVG_IDs.end()) {
+                        CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                        if (FindPlayerPed()->m_pVehicle == vehicle) {
+                            if (!CTheScripts::IsPlayerOnAMission())
+                                automobile->SetTaxiLight(false);
+                        }
+                        else {
+                            if (!vehicle->m_nNumPassengers) {
+                                if (vehicle->m_pDriver)
+                                    automobile->SetTaxiLight(true);
+                            }
+                            if (automobile->taxiAvaliable && (vehicle->m_nNumPassengers || vehicle->m_fHealth < 0.1f))
+                                automobile->SetTaxiLight(false);
+                        }
+                    }
+                }
+            }
+
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
                 if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "LA"))
@@ -1445,17 +1466,17 @@ public:
             }
         };
 
-        Events::drawingEvent += [] {
-            gamefont::Print({
-                /*Format("CopBike load = %d", CStreaming::m_bCopBikeLoaded),*/
-                Format("level = %d", CTheZones::m_CurrLevel),
-                Format("my level = %d", m_CurrLevel)
-                //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
-                //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
-                //Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
-                //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
-            }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
-        };
+        //Events::drawingEvent += [] {
+        //    gamefont::Print({
+        //        /*Format("CopBike load = %d", CStreaming::m_bCopBikeLoaded),*/
+        //        Format("level = %d", CTheZones::m_CurrLevel),
+        //        Format("my level = %d", m_CurrLevel)
+        //        //Format("swatCarBlok = %d", patch::GetShort(0x461BE7)),
+        //        //Format("fbiCarBlok = %d", patch::GetShort(0x461BCC)),
+        //        //Format("test cab = %d", FindSpecificDriverModelForCar_ToUse(MODEL_TAXI)),
+        //        //Format("color = %d, %d, %d", HudColour.m_aColours[12].red, HudColour.m_aColours[12].green, HudColour.m_aColours[12].blue),
+        //    }, 10, 300, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+        //};
 
         Events::drawMenuBackgroundEvent += [] {
             CFont::SetScale(ScreenCoord(0.75f), ScreenCoord(1.5f));
