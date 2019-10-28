@@ -53,6 +53,19 @@ public:
         return (a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
     }
     
+    class TaxiInfo {
+    public:
+        bool enabledTaxiLight;
+        TaxiInfo(CVehicle *vehicle) { 
+            if (plugin::Random(0, 1))
+                enabledTaxiLight = true;
+            else
+                enabledTaxiLight = false;
+        }
+    };
+
+    static VehicleExtendedData<TaxiInfo> taxiInfo;
+
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
     enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COPBIKE, TYPE_COPBIKER, TYPE_COP, TYPE_COP_CAR, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI, TYPE_TAXI_DRIVER };
 
@@ -1385,7 +1398,8 @@ public:
                                 automobile->SetTaxiLight(false);
                         }
                         else {
-                            if (!vehicle->m_nNumPassengers) {
+                            TaxiInfo &info = taxiInfo.Get(vehicle);
+                            if (!vehicle->m_nNumPassengers && info.enabledTaxiLight) {
                                 if (vehicle->m_pDriver)
                                     automobile->SetTaxiLight(true);
                             }
@@ -1496,6 +1510,7 @@ public:
     }
 } specialCars;
 
+VehicleExtendedData<AddSpecialCars::TaxiInfo> AddSpecialCars::taxiInfo;
 AddSpecialCars::eSpawnCarState AddSpecialCars::m_currentState = STATE_FIND;
 short AddSpecialCars::outCount = 0;
 CVector AddSpecialCars::carPos = { 0.0f, 0.0f, 0.0f };
