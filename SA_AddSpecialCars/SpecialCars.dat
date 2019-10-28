@@ -1,3 +1,6 @@
+KEY_BLINK       79    ; blink on/off
+#----------------------------------------
+
 # Emergency Services: enable 1; disable 0;
 emergency
 0

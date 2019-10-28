@@ -17,9 +17,11 @@
 #include "extensions\ScriptCommands.h"
 #include "eScriptCommands.h"
 #include "CCarCtrl.h"
+#include "KeySettings.h"
+#include "extensions\KeyCheck.h"
+#include "CCoronas.h"
 
 //#include "CHudColours.h"
-//#include "extensions\KeyCheck.h"
 //#include "CMessages.h"
 
 bool &/*CCarCtrl::*/bCarIsBeingCreated = *(bool *)0x9690CC;
@@ -52,11 +54,14 @@ public:
     static float ScreenCoord(float a) {
         return (a * (static_cast<float>(RsGlobal.maximumHeight) / 900.0f));
     }
-    
-    class TaxiInfo {
+    enum eBlinksStatus { BLINKS_ENABLE, BLINKS_DISABLE, BLINKS_IGNORE };
+
+    class LightInfo {
     public:
+        eBlinksStatus blinksStatus;
         bool enabledTaxiLight;
-        TaxiInfo(CVehicle *vehicle) { 
+        LightInfo(CVehicle *vehicle) { 
+            blinksStatus = BLINKS_DISABLE;
             if (plugin::Random(0, 1))
                 enabledTaxiLight = true;
             else
@@ -64,7 +69,7 @@ public:
         }
     };
 
-    static VehicleExtendedData<TaxiInfo> taxiInfo;
+    static VehicleExtendedData<LightInfo> lightInfo;
 
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
     enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COPBIKE, TYPE_COPBIKER, TYPE_COP, TYPE_COP_CAR, TYPE_SWAT, TYPE_FBI, TYPE_ARMY, TYPE_TAXI, TYPE_TAXI_DRIVER };
@@ -1004,6 +1009,12 @@ public:
         return modelIndex;
     }
 
+    static void DrawBlinklight(CVehicle *vehicle, CVector pos, bool leftSide) {
+        if (leftSide) pos.x *= -1.0f;
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + 55 + (leftSide ? 0 : 2), vehicle, 255, 128, 0, 255, pos,
+            0.3f, 150.0f, CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
+    }
+
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
         if (!stream.is_open())
@@ -1388,28 +1399,6 @@ public:
                     CTimer::m_UserPause = true;
             }*/
 
-            for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
-                    if (vehicle->m_nModelIndex == MODEL_TAXI || vehicle->m_nModelIndex == MODEL_CABBIE || TaxiLA_IDs.find(vehicle->m_nModelIndex) != TaxiLA_IDs.end() || TaxiSF_IDs.find(vehicle->m_nModelIndex) != TaxiSF_IDs.end() || TaxiVG_IDs.find(vehicle->m_nModelIndex) != TaxiVG_IDs.end()) {
-                        CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
-                        if (FindPlayerPed()->m_pVehicle == vehicle) {
-                            if (!CTheScripts::IsPlayerOnAMission())
-                                automobile->SetTaxiLight(false);
-                        }
-                        else {
-                            TaxiInfo &info = taxiInfo.Get(vehicle);
-                            if (!vehicle->m_nNumPassengers && info.enabledTaxiLight) {
-                                if (vehicle->m_pDriver)
-                                    automobile->SetTaxiLight(true);
-                            }
-                            if (automobile->taxiAvaliable && (vehicle->m_nNumPassengers || vehicle->m_fHealth < 0.1f))
-                                automobile->SetTaxiLight(false);
-                        }
-                    }
-                }
-            }
-
             CPlayerPed *player = FindPlayerPed(-1);
             if (player) {
                 if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "LA"))
@@ -1426,7 +1415,67 @@ public:
                     m_CurrLevel = 5;
                 if (Command<COMMAND_IS_PLAYER_IN_INFO_ZONE>(CWorld::PlayerInFocus, "BONE"))
                     m_CurrLevel = 6;
-
+                //----------------------------------------------------------
+                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+                    if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_nVehicleFlags.bEngineOn) {
+                        // blink
+                        if (vehicle->m_nModelIndex == MODEL_TOWTRUCK) {
+                            eBlinksStatus &blinksStatus = lightInfo.Get(vehicle).blinksStatus;
+                            if (vehicle->m_pDriver) {
+                                if (player->m_pVehicle && player->m_nPedFlags.bInVehicle) {
+                                    KeyCheck::Update();
+                                    if (KeyCheck::CheckWithDelay(settings.keyBlink, 1000)) {
+                                        if (blinksStatus == BLINKS_DISABLE || blinksStatus == BLINKS_IGNORE)
+                                            blinksStatus = BLINKS_ENABLE;
+                                        else
+                                            blinksStatus = BLINKS_DISABLE;
+                                    }
+                                }
+                                // traffic
+                                else {
+                                    if (blinksStatus == BLINKS_DISABLE) {
+                                        if (rand() % 3 == 1)
+                                            blinksStatus = BLINKS_IGNORE;
+                                        else
+                                            blinksStatus = BLINKS_ENABLE;
+                                    }
+                                }
+                            }
+                            //-------
+                            if (blinksStatus == BLINKS_ENABLE) {
+                                CVector posn2 = { 0.65f, -0.48f, 1.45f };
+                                CVector posn = { 0.35f, -0.48f, 1.45f };
+                                if (CTimer::m_snTimeInMilliseconds & 0x100) {
+                                    DrawBlinklight(vehicle, posn, false);
+                                    DrawBlinklight(vehicle, posn, true);
+                                }
+                                if (CTimer::m_snTimeInMilliseconds & 0x200) {
+                                    DrawBlinklight(vehicle, posn2, false);
+                                    DrawBlinklight(vehicle, posn2, true);
+                                }
+                            }
+                            //-------
+                        }
+                        // taxi light
+                        if (vehicle->m_nModelIndex == MODEL_TAXI || vehicle->m_nModelIndex == MODEL_CABBIE || TaxiLA_IDs.find(vehicle->m_nModelIndex) != TaxiLA_IDs.end() || TaxiSF_IDs.find(vehicle->m_nModelIndex) != TaxiSF_IDs.end() || TaxiVG_IDs.find(vehicle->m_nModelIndex) != TaxiVG_IDs.end()) {
+                            CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+                            if (player->m_pVehicle == vehicle) {
+                                if (!CTheScripts::IsPlayerOnAMission())
+                                    automobile->SetTaxiLight(false);
+                            }
+                            else {
+                                if (!vehicle->m_nNumPassengers && lightInfo.Get(vehicle).enabledTaxiLight) {
+                                    if (vehicle->m_pDriver)
+                                        automobile->SetTaxiLight(true);
+                                }
+                                if (automobile->taxiAvaliable && (vehicle->m_nNumPassengers || vehicle->m_fHealth < 0.1f))
+                                    automobile->SetTaxiLight(false);
+                            }
+                        }
+                    }
+                }
+                //----------------------------------------------------------
                 CWanted *wanted = FindPlayerWanted(-1);
                 // RoadBlocks
                 if (CTimer::m_snTimeInMilliseconds > (randomRoadBlocksTime + 30000)) {
@@ -1510,7 +1559,7 @@ public:
     }
 } specialCars;
 
-VehicleExtendedData<AddSpecialCars::TaxiInfo> AddSpecialCars::taxiInfo;
+VehicleExtendedData<AddSpecialCars::LightInfo> AddSpecialCars::lightInfo;
 AddSpecialCars::eSpawnCarState AddSpecialCars::m_currentState = STATE_FIND;
 short AddSpecialCars::outCount = 0;
 CVector AddSpecialCars::carPos = { 0.0f, 0.0f, 0.0f };

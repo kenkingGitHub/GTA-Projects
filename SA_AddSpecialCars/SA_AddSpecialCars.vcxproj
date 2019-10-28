@@ -96,7 +96,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="KeySettings.cpp" />
     <ClCompile Include="SA_AddSpecialCars.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KeySettings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

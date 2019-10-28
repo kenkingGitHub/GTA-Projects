@@ -2,5 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="SA_AddSpecialCars.cpp" />
+    <ClCompile Include="KeySettings.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KeySettings.h" />
   </ItemGroup>
 </Project>
