@@ -20,9 +20,12 @@
 #include "KeySettings.h"
 #include "extensions\KeyCheck.h"
 #include "CCoronas.h"
+#include "CCamera.h"
 
 //#include "CHudColours.h"
 //#include "CMessages.h"
+
+#define MAX_RADIUS 200.0f
 
 bool &/*CCarCtrl::*/bCarIsBeingCreated = *(bool *)0x9690CC;
 
@@ -46,8 +49,19 @@ unordered_set<unsigned int>
 bool isSwat = false, isFbi = false, isArmy = false, isAmbulan = false, isFiretruck = false, isCabDriver = false,  
 isEnforcer = true, isFbiranch = true, isBarracks = true, isMedic = true;
 
-int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo;
+int randomFbiCar = 2, randomSwatCar = 2, randomArmyCar = 3, randomCabDriver = 5, weaponAmmo, timer;
 unsigned int randomRoadBlocksTime = 0, m_nGenerateEmergencyServicesTime = 0;
+
+struct BlinkLightData {
+    int modelId;
+    float x;
+    float y;
+    float z;
+};
+
+    BlinkLightData dataLight;
+    vector<BlinkLightData> carBlinkLight;
+
 
 class AddSpecialCars {
 public:
@@ -1009,11 +1023,20 @@ public:
         return modelIndex;
     }
 
-    static void DrawBlinklight(CVehicle *vehicle, CVector pos, bool leftSide) {
+    static void DrawBlinkLight(CVehicle *vehicle, CVector pos, int id, bool leftSide, CRGBA color) {
         if (leftSide) pos.x *= -1.0f;
-        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + 55 + (leftSide ? 0 : 2), vehicle, 255, 128, 0, 255, pos,
+        CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + id + (leftSide ? 0 : 2), vehicle, color.r, color.g, color.b, color.a, pos,
             0.3f, 150.0f, CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
     }
+
+    static BlinkLightData *GetBlinkLightData(int id) {
+        for (unsigned int i = 0; i < carBlinkLight.size(); i++) {
+            if (carBlinkLight[i].modelId == id)
+                return &carBlinkLight[i];
+        }
+        return nullptr;
+    }
+
 
     AddSpecialCars() {
         ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -1326,6 +1349,14 @@ public:
                         m_nTime = stoi(line);
                 }
             }
+            if (!line.compare("towtruck")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#') {
+                        if (sscanf(line.c_str(), "%d %f %f %f", &dataLight.modelId, &dataLight.x, &dataLight.y, &dataLight.z) == 4)
+                            carBlinkLight.push_back(dataLight);
+                    }
+                }
+            }
         }
         
         if (!CopCarLA_IDs.size() || !CopCarSF_IDs.size() || !CopCarVG_IDs.size() 
@@ -1390,6 +1421,51 @@ public:
         
         //patch::SetChar(0x42F9FB, 6, true);
 
+        Events::vehicleRenderEvent.before += [](CVehicle *vehicle) {
+            if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_nVehicleFlags.bEngineOn && vehicle->m_fHealth > 0.1f && !vehicle->m_nVehicleFlags.bIsDrowning) {
+                BlinkLightData *blinkLight = GetBlinkLightData(vehicle->m_nModelIndex);
+                if (blinkLight) {
+                    eBlinksStatus &blinksStatus = lightInfo.Get(vehicle).blinksStatus;
+                    if (vehicle->m_pDriver) {
+                        CPlayerPed *player = FindPlayerPed(-1);
+                        if (player && player->m_pVehicle == vehicle && player->m_nPedFlags.bInVehicle) {
+                            KeyCheck::Update();
+                            if (KeyCheck::CheckWithDelay(settings.keyBlink, 1000)) {
+                                if (blinksStatus == BLINKS_DISABLE || blinksStatus == BLINKS_IGNORE)
+                                    blinksStatus = BLINKS_ENABLE;
+                                else
+                                    blinksStatus = BLINKS_DISABLE;
+                            }
+                        }
+                        else {
+                            if (blinksStatus == BLINKS_DISABLE) {
+                                if (rand() % 3 == 1)
+                                    blinksStatus = BLINKS_IGNORE;
+                                else
+                                    blinksStatus = BLINKS_ENABLE;
+                            }
+                        }
+                    }
+                    if (blinksStatus == BLINKS_ENABLE && DistanceBetweenPoints(TheCamera.m_vecGameCamPos, vehicle->GetPosition()) < MAX_RADIUS) {
+                        CVector pos  = { blinkLight->x - (blinkLight->x * 2 / 3), blinkLight->y, blinkLight->z };
+                        CVector posn = { blinkLight->x, blinkLight->y, blinkLight->z };
+                        CRGBA color = { 42, 0, 0, 255 };
+                        timer = CTimer::m_snTimeInMilliseconds & 1023;
+                        if (timer >= 512) 
+                            color.g = 42;
+                        if (CTimer::m_snTimeInMilliseconds & 0x80) {
+                            DrawBlinkLight(vehicle, pos, 100, false, color);
+                            DrawBlinkLight(vehicle, pos, 101, true, color);
+                        }
+                        if (CTimer::m_snTimeInMilliseconds & 0x100) {
+                            DrawBlinkLight(vehicle, posn, 102, false, color);
+                            DrawBlinkLight(vehicle, posn, 103, true, color);
+                        }
+                    }
+                }
+            }
+        };
+
         Events::gameProcessEvent += [] {
             /*KeyCheck::Update();
             if (KeyCheck::CheckWithDelay('P', 1000)) {
@@ -1419,45 +1495,6 @@ public:
                 for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
                     CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
                     if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE && vehicle->m_nVehicleFlags.bEngineOn) {
-                        // blink
-                        if (vehicle->m_nModelIndex == MODEL_TOWTRUCK) {
-                            eBlinksStatus &blinksStatus = lightInfo.Get(vehicle).blinksStatus;
-                            if (vehicle->m_pDriver) {
-                                if (player->m_pVehicle && player->m_nPedFlags.bInVehicle) {
-                                    KeyCheck::Update();
-                                    if (KeyCheck::CheckWithDelay(settings.keyBlink, 1000)) {
-                                        if (blinksStatus == BLINKS_DISABLE || blinksStatus == BLINKS_IGNORE)
-                                            blinksStatus = BLINKS_ENABLE;
-                                        else
-                                            blinksStatus = BLINKS_DISABLE;
-                                    }
-                                }
-                                // traffic
-                                else {
-                                    if (blinksStatus == BLINKS_DISABLE) {
-                                        if (rand() % 3 == 1)
-                                            blinksStatus = BLINKS_IGNORE;
-                                        else
-                                            blinksStatus = BLINKS_ENABLE;
-                                    }
-                                }
-                            }
-                            //-------
-                            if (blinksStatus == BLINKS_ENABLE) {
-                                CVector posn2 = { 0.65f, -0.48f, 1.45f };
-                                CVector posn = { 0.35f, -0.48f, 1.45f };
-                                if (CTimer::m_snTimeInMilliseconds & 0x100) {
-                                    DrawBlinklight(vehicle, posn, false);
-                                    DrawBlinklight(vehicle, posn, true);
-                                }
-                                if (CTimer::m_snTimeInMilliseconds & 0x200) {
-                                    DrawBlinklight(vehicle, posn2, false);
-                                    DrawBlinklight(vehicle, posn2, true);
-                                }
-                            }
-                            //-------
-                        }
-                        // taxi light
                         if (vehicle->m_nModelIndex == MODEL_TAXI || vehicle->m_nModelIndex == MODEL_CABBIE || TaxiLA_IDs.find(vehicle->m_nModelIndex) != TaxiLA_IDs.end() || TaxiSF_IDs.find(vehicle->m_nModelIndex) != TaxiSF_IDs.end() || TaxiVG_IDs.find(vehicle->m_nModelIndex) != TaxiVG_IDs.end()) {
                             CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
                             if (player->m_pVehicle == vehicle) {
