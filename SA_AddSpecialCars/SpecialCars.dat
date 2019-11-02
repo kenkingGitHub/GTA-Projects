@@ -217,7 +217,7 @@ end
 
 #---END PEDS
 
-#---WEAPONS:
+#---WEAPONS: ID's 342, 346-353, 355-359, 362, 372
 
 copweapon
 end
