@@ -84,7 +84,6 @@ public:
     static CVector carPos;
     static float carAngle;
     static CAutoPilot pilot;
-    static int currentCopModel, currentSwatModel, currentFbiModel, currentArmyModel, currentWeaponModel;
     static unsigned int currentSpecialModelForSiren, currentSpecialModelForOccupants, currentFiretrukModel, currentRoadBlockModel;
     static unsigned int jmp_53A913, jmp_5945D9, jmp_444040;
 
@@ -180,113 +179,6 @@ public:
         }
         else
             return GetSpecialModel(type);
-    }
-
-    static int __stdcall GetCurrentSwatModel() {
-        if (Swat_IDs.size()) {
-            if (isSwat) {
-                isSwat = false; return MODEL_SWAT;
-            }
-            else {
-                unsigned int swatId = GetRandomModel(Swat_IDs); 
-                if (CModelInfo::IsPedModel(swatId) && LoadModel(swatId)) {
-                    isSwat = true; return swatId;
-                }
-                else {
-                    isSwat = false; return MODEL_SWAT;
-                }
-            }
-        }
-        else
-            return MODEL_SWAT;
-    }
-
-    static int __stdcall GetCurrentFbiModel() {
-        if (Fbi_IDs.size()) {
-            if (isFbi) {
-                isFbi = false; return MODEL_FBI;
-            }
-            else {
-                unsigned int fbiId = GetRandomModel(Fbi_IDs); 
-                if (CModelInfo::IsPedModel(fbiId) && LoadModel(fbiId)) {
-                    isFbi = true; return fbiId;
-                }
-                else {
-                    isFbi = false; return MODEL_FBI;
-                }
-            }
-        }
-        else
-            return MODEL_FBI;
-    }
-
-    static int __stdcall GetCurrentArmyModel() {
-        if (Army_IDs.size()) {
-            if (isArmy) {
-                isArmy = false; return MODEL_ARMY;
-            }
-            else {
-                unsigned int armyId = GetRandomModel(Army_IDs); 
-                if (CModelInfo::IsPedModel(armyId) && LoadModel(armyId)) {
-                    isArmy = true; return armyId;
-                }
-                else {
-                    isArmy = false; return MODEL_ARMY;
-                }
-            }
-        }
-        else
-            return MODEL_ARMY;
-    }
-
-    static int __stdcall GetCurrentWeaponModel(int type) {
-        int result = 25; unsigned int model;
-        switch (type) {
-        case 1: model = GetRandomModel(SwatWeapon_IDs); break;
-        case 2: model = GetRandomModel(FbiWeapon_IDs);  break;
-        case 3: model = GetRandomModel(ArmyWeapon_IDs); break;
-        }
-        switch (model) {
-        case MODEL_CHROMEGUN:
-            if (LoadModel(MODEL_CHROMEGUN))
-                result = 19;
-            break;
-        case MODEL_SHOTGSPA:
-            if (LoadModel(MODEL_SHOTGSPA))
-                result = 20;
-            break;
-        case MODEL_BUDDYSHOT:
-            if (LoadModel(MODEL_BUDDYSHOT))
-                result = 21;
-            break;
-        case MODEL_TEC9:
-            if (LoadModel(MODEL_TEC9))
-                result = 22;
-            break;
-        case MODEL_UZI:
-            if (LoadModel(MODEL_UZI))
-                result = 23;
-            break;
-        case MODEL_INGRAMSL:
-            if (LoadModel(MODEL_INGRAMSL))
-                result = 24;
-            break;
-        case MODEL_MP5LNG:
-            if (LoadModel(MODEL_MP5LNG))
-                result = 25;
-            break;
-        case MODEL_M4:
-            if (LoadModel(MODEL_M4))
-                result = 26;
-            break;
-        default: 
-            if (type == 1)
-                result = 23;
-            else
-                result = 25;  
-            break;
-        }
-        return result;
     }
 
     static void Patch_58BE1F(); // Siren
@@ -660,83 +552,62 @@ public:
     static eWeaponType __stdcall GetCurrentWeaponType(int type) {
         eWeaponType result; unsigned int model;
         switch (type) {
-        case 0: model = GetRandomModel(CopWeapon_IDs);  result = WEAPON_PISTOL; break;
-        case 1: model = GetRandomModel(SwatWeapon_IDs); result = WEAPON_MICRO_UZI; break;
-        case 2: model = GetRandomModel(FbiWeapon_IDs);  result = WEAPON_MP5; break;
-        case 3: model = GetRandomModel(ArmyWeapon_IDs); result = WEAPON_M4; break;
+        case 0: model = GetRandomModel(CopWeapon_IDs);  result = WEAPONTYPE_PISTOL; break;
+        case 1: model = GetRandomModel(SwatWeapon_IDs); result = WEAPONTYPE_UZI; break;
+        case 2: model = GetRandomModel(FbiWeapon_IDs);  result = WEAPONTYPE_MP5; break;
+        case 3: model = GetRandomModel(ArmyWeapon_IDs); result = WEAPONTYPE_M4; break;
         }
         switch (model) {
-        case MODEL_GRENADE:
-            if (LoadModel(MODEL_GRENADE))
-                result = WEAPON_GRENADE;
-            break;
         case MODEL_COLT45:
             if (LoadModel(MODEL_COLT45))
-                result = WEAPON_PISTOL;
+                result = WEAPONTYPE_PISTOL;
             break;
-        case MODEL_SILENCED:
-            if (LoadModel(MODEL_SILENCED))
-                result = WEAPON_PISTOL_SILENCED;
-            break;
-        case MODEL_DESERT_EAGLE:
-            if (LoadModel(MODEL_DESERT_EAGLE))
-                result = WEAPON_DESERT_EAGLE;
+        case MODEL_PYTHON:
+            if (LoadModel(MODEL_PYTHON))
+                result = WEAPONTYPE_PYTHON;
             break;
         case MODEL_CHROMEGUN:
             if (LoadModel(MODEL_CHROMEGUN))
-                result = WEAPON_SHOTGUN;
-            break;
-        case MODEL_SAWNOFF:
-            if (LoadModel(MODEL_SAWNOFF))
-                result = WEAPON_SAWNOFF;
+                result = WEAPONTYPE_SHOTGUN;
             break;
         case MODEL_SHOTGSPA:
             if (LoadModel(MODEL_SHOTGSPA))
-                result = WEAPON_SPAS12;
+                result = WEAPONTYPE_SPAS12_SHOTGUN;
             break;
-        case MODEL_MICRO_UZI:
-            if (LoadModel(MODEL_MICRO_UZI))
-                result = WEAPON_MICRO_UZI;
-            break;
-        case MODEL_MP5LNG:
-            if (LoadModel(MODEL_MP5LNG))
-                result = WEAPON_MP5;
-            break;
-        case MODEL_AK47:
-            if (LoadModel(MODEL_AK47))
-                result = WEAPON_AK47;
-            break;
-        case MODEL_M4:
-            if (LoadModel(MODEL_M4))
-                result = WEAPON_M4;
+        case MODEL_BUDDYSHOT:
+            if (LoadModel(MODEL_BUDDYSHOT))
+                result = WEAPONTYPE_STUBBY_SHOTGUN;
             break;
         case MODEL_TEC9:
             if (LoadModel(MODEL_TEC9))
-                result = WEAPON_TEC9;
+                result = WEAPONTYPE_TEC9;
             break;
-        case MODEL_CUNTGUN:
-            if (LoadModel(MODEL_CUNTGUN))
-                result = WEAPON_COUNTRYRIFLE;
+        case MODEL_UZI:
+            if (LoadModel(MODEL_UZI))
+                result = WEAPONTYPE_UZI;
             break;
-        case MODEL_SNIPER:
-            if (LoadModel(MODEL_SNIPER))
-                result = WEAPON_SNIPERRIFLE;
+        case MODEL_INGRAMSL:
+            if (LoadModel(MODEL_INGRAMSL))
+                result = WEAPONTYPE_SILENCED_INGRAM;
             break;
-        case MODEL_ROCKETLA:
-            if (LoadModel(MODEL_ROCKETLA))
-                result = WEAPON_RLAUNCHER;
+        case MODEL_MP5LNG:
+            if (LoadModel(MODEL_MP5LNG))
+                result = WEAPONTYPE_MP5;
             break;
-
-        case MODEL_MINIGUN:
-            if (LoadModel(MODEL_MINIGUN))
-                result = WEAPON_MINIGUN;
+        case MODEL_M4:
+            if (LoadModel(MODEL_M4))
+                result = WEAPONTYPE_M4;
+            break;
+        case MODEL_RUGER:
+            if (LoadModel(MODEL_RUGER))
+                result = WEAPONTYPE_RUGER;
             break;
         default:
             switch (type) {
-            case 0: result = WEAPON_PISTOL; break;
-            case 1: result = WEAPON_MICRO_UZI; break;
-            case 2: result = WEAPON_MP5;  break;
-            case 3: result = WEAPON_M4; break;
+            case 0: result = WEAPONTYPE_PISTOL; break;
+            case 1: result = WEAPONTYPE_UZI; break;
+            case 2: result = WEAPONTYPE_MP5;  break;
+            case 3: result = WEAPONTYPE_M4; break;
             }
         }
         return result;
@@ -745,31 +616,9 @@ public:
     static int __stdcall GetWeaponAmmo(int type) {
         int result;
         switch (type) {
-        case 16:
-        case 35:
-            result = 3;
-            break;
-        case 22:
-        case 23:
-        case 24:
+        case 17:
+        case 18:
             result = 7;
-            break;
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29:
-        case 30:
-        case 31:
-        case 32:
-            result = 1000;
-            break;
-        case 33:
-        case 34:
-            result = 10;
-            break;
-        case 38:
-            result = 100;
             break;
         default:
             result = 1000;
@@ -778,9 +627,8 @@ public:
         return result;
     }
 
-    static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType) {
-        int copModel; 
-
+    static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType, int type) {
+        int copModel; //CPlayerPed *player = FindPlayerPed();
         cop->m_copType = copType;
         switch (copType) {
         default: break;
@@ -795,16 +643,15 @@ public:
             currentWeaponType = GetCurrentWeaponType(0);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPON_NIGHTSTICK, 1000, true);
-            cop->GiveWeapon(WEAPON_PISTOL, 1000, true);
-            CPlayerPed *player = FindPlayerPed();
-            if (player) {
+            cop->GiveWeapon(WEAPONTYPE_NIGHTSTICK, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_PISTOL, 1000, true);
+            /*if (player) {
                 if (player->m_pWanted->m_nWantedLevel > 1)
                     cop->SetCurrentWeapon(currentWeaponType);
                 else
                     cop->m_nActiveWeaponSlot = 0;
             }
-            else
+            else*/
                 cop->m_nActiveWeaponSlot = 0;
             cop->m_fArmour = 0.0f;
             cop->m_nWepSkills = 208;
@@ -822,7 +669,7 @@ public:
             currentWeaponType = GetCurrentWeaponType(1);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPON_MICRO_UZI, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_UZI, 1000, true);
             cop->SetCurrentWeapon(currentWeaponType);
             cop->m_fArmour = 50.0f;
             cop->m_nWepSkills = 32;
@@ -839,7 +686,7 @@ public:
             currentWeaponType = GetCurrentWeaponType(2);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPON_MP5, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_MP5, 1000, true);
             cop->SetCurrentWeapon(currentWeaponType);
             cop->m_fArmour = 100.0f;
             cop->m_nWepSkills = 176;
@@ -856,11 +703,30 @@ public:
             currentWeaponType = GetCurrentWeaponType(3);
             weaponAmmo = GetWeaponAmmo(currentWeaponType);
             cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPON_M4, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_M4, 1000, true);
             cop->SetCurrentWeapon(currentWeaponType);
             cop->m_fArmour = 100.0f;
             cop->m_nWepSkills = 32;
             cop->m_nWeaponAccuracy = 84;
+            break;
+        case COP_TYPE_VICE:
+            switch (type) {
+            case 0: copModel = MODEL_VICE1;  goto LABEL_TYPE_VICE;
+            case 1: copModel = MODEL_VICE2;  goto LABEL_TYPE_VICE;
+            case 2: copModel = MODEL_VICE3;  goto LABEL_TYPE_VICE;
+            case 3: copModel = MODEL_VICE4;  goto LABEL_TYPE_VICE;
+            case 4: copModel = MODEL_VICE5;  goto LABEL_TYPE_VICE;
+            case 5: copModel = MODEL_VICE6;  goto LABEL_TYPE_VICE;
+            case 6: copModel = MODEL_VICE7;  goto LABEL_TYPE_VICE;
+            case 7: copModel = MODEL_VICE8;
+            }
+            LABEL_TYPE_VICE:
+                cop->SetModelIndex(copModel);
+                cop->GiveWeapon(WEAPONTYPE_UZI, 1000, true);
+                cop->SetCurrentWeapon(WEAPONTYPE_UZI);
+                cop->m_fArmour = 100.0f;
+                cop->m_nWepSkills = 176;
+                cop->m_nWeaponAccuracy = 76;
             break;
         }
     }
@@ -1147,11 +1013,6 @@ unsigned int AddSpecialCars::currentSpecialModelForSiren;
 unsigned int AddSpecialCars::currentSpecialModelForOccupants;
 unsigned int AddSpecialCars::currentFiretrukModel;
 unsigned int AddSpecialCars::currentRoadBlockModel;
-int AddSpecialCars::currentCopModel;
-int AddSpecialCars::currentSwatModel;
-int AddSpecialCars::currentFbiModel;
-int AddSpecialCars::currentArmyModel;
-int AddSpecialCars::currentWeaponModel;
 unsigned int AddSpecialCars::jmp_53A913;
 unsigned int AddSpecialCars::jmp_5945D9;
 unsigned int AddSpecialCars::jmp_444040;
@@ -1224,7 +1085,9 @@ void __declspec(naked) AddSpecialCars::Patch_444034() { // RoadBlockCopsForCar
 
 void __declspec(naked) AddSpecialCars::Patch_4ED743() { // CCopPed::CCopPed
     __asm {
+        mov  edx, [esp + 20]
         pushad
+        push edx
         push ebx
         push eax
         call ConstructorCopPed
@@ -1233,4 +1096,3 @@ void __declspec(naked) AddSpecialCars::Patch_4ED743() { // CCopPed::CCopPed
         jmp edx
     }
 }
-
