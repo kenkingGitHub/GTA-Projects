@@ -4,21 +4,378 @@ using namespace plugin;
 
 class Test {
 public:
+    static void Patch_41065D();
+    static void Patch_580FD4();
+    static void Patch_61DCFA();
+    
     Test() {
-        Events::gameProcessEvent += [] {
-            CPed *player = FindPlayerPed();
-            if (player) {
-                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 7.0f)) {
-                        vehicle->m_autoPilot.m_nAnimationId = TEMPACT_REVERSE;
-                        vehicle->m_autoPilot.m_nAnimationTime = 20000;
-                    }
-                }
-            }
-        };
+        patch::RedirectJump(0x41065D, Patch_41065D);
+        patch::RedirectJump(0x580FD4, Patch_580FD4);
+        patch::RedirectJump(0x61DCFA, Patch_61DCFA);
+        
+        //patch::SetInt(0x41065D + 2, 2000, true);
+        //patch::SetInt(0x580FD4 + 2, 2000, true);
+        patch::SetInt(0x58102C + 1, 2000, true);
+        patch::SetInt(0x61D98B + 1, 2000, true);
+        patch::SetInt(0x61D9E5 + 1, 2000, true);
+        patch::SetInt(0x61DAA5 + 1, 2000, true);
+        patch::SetInt(0x61DBA5 + 1, 2000, true);
+        //patch::SetInt(0x61DCFA + 2, 2000, true);
+        patch::SetInt(0x61DD39 + 1, 2000, true);
     }
 } test;
+
+void __declspec(naked) Test::Patch_41065D() {
+    __asm {
+        cmp ebx, 2000
+        mov ebp, 0x410663
+        jmp ebp
+    }
+}
+
+void __declspec(naked) Test::Patch_580FD4() {
+    __asm {
+        cmp ebx, 2000
+        mov eax, 0x580FDA
+        jmp eax
+    }
+}
+
+void __declspec(naked) Test::Patch_61DCFA() {
+    __asm {
+        cmp ebx, 2000
+        mov ebp, 0x61DD00
+        jmp ebp
+    }
+}
+
+
+
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//#include "CStreaming.h"
+//#include "CWorld.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('N', 2000)) {
+//                CPed *player = FindPlayerPed();
+//                if (player) {
+//                    //Command<COMMAND_UNDRESS_CHAR>(CPools::GetPedRef(player), "STRIPA");
+//                    int modelIndex = player->m_nModelIndex;
+//                    player->DeleteRwObject();
+//                    if (player->IsPlayer())
+//                        modelIndex = 0;
+//                    CStreaming::RequestSpecialModel(modelIndex, "STRIPA", 6);
+//                    CWorld::Remove(player);
+//                    //Command<COMMAND_LOAD_ALL_MODELS_NOW>();
+//                    CTimer::Stop();
+//                    CStreaming::LoadAllRequestedModels(false);
+//                    CTimer::Update();
+//                    //Command<COMMAND_DRESS_CHAR>(CPools::GetPedRef(player));
+//                    player->m_nModelIndex = -1;
+//                    player->SetModelIndex(modelIndex);
+//                    CWorld::Add(player);
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CMessages.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('N', 2000)) {
+//                CVehicle *vehicle = FindPlayerVehicle();
+//                if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+//                    CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+//                    if (!automobile->m_carDamage.GetWheelStatus(0)) {
+//                        automobile->m_carDamage.SetWheelStatus(0, 1);
+//                        CMessages::AddMessageJumpQ(L"damage", 2000, false);
+//                    }
+//                    else {
+//                        automobile->m_carDamage.SetWheelStatus(0, 0);
+//                        CMessages::AddMessageJumpQ(L"fix", 2000, false);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CStreaming.h"
+//#include "CCivilianPed.h"
+//#include "CWorld.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                CStreaming::RequestSpecialChar(20, "SAM", 6); // 023C: load_special_actor 21 'SAM'
+//                if (CStreaming::HasSpecialCharLoaded(20)) {   // 023D: special_actor 21 loaded 
+//                    CPed *ped = new CCivilianPed(PEDTYPE_CIVMALE, 129);
+//                    if (ped) {
+//                        ped->SetPosition(FindPlayerPed()->TransformFromObjectSpace(CVector(0.0f, 2.0f, 0.0f)));
+//                        CWorld::Add(ped);
+//                    }
+//                    CStreaming::SetMissionDoesntRequireSpecialChar(20); // 0296: unload_special_actor 21 
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CClumpModelInfo.h"
+//#include "CMessages.h"
+//
+//RwObject* m_GetCurrentAtomicObjectCB(RwObject* object, void* data) {
+//    return ((RwObject* (__cdecl *)(RwObject*, void*))0x59F1E0)(object, data);
+//}
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static void SetComponentAlpha(CVehicle *vehicle, RwFrame *frame, int alpha) {
+//        RpAtomic *atomic = nullptr;
+//        if (frame) {
+//            RwFrameForAllObjects(frame, m_GetCurrentAtomicObjectCB, &atomic);
+//            if (atomic) {
+//                vehicle->SetComponentAtomicAlpha(atomic, alpha);
+//                CMessages::AddMessageJumpQ(L"atomic yes", 2000, 0);
+//            }
+//            else
+//                CMessages::AddMessageJumpQ(L"atomic no", 2000, 0);
+//        }
+//    }
+//    
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CVehicle* vehicle = FindPlayerVehicle();
+//            if (vehicle) {
+//                CAutomobile *car = reinterpret_cast<CAutomobile *>(vehicle);
+//                KeyCheck::Update();
+//                RwFrame *frame = CClumpModelInfo::GetFrameFromName(vehicle->m_pRwClump, "wiper_or");
+//                if (KeyCheck::CheckWithDelay('M', 2000)) 
+//                    SetComponentAlpha(vehicle, frame, 50);
+//                    //SetComponentAlpha(vehicle, car->m_aCarNodes[CAR_BONNET], 200);
+//                if (KeyCheck::CheckWithDelay('N', 2000)) 
+//                    SetComponentAlpha(vehicle, frame, 255);
+//                    //SetComponentAlpha(vehicle, car->m_aCarNodes[CAR_BONNET], 255);
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "eScriptCommands.h"
+//#include "extensions\ScriptCommands.h"
+//#include "extensions\KeyCheck.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                Command<COMMAND_LOAD_MISSION_TEXT>("GENERA1");
+//                Command<COMMAND_PRINT_NOW>("GEN1_A", 2000, 1);
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//#include "CPed.h"
+//#include "extensions\KeyCheck.h"
+//#include "extensions\ScriptCommands.h"
+//#include "eScriptCommands.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static CPed *GetRandomPed(CVector const &posn, float radius) {
+//        std::vector<CPed *> peds;
+//        for (auto ped : CPools::ms_pPedPool) {
+//            if (DistanceBetweenPoints(ped->GetPosition(), posn) <= radius)
+//                peds.push_back(ped);
+//        }
+//        return peds.empty() ? nullptr : peds[plugin::Random(0, peds.size() - 1)];
+//    }
+//    
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            KeyCheck::Update();
+//            if (KeyCheck::CheckWithDelay('M', 1000)) {
+//                CPed *player = FindPlayerPed();
+//                if (player) {
+//                    CPed *ped = GetRandomPed(player->GetPosition(), 15.0f);
+//                    if (ped) {
+//                        ped->SetObjective(OBJECTIVE_ENTER_CAR_AS_DRIVER, player->m_pVehicle);
+//                        ped->WarpPedIntoCar(player->m_pVehicle);
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//CPed *ped; CVehicle *vehicle;
+//ped->SetObjective(OBJECTIVE_ENTER_CAR_AS_DRIVER, vehicle);
+//ped->WarpPedIntoCar(vehicle);
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CUserDisplay.h"
+//
+//int &var_$3402 = *(int *)0x8247A8;
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static int timer;
+//    enum eTimerState { STATE_ADD, STATE_CLEAR };
+//    static eTimerState m_currentState;
+//
+//    Test() {
+//        Events::drawingEvent += [] {
+//            gamefont::Print({
+//                Format("id %d", CUserDisplay::OnscnTimer.m_aClocks[0].m_nVarId),
+//                Format("direction %d", CUserDisplay::OnscnTimer.m_aClocks[0].m_nTimerDirection),
+//                Format("enabled %d", CUserDisplay::OnscnTimer.m_aClocks[0].m_bEnabled),
+//                Format("text %s", CUserDisplay::OnscnTimer.m_aClocks[0].m_acDisplayedText),
+//                Format("key %s", &CUserDisplay::OnscnTimer.m_aClocks[0].m_acDescriptionTextKey),
+//                Format("var $3402 %d", var_$3402)
+//            }, 10, 10, 1, FONT_DEFAULT, 0.75f, 0.75f, color::White);
+//
+//            KeyCheck::Update();
+//            switch (m_currentState) {
+//            case STATE_ADD:
+//                if (!CUserDisplay::OnscnTimer.m_aClocks[0].m_bEnabled) {
+//                    if (KeyCheck::CheckWithDelay('M', 1000)) {
+//                        var_$3402 = 120000; //in CLEO $3402 = 120000
+//                        CUserDisplay::OnscnTimer.AddClock(timer, "R_TIME", 1); //03C3: set_timer_with_text_to $3402 type 1 text 'R_TIME'
+//                        m_currentState = STATE_CLEAR;
+//                    }
+//                    if (KeyCheck::CheckWithDelay('U', 1000)) {
+//                        CUserDisplay::OnscnTimer.AddClock(timer, "R_TIME", 0); //03C3: set_timer_with_text_to $3402 type 0 text 'R_TIME'
+//                        m_currentState = STATE_CLEAR;
+//                    }
+//                }
+//                break;
+//            case STATE_CLEAR:
+//                if (KeyCheck::CheckWithDelay('N', 1000) || var_$3402 > 121000 || var_$3402 < 1) {
+//                    CUserDisplay::OnscnTimer.ClearClock(timer); //014F: stop_timer $3402
+//                    var_$3402 = 0; //$3402 = 0
+//                    m_currentState = STATE_ADD;
+//                }
+//                break;
+//            }
+//        };
+//    }
+//} test;
+//
+//int Test::timer = 13608; 
+//Test::eTimerState Test::m_currentState = STATE_ADD;
+
+//#include "plugin.h"
+//#include "extensions\KeyCheck.h"
+//#include "CTimer.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    enum eTimerState { STATE_START, STATE_PLAY };
+//    static eTimerState m_currentState;
+//    static int m_min, m_sec, m_millisec;
+//
+//    Test() {
+//        Events::drawingEvent += [] {
+//            switch (m_currentState) {
+//            case STATE_START:
+//                KeyCheck::Update();
+//                if (KeyCheck::CheckWithDelay('M', 2000)) {
+//                    m_min = 0; m_sec = 0; m_millisec = CTimer::m_snTimeInMilliseconds;
+//                    m_currentState = STATE_PLAY;
+//                }
+//                break;
+//            case STATE_PLAY:
+//                if (CTimer::m_snTimeInMilliseconds > (m_millisec + 1000)) {
+//                    m_millisec = CTimer::m_snTimeInMilliseconds;
+//                    if (m_sec < 59)
+//                        m_sec++;
+//                    else {
+//                        m_sec = 0;
+//                        if (m_min < 2)
+//                            m_min++;
+//                        else
+//                            m_currentState = STATE_START;
+//                    }
+//                }
+//                gamefont::Print({
+//                    Format("min %02d : sec %02d", m_min, m_sec)
+//                }, 10, 10, 1, FONT_DEFAULT, 0.75f, 0.75f, color::White);
+//                break;
+//            }
+//        };
+//    }
+//} test;
+//
+//Test::eTimerState Test::m_currentState = STATE_START;
+//int Test::m_min = 0;
+//int Test::m_sec = 0;
+//int Test::m_millisec = 0;
+
+//#include "plugin.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 7.0f)) {
+//                        vehicle->m_autoPilot.m_nAnimationId = TEMPACT_REVERSE;
+//                        vehicle->m_autoPilot.m_nAnimationTime = 20000;
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
 
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"
@@ -52,7 +409,6 @@ public:
 //        };
 //    }
 //} test;
-
 
 //#include "plugin.h"
 //#include "CWorld.h"
@@ -285,7 +641,6 @@ public:
 //        jmp edx
 //    }
 //}
-
 
 //#include "plugin.h"
 //#include "extensions\ScriptCommands.h"
