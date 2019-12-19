@@ -121,7 +121,7 @@ public:
             return MODEL_FBIRANCH;
         else if (model == MODEL_FIRETRUK || Firetruk_IDs.find(model) != Firetruk_IDs.end())
             return MODEL_FIRETRUK;
-        else if (model == MODEL_BARRACKS || Barracks_IDs.find(model) != Barracks_IDs.end())
+        else if (model == MODEL_BARRACKS || model == MODEL_PATRIOT || Barracks_IDs.find(model) != Barracks_IDs.end())
             return MODEL_BARRACKS;
         else if (model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
             return MODEL_ENFORCER;
@@ -147,24 +147,12 @@ public:
     static int __stdcall GetSpecialModel(eSpecialType type) {
         int result;
         switch (type) {
-        case TYPE_MEDIC:
-            result = MODEL_MEDIC;
-            break;
-        case TYPE_FIREMAN:
-            result = MODEL_FIREMAN;
-            break;
-        case TYPE_COP:
-            result = MODEL_COP;
-            break;
-        case TYPE_SWAT:
-            result = MODEL_SWAT;
-            break;
-        case TYPE_FBI:
-            result = MODEL_FBI;
-            break;
-        case TYPE_ARMY:
-            result = MODEL_ARMY;
-            break;
+        case TYPE_MEDIC:    result = MODEL_MEDIC;   break;
+        case TYPE_FIREMAN:  result = MODEL_FIREMAN; break;
+        case TYPE_COP:      result = MODEL_COP;     break;
+        case TYPE_SWAT:     result = MODEL_SWAT;    break;
+        case TYPE_FBI:      result = MODEL_FBI;     break;
+        case TYPE_ARMY:     result = MODEL_ARMY;    break;
         }
         return result;
     }
@@ -317,6 +305,7 @@ public:
             case MODEL_FBICAR:
             case MODEL_FBIRANCH:
             case MODEL_ENFORCER:
+            case MODEL_PATRIOT:
                 vehicle->SetUpDriver();
                 vehicle->SetupPassenger(0);
                 vehicle->SetupPassenger(1);
@@ -414,7 +403,7 @@ public:
                             && CStreaming::ms_aInfoForModel[MODEL_ARMY].m_nLoadState == LOADSTATE_LOADED)
                         {
                             unsigned int barracksId;
-                            int randomArmy = plugin::Random(0, 2);
+                            int randomArmy = plugin::Random(0, 3);
                             switch (randomArmy) {
                             case 0:
                                 barracksId = GetRandomModel(Barracks_IDs); 
@@ -428,6 +417,11 @@ public:
                                     return MODEL_BARRACKS;
                             case 1: return MODEL_BARRACKS;
                             case 2: return MODEL_RHINO;
+                            case 3: 
+                                if (LoadModel(MODEL_PATRIOT))
+                                    return MODEL_PATRIOT;
+                                else
+                                    return MODEL_BARRACKS;
                             default: return MODEL_BARRACKS;
                             }
                         }
@@ -504,10 +498,10 @@ public:
             unsigned int model = player->m_pVehicle->m_nModelIndex;
             if (CTheScripts::ScriptParams[1].uParam == MODEL_POLICE || CTheScripts::ScriptParams[1].uParam == MODEL_ENFORCER
                 || CTheScripts::ScriptParams[1].uParam == MODEL_RHINO || CTheScripts::ScriptParams[1].uParam == MODEL_FBICAR
-                || CTheScripts::ScriptParams[1].uParam == MODEL_FBIRANCH) 
+                || CTheScripts::ScriptParams[1].uParam == MODEL_FBIRANCH || CTheScripts::ScriptParams[1].uParam == MODEL_PATRIOT)
             {
                 if (model == MODEL_RHINO || model == MODEL_POLICE || Police_IDs.find(model) != Police_IDs.end()
-                    || model == MODEL_BARRACKS || Barracks_IDs.find(model) != Barracks_IDs.end()
+                    || model == MODEL_BARRACKS || model == MODEL_PATRIOT || Barracks_IDs.find(model) != Barracks_IDs.end()
                     || model == MODEL_FBICAR || model == MODEL_FBIRANCH || Fbiranch_IDs.find(model) != Fbiranch_IDs.end()
                     || model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
                     inModel = true; // Vigilante
