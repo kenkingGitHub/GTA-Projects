@@ -725,6 +725,34 @@ public:
         }
     }
 
+    static bool __stdcall IsCarSprayable(int model) {
+        bool result;
+        if (Police_IDs.find(model) != Police_IDs.end()
+            || Fbiranch_IDs.find(model) != Fbiranch_IDs.end()
+            || Enforcer_IDs.find(model) != Enforcer_IDs.end()
+            || Firetruk_IDs.find(model) != Firetruk_IDs.end()
+            || Ambulan_IDs.find(model) != Ambulan_IDs.end()
+            || Barracks_IDs.find(model) != Barracks_IDs.end())
+            return false;
+
+        switch (model) {
+        case MODEL_FIRETRUK:
+        case MODEL_AMBULAN:
+        case MODEL_POLICE:
+        case MODEL_ENFORCER:
+        case MODEL_BUS:
+        case MODEL_RHINO:
+        case MODEL_BARRACKS:
+        case MODEL_COACH:
+            result = false;
+            break;
+        default:
+            result = true;
+            break;
+        }
+        return result;
+    }
+
 
     AddSpecialCars() {
         std::ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -843,6 +871,10 @@ public:
         patch::RedirectCall(0x44525F, OpcodeIsPlayerInModel);
         patch::Nop(0x445264, 0x46); // or jump 0x4452AA
         
+        patch::SetUChar(0x430CC6, 0x50); // push eax
+        patch::RedirectCall(0x430CC7, IsCarSprayable); // call
+        patch::RedirectJump(0x430CCC, reinterpret_cast<void *>(0x430CF9)); // jump
+
         Events::gameProcessEvent += [] {
             CPlayerPed *player = FindPlayerPed();
             if (player) {
