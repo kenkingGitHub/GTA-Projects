@@ -59,12 +59,12 @@ public:
 using namespace plugin;
 using namespace std;
 
-int m_nEmergencyServices;
+int m_nEmergencyServices, m_nTime;
 
 unordered_set<unsigned int>
 /*cop vehicles*/            Police_IDs, Fbiranch_IDs, Enforcer_IDs, Barracks_IDs,
 /*cop peds*/                Cop_IDs, Swat_IDs, Fbi_IDs, Army_IDs,
-/*cop weapons*/             CopWeapon_IDs, SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
+/*cop weapons*/             SwatWeapon_IDs, FbiWeapon_IDs, ArmyWeapon_IDs,
 /*taxi cars*/               Taxi_IDs,
 /*emergency cars*/          Ambulan_IDs, Firetruk_IDs,
 /*emergency peds*/          Medic_IDs, Fireman_IDs;
@@ -72,7 +72,7 @@ unordered_set<unsigned int>
 bool isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
 isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
 
-int randomEmergencyModel = 3, randomFbicar = 2, randomRoadBlocksTime = 0, spawnCarTime = 0, weaponAmmo;
+int randomEmergencyModel = 3, randomFbicar = 2, randomRoadBlocksTime = 0, spawnCarTime = 0;
 
 class AddSpecialCars {
 public:
@@ -174,6 +174,7 @@ public:
     static void Patch_5945CE(); // FireTruckControl
     static void Patch_444034(); // RoadBlockCopsForCar
     static void Patch_4ED743(); // RandomCop
+    //static void Patch_4ED743(); // RandomEmergencyPed
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -546,7 +547,6 @@ public:
     static eWeaponType __stdcall GetCurrentWeaponType(int type) {
         eWeaponType result; unsigned int model;
         switch (type) {
-        case 0: model = GetRandomModel(CopWeapon_IDs);  result = WEAPONTYPE_PISTOL; break;
         case 1: model = GetRandomModel(SwatWeapon_IDs); result = WEAPONTYPE_UZI; break;
         case 2: model = GetRandomModel(FbiWeapon_IDs);  result = WEAPONTYPE_MP5; break;
         case 3: model = GetRandomModel(ArmyWeapon_IDs); result = WEAPONTYPE_M4; break;
@@ -555,10 +555,6 @@ public:
         case MODEL_COLT45:
             if (LoadModel(MODEL_COLT45))
                 result = WEAPONTYPE_PISTOL;
-            break;
-        case MODEL_PYTHON:
-            if (LoadModel(MODEL_PYTHON))
-                result = WEAPONTYPE_PYTHON;
             break;
         case MODEL_CHROMEGUN:
             if (LoadModel(MODEL_CHROMEGUN))
@@ -572,17 +568,9 @@ public:
             if (LoadModel(MODEL_BUDDYSHOT))
                 result = WEAPONTYPE_STUBBY_SHOTGUN;
             break;
-        case MODEL_TEC9:
-            if (LoadModel(MODEL_TEC9))
-                result = WEAPONTYPE_TEC9;
-            break;
         case MODEL_UZI:
             if (LoadModel(MODEL_UZI))
                 result = WEAPONTYPE_UZI;
-            break;
-        case MODEL_INGRAMSL:
-            if (LoadModel(MODEL_INGRAMSL))
-                result = WEAPONTYPE_SILENCED_INGRAM;
             break;
         case MODEL_MP5LNG:
             if (LoadModel(MODEL_MP5LNG))
@@ -592,13 +580,8 @@ public:
             if (LoadModel(MODEL_M4))
                 result = WEAPONTYPE_M4;
             break;
-        case MODEL_RUGER:
-            if (LoadModel(MODEL_RUGER))
-                result = WEAPONTYPE_RUGER;
-            break;
         default:
             switch (type) {
-            case 0: result = WEAPONTYPE_PISTOL; break;
             case 1: result = WEAPONTYPE_UZI; break;
             case 2: result = WEAPONTYPE_MP5;  break;
             case 3: result = WEAPONTYPE_M4; break;
@@ -607,22 +590,8 @@ public:
         return result;
     }
 
-    static int __stdcall GetWeaponAmmo(int type) {
-        int result;
-        switch (type) {
-        case 17:
-        case 18:
-            result = 7;
-            break;
-        default:
-            result = 1000;
-            break;
-        }
-        return result;
-    }
-
     static void __stdcall ConstructorCopPed(CCopPed *cop, eCopType copType, int type) {
-        int copModel; //CPlayerPed *player = FindPlayerPed();
+        int copModel; 
         cop->m_copType = copType;
         switch (copType) {
         default: break;
@@ -634,21 +603,11 @@ public:
                 copModel = GetCurrentPedModel(Cop_IDs, TYPE_COP); isCop = true;
             }
             cop->SetModelIndex(copModel);
-            currentWeaponType = GetCurrentWeaponType(0);
-            weaponAmmo = GetWeaponAmmo(currentWeaponType);
-            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
             cop->GiveWeapon(WEAPONTYPE_NIGHTSTICK, 1000, true);
-            cop->GiveWeapon(WEAPONTYPE_PISTOL, 1000, true);
-            /*if (player) {
-                if (player->m_pWanted->m_nWantedLevel > 1)
-                    cop->SetCurrentWeapon(currentWeaponType);
-                else
-                    cop->m_nActiveWeaponSlot = 0;
-            }
-            else*/
-                cop->m_nActiveWeaponSlot = 0;
+            cop->GiveDelayedWeapon(WEAPONTYPE_PISTOL, 1000);
+            cop->m_nActiveWeaponSlot = 0;
             cop->m_fArmour = 0.0f;
-            cop->m_nWepSkills = 208;
+            cop->m_nWepSkills = 30;
             cop->m_nWeaponAccuracy = 60;
             break;
         case COP_TYPE_SWAT1:
@@ -661,12 +620,11 @@ public:
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(1);
-            weaponAmmo = GetWeaponAmmo(currentWeaponType);
-            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPONTYPE_UZI, 1000, true);
-            cop->SetCurrentWeapon(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_PISTOL, 7, true);
+            cop->SetCurrentWeapon(WEAPONTYPE_PISTOL);
             cop->m_fArmour = 50.0f;
-            cop->m_nWepSkills = 32;
+            cop->m_nWepSkills = 70;
             cop->m_nWeaponAccuracy = 68;
             break;
         case COP_TYPE_FBI:
@@ -678,12 +636,11 @@ public:
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(2);
-            weaponAmmo = GetWeaponAmmo(currentWeaponType);
-            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPONTYPE_MP5, 1000, true);
-            cop->SetCurrentWeapon(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_PISTOL, 7, true);
+            cop->SetCurrentWeapon(WEAPONTYPE_PISTOL);
             cop->m_fArmour = 100.0f;
-            cop->m_nWepSkills = 176;
+            cop->m_nWepSkills = 60;
             cop->m_nWeaponAccuracy = 76;
             break;
         case COP_TYPE_ARMY:
@@ -695,12 +652,11 @@ public:
             }
             cop->SetModelIndex(copModel);
             currentWeaponType = GetCurrentWeaponType(3);
-            weaponAmmo = GetWeaponAmmo(currentWeaponType);
-            cop->GiveWeapon(currentWeaponType, weaponAmmo, true);
-            cop->GiveWeapon(WEAPONTYPE_M4, 1000, true);
-            cop->SetCurrentWeapon(currentWeaponType);
+            cop->GiveWeapon(currentWeaponType, 1000, true);
+            cop->GiveWeapon(WEAPONTYPE_PISTOL, 7, true);
+            cop->SetCurrentWeapon(WEAPONTYPE_PISTOL);
             cop->m_fArmour = 100.0f;
-            cop->m_nWepSkills = 32;
+            cop->m_nWepSkills = 80;
             cop->m_nWeaponAccuracy = 84;
             break;
         case COP_TYPE_VICE:
@@ -716,10 +672,10 @@ public:
             }
             LABEL_TYPE_VICE:
                 cop->SetModelIndex(copModel);
-                cop->GiveWeapon(WEAPONTYPE_UZI, 1000, true);
+                cop->GiveDelayedWeapon(WEAPONTYPE_UZI, 1000);
                 cop->SetCurrentWeapon(WEAPONTYPE_UZI);
                 cop->m_fArmour = 100.0f;
-                cop->m_nWepSkills = 176;
+                cop->m_nWepSkills = 60;
                 cop->m_nWeaponAccuracy = 76;
             break;
         }
@@ -843,10 +799,28 @@ public:
                         ArmyWeapon_IDs.insert(stoi(line));
                 }
             }
+            if (!line.compare("medic")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        Medic_IDs.insert(stoi(line));
+                }
+            }
+            if (!line.compare("fireman")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        Fireman_IDs.insert(stoi(line));
+                }
+            }
             if (!line.compare("emergency")) {
                 while (getline(stream, line) && line.compare("end")) {
                     if (line.length() > 0 && line[0] != ';' && line[0] != '#')
                         m_nEmergencyServices = stoi(line);
+                }
+            }
+            if (!line.compare("time")) {
+                while (getline(stream, line) && line.compare("end")) {
+                    if (line.length() > 0 && line[0] != ';' && line[0] != '#')
+                        m_nTime = stoi(line);
                 }
             }
         }
