@@ -3,6 +3,13 @@ emergency
 0
 end
 
+# time to generate a car in game minutes (real seconds)
+time
+30
+end
+
+#----------------------------------------
+
 #example
 #6000
 #6001
@@ -56,10 +63,7 @@ end
 
 #---END PEDS
 
-#---WEAPONS: ID's 
-
-copweapon
-end
+#---WEAPONS: ID's 274, 277-280, 282, 284
 
 swatweapon
 end

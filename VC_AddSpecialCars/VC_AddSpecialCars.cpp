@@ -16,6 +16,7 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 #include "CCopPed.h"
+#include "CEmergencyPed.h"
 
 int &/*CCarCtrl::*/MiamiViceCycle = *(int *)0xA0FD6C;
 int &/*CCarCtrl::*/LastTimeMiamiViceGenerated = *(int *)0x9751A8;
@@ -70,14 +71,14 @@ unordered_set<unsigned int>
 /*emergency peds*/          Medic_IDs, Fireman_IDs;
 
 bool isCop = false, isSwat = false, isFbi = false, isArmy = false, isMedic = false, isFireman = false,
-isAmbulan = false, isFiretruck = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
+isAmbulanceModel = false, isAmbulan = false, isFiretruk = false, isEnforcer = true, isFbiranch = true, isBarracks = true;
 
-int randomEmergencyModel = 3, randomFbicar = 2, randomRoadBlocksTime = 0, spawnCarTime = 0;
+int randomFbicar = 2, randomRoadBlocksTime = 0, m_nGenerateEmergencyServicesTime = 0, medicModel, firemanModel;
 
 class AddSpecialCars {
 public:
     enum eSpawnCarState { STATE_FIND, STATE_WAIT, STATE_CREATE };
-    enum eSpecialType { TYPE_MEDIC, TYPE_FIREMAN, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY };
+    enum eSpecialModel { TYPE_AMBULAN, TYPE_MEDIC, TYPE_FIRETRUK, TYPE_FIREMAN, TYPE_COP, TYPE_SWAT, TYPE_FBI, TYPE_ARMY };
 
     static eSpawnCarState m_currentState;
     static short outCount;
@@ -144,26 +145,52 @@ public:
         return model;
     }
 
-    static int __stdcall GetSpecialModel(eSpecialType type) {
+    static int __stdcall GetSpecialModel(eSpecialModel type) {
         int result;
         switch (type) {
-        case TYPE_MEDIC:    result = MODEL_MEDIC;   break;
-        case TYPE_FIREMAN:  result = MODEL_FIREMAN; break;
-        case TYPE_COP:      result = MODEL_COP;     break;
-        case TYPE_SWAT:     result = MODEL_SWAT;    break;
-        case TYPE_FBI:      result = MODEL_FBI;     break;
-        case TYPE_ARMY:     result = MODEL_ARMY;    break;
+        case TYPE_AMBULAN:  result = MODEL_AMBULAN;  break;
+        case TYPE_MEDIC:    result = MODEL_MEDIC;    break;
+        case TYPE_FIRETRUK: result = MODEL_FIRETRUK; break;
+        case TYPE_FIREMAN:  result = MODEL_FIREMAN;  break;
+        case TYPE_COP:      result = MODEL_COP;      break;
+        case TYPE_SWAT:     result = MODEL_SWAT;     break;
+        case TYPE_FBI:      result = MODEL_FBI;      break;
+        case TYPE_ARMY:     result = MODEL_ARMY;     break;
         }
         return result;
     }
 
-    static int __stdcall GetCurrentPedModel(unordered_set<unsigned int> IDs, eSpecialType type) {
+    static int __stdcall GetCurrentPedModel(unordered_set<unsigned int> IDs, eSpecialModel type) {
         if (IDs.size()) {
             unsigned int pedId = GetRandomModel(IDs);
-            if (CModelInfo::IsPedModel(pedId) && LoadModel(pedId))
-                return pedId;
+            if (CModelInfo::IsPedModel(pedId)) {
+                if (CStreaming::ms_aInfoForModel[pedId].m_nLoadState == LOADSTATE_LOADED)
+                    return pedId;
+                else {
+                    if (LoadModel(pedId))
+                        return pedId;
+                    else
+                        return GetSpecialModel(type);
+                }
+            }
             else
                 return GetSpecialModel(type);
+        }
+        else
+            return GetSpecialModel(type);
+    }
+
+    static int __stdcall GetCurrentVehicleModel(unordered_set<unsigned int> IDs, eSpecialModel type) {
+        int vehicleId = GetRandomModel(IDs);
+        if (CModelInfo::IsCarModel(vehicleId)) {
+            if (CStreaming::ms_aInfoForModel[vehicleId].m_nLoadState == LOADSTATE_LOADED)
+                return vehicleId;
+            else {
+                if (LoadModel(vehicleId))
+                    return vehicleId;
+                else
+                    return GetSpecialModel(type);
+            }
         }
         else
             return GetSpecialModel(type);
@@ -174,7 +201,8 @@ public:
     static void Patch_5945CE(); // FireTruckControl
     static void Patch_444034(); // RoadBlockCopsForCar
     static void Patch_4ED743(); // RandomCop
-    //static void Patch_4ED743(); // RandomEmergencyPed
+    static void Patch_4EEB73(); // RandomMedic
+    static void Patch_4EEB9C(); // RandomFireman
 
     // CCranes::DoesMilitaryCraneHaveThisOneAlready
     static bool __cdecl DoesMilitaryCraneHaveThisOneAlready(int model) {
@@ -709,6 +737,50 @@ public:
         return result;
     }
 
+    static int __stdcall RandomMedic() {
+        int result;
+        if (isMedic) {
+            result = MODEL_MEDIC; isMedic = false;
+        }
+        else {
+            result = GetCurrentPedModel(Medic_IDs, TYPE_MEDIC); isMedic = true;
+        }
+        return result;
+    }
+
+    static int __stdcall RandomFireman() {
+        int result;
+        if (isFireman) {
+            result = MODEL_FIREMAN; isFireman = false;
+        }
+        else {
+            result = GetCurrentPedModel(Fireman_IDs, TYPE_FIREMAN); isFireman = true;
+        }
+        return result;
+    }
+
+    static int __stdcall RandomAmbulan() {
+        int result;
+        if (isAmbulan) {
+            result = MODEL_AMBULAN; isAmbulan = false;
+        }
+        else {
+            result = GetCurrentVehicleModel(Ambulan_IDs, TYPE_AMBULAN); isAmbulan = true;
+        }
+        return result;
+    }
+
+    static int __stdcall RandomFiretruk() {
+        int result;
+        if (isFiretruk) {
+            result = MODEL_FIRETRUK; isFiretruk = false;
+        }
+        else {
+            result = GetCurrentVehicleModel(Firetruk_IDs, TYPE_FIRETRUK); isFiretruk = true;
+        }
+        return result;
+    }
+
 
     AddSpecialCars() {
         std::ifstream stream(PLUGIN_PATH("SpecialCars.dat"));
@@ -839,6 +911,8 @@ public:
         patch::RedirectJump(0x444034, Patch_444034);
 
         patch::RedirectJump(0x4ED743, Patch_4ED743);
+        patch::RedirectJump(0x4EEB73, Patch_4EEB73);
+        patch::RedirectJump(0x4EEB9C, Patch_4EEB9C);
 
         patch::RedirectCall(0x45600E, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x456013, 0x5B); // or jump 0x45606E
@@ -896,10 +970,9 @@ public:
                 }
                 // Spawn Cars
                 if (m_nEmergencyServices) {
-                    unsigned int ambulanId, firetrukId;
                     switch (m_currentState) {
                     case STATE_FIND:
-                        if (CTimer::m_snTimeInMilliseconds > (spawnCarTime + 100000) && !CTheScripts::IsPlayerOnAMission()) {
+                        if (CTimer::m_snTimeInMilliseconds > (m_nGenerateEmergencyServicesTime + m_nTime * 1000) && !CTheScripts::IsPlayerOnAMission()) {
                             CVector onePoint = player->TransformFromObjectSpace(CVector(20.0f, 150.0f, 0.0f));
                             CVector twoPoint = player->TransformFromObjectSpace(CVector(-20.0f, 70.0f, 0.0f));
                             CVehicle *car = GetRandomCar(onePoint.x, onePoint.y, twoPoint.x, twoPoint.y);
@@ -931,46 +1004,31 @@ public:
                         break;
                     case STATE_CREATE:
                         int modelCar, modelPed;
-                        if (randomEmergencyModel < 3)
-                            randomEmergencyModel++;
-                        else
-                            randomEmergencyModel = 0;
-                        switch (randomEmergencyModel) {
-                        case 0:
-                            ambulanId = GetRandomModel(Ambulan_IDs);
-                            if (CModelInfo::IsCarModel(ambulanId) && LoadModel(ambulanId))
-                                modelCar = ambulanId;
-                            else
-                                modelCar = MODEL_AMBULAN;
+                        if (isAmbulanceModel) {
+                            modelCar = RandomAmbulan();
                             modelPed = MODEL_MEDIC;
-                            break;
-                        case 1:
-                            firetrukId = GetRandomModel(Firetruk_IDs);
-                            if (CModelInfo::IsCarModel(firetrukId) && LoadModel(firetrukId))
-                                modelCar = firetrukId;
-                            else
-                                modelCar = MODEL_FIRETRUK;
+                        }
+                        else {
+                            modelCar = RandomFiretruk();
                             modelPed = MODEL_FIREMAN;
-                            break;
-                        case 2: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
-                        case 3: modelCar = MODEL_FIRETRUK; modelPed = MODEL_FIREMAN; break;
-                        default: modelCar = MODEL_AMBULAN; modelPed = MODEL_MEDIC; break;
                         }
                         if (LoadModel(modelCar) && LoadModel(modelPed)) {
                             CVehicle *vehicle = nullptr;
                             vehicle = new CAutomobile(modelCar, 1);
                             if (vehicle) {
-                                spawnCarTime = CTimer::m_snTimeInMilliseconds;
+                                m_nGenerateEmergencyServicesTime = CTimer::m_snTimeInMilliseconds;
                                 vehicle->SetPosition(carPos);
                                 vehicle->m_placement.SetHeading(carAngle);
                                 vehicle->m_nState = 4;
                                 CWorld::Add(vehicle);
                                 CTheScripts::ClearSpaceForMissionEntity(carPos, vehicle);
                                 reinterpret_cast<CAutomobile *>(vehicle)->PlaceOnRoadProperly();
-                                if (modelPed == MODEL_MEDIC)
-                                    CCarAI::AddAmbulanceOccupants(vehicle);
-                                else
-                                    CCarAI::AddFiretruckOccupants(vehicle);
+                                if (isAmbulanceModel) {
+                                    CCarAI::AddAmbulanceOccupants(vehicle); isAmbulanceModel = false;
+                                }
+                                else {
+                                    CCarAI::AddFiretruckOccupants(vehicle); isAmbulanceModel = true;
+                                }
                                 Command<COMMAND_CAR_GOTO_COORDINATES>(CPools::GetVehicleRef(vehicle), 0.0f, 0.0f, 0.0f);
                                 vehicle->m_autoPilot = pilot;
                                 if (plugin::Random(0, 1)) {
@@ -1093,6 +1151,34 @@ void __declspec(naked) AddSpecialCars::Patch_4ED743() { // CCopPed::CCopPed
         call ConstructorCopPed
         popad
         mov edx, 0x4ED8F5
+        jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4EEB73() { // Medic
+    __asm {
+        pushad
+        call RandomMedic
+        mov medicModel, eax
+        popad
+        mov eax, medicModel
+        push eax
+        call dword ptr[ebx + 12]
+        mov edx, 0x4EEB78
+        jmp edx
+    }
+}
+
+void __declspec(naked) AddSpecialCars::Patch_4EEB9C() { // Fireman
+    __asm {
+        pushad
+        call RandomFireman
+        mov firemanModel, eax
+        popad
+        mov eax, firemanModel
+        push eax
+        call dword ptr[ebx + 12]
+        mov edx, 0x4EEBA1
         jmp edx
     }
 }
