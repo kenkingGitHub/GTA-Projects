@@ -16,7 +16,6 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 #include "CCopPed.h"
-#include "CEmergencyPed.h"
 
 int &/*CCarCtrl::*/MiamiViceCycle = *(int *)0xA0FD6C;
 int &/*CCarCtrl::*/LastTimeMiamiViceGenerated = *(int *)0x9751A8;
