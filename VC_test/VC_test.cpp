@@ -1,55 +1,55 @@
-#include "plugin.h"
-
-using namespace plugin;
-
-class Test {
-public:
-    static void Patch_41065D();
-    static void Patch_580FD4();
-    static void Patch_61DCFA();
-    
-    Test() {
-        patch::RedirectJump(0x41065D, Patch_41065D);
-        patch::RedirectJump(0x580FD4, Patch_580FD4);
-        patch::RedirectJump(0x61DCFA, Patch_61DCFA);
-        
-        //patch::SetInt(0x41065D + 2, 2000, true);
-        //patch::SetInt(0x580FD4 + 2, 2000, true);
-        patch::SetInt(0x58102C + 1, 2000, true);
-        patch::SetInt(0x61D98B + 1, 2000, true);
-        patch::SetInt(0x61D9E5 + 1, 2000, true);
-        patch::SetInt(0x61DAA5 + 1, 2000, true);
-        patch::SetInt(0x61DBA5 + 1, 2000, true);
-        //patch::SetInt(0x61DCFA + 2, 2000, true);
-        patch::SetInt(0x61DD39 + 1, 2000, true);
-    }
-} test;
-
-void __declspec(naked) Test::Patch_41065D() {
-    __asm {
-        cmp ebx, 2000
-        mov ebp, 0x410663
-        jmp ebp
-    }
-}
-
-void __declspec(naked) Test::Patch_580FD4() {
-    __asm {
-        cmp ebx, 2000
-        mov eax, 0x580FDA
-        jmp eax
-    }
-}
-
-void __declspec(naked) Test::Patch_61DCFA() {
-    __asm {
-        cmp ebx, 2000
-        mov ebp, 0x61DD00
-        jmp ebp
-    }
-}
 
 
+//#include "plugin.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static void Patch_41065D();
+//    static void Patch_580FD4();
+//    static void Patch_61DCFA();
+//    
+//    Test() {
+//        patch::RedirectJump(0x41065D, Patch_41065D);
+//        patch::RedirectJump(0x580FD4, Patch_580FD4);
+//        patch::RedirectJump(0x61DCFA, Patch_61DCFA);
+//        
+//        //patch::SetInt(0x41065D + 2, 2000, true);
+//        //patch::SetInt(0x580FD4 + 2, 2000, true);
+//        patch::SetInt(0x58102C + 1, 2000, true);
+//        patch::SetInt(0x61D98B + 1, 2000, true);
+//        patch::SetInt(0x61D9E5 + 1, 2000, true);
+//        patch::SetInt(0x61DAA5 + 1, 2000, true);
+//        patch::SetInt(0x61DBA5 + 1, 2000, true);
+//        //patch::SetInt(0x61DCFA + 2, 2000, true);
+//        patch::SetInt(0x61DD39 + 1, 2000, true);
+//    }
+//} test;
+//
+//void __declspec(naked) Test::Patch_41065D() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov ebp, 0x410663
+//        jmp ebp
+//    }
+//}
+//
+//void __declspec(naked) Test::Patch_580FD4() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov eax, 0x580FDA
+//        jmp eax
+//    }
+//}
+//
+//void __declspec(naked) Test::Patch_61DCFA() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov ebp, 0x61DD00
+//        jmp ebp
+//    }
+//}
 
 
 //#include "plugin.h"
