@@ -48,7 +48,7 @@ public:
 
     static void EnableDoorEvent(CAutomobile *automobile, eDoors doorId) { // Включить событие двери
         if (automobile->IsComponentPresent(componentByDoorId[doorId])) {
-            if (automobile->stDamage.GetDoorStatus(doorId) != DAMSTATE_NOTPRESENT) {
+            if (automobile->m_carDamage.GetDoorStatus(doorId) != DAMSTATE_NOTPRESENT) {
                 DoorEvent &event = VehDoors.Get(automobile).events[doorId];
                 if (event.m_type == DOOR_EVENT_OPEN)
                     event.m_type = DOOR_EVENT_CLOSE; // Если последнее событие - открытие, то закрываем

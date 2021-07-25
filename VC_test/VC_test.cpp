@@ -1,55 +1,210 @@
-
-
+/*
+Plugin-SDK (Grand Theft Auto) source file
+Authors: GTA Community. See more here
+https://github.com/DK22Pac/plugin-sdk
+Do not delete this comment block. Respect others' work!
+*/
 #include "plugin.h"
+#include "game_vc\common.h"
+#include "game_vc\CAutomobile.h"
+#include "game_vc\CTimer.h"
 
 using namespace plugin;
 
-class Test {
+const float ACTION_TIME_STEP = 0.05f;
+const int TIME_FOR_KEYPRESS = 500;
+
+class DoorsExample {
 public:
-    static void Patch_41065D();
-    static void Patch_580FD4();
-    static void Patch_61DCFA();
-    
-    Test() {
-        patch::RedirectJump(0x41065D, Patch_41065D);
-        patch::RedirectJump(0x580FD4, Patch_580FD4);
-        patch::RedirectJump(0x61DCFA, Patch_61DCFA);
-        
-        //patch::SetInt(0x41065D + 2, 2000, true);
-        //patch::SetInt(0x580FD4 + 2, 2000, true);
-        patch::SetInt(0x58102C + 1, 2000, true);
-        patch::SetInt(0x61D98B + 1, 2000, true);
-        patch::SetInt(0x61D9E5 + 1, 2000, true);
-        patch::SetInt(0x61DAA5 + 1, 2000, true);
-        patch::SetInt(0x61DBA5 + 1, 2000, true);
-        //patch::SetInt(0x61DCFA + 2, 2000, true);
-        patch::SetInt(0x61DD39 + 1, 2000, true);
-    }
-} test;
+    static int componentByDoorId[6]; // Таблица перевода eDoors в Id компонента
 
-void __declspec(naked) Test::Patch_41065D() {
-    __asm {
-        cmp ebx, 2000
-        mov ebp, 0x410663
-        jmp ebp
-    }
-}
+    static int m_nLastTimeWhenAnyActionWasEnabled; // Последнее время запуска события
 
-void __declspec(naked) Test::Patch_580FD4() {
-    __asm {
-        cmp ebx, 2000
-        mov eax, 0x580FDA
-        jmp eax
-    }
-}
+    enum eDoorEventType { // Тип события
+        DOOR_EVENT_OPEN,
+        DOOR_EVENT_CLOSE
+    };
 
-void __declspec(naked) Test::Patch_61DCFA() {
-    __asm {
-        cmp ebx, 2000
-        mov ebp, 0x61DD00
-        jmp ebp
+    class DoorEvent { // Класс события
+    public:
+        bool m_active;
+        eDoorEventType m_type;
+        float m_openingState;
+
+        DoorEvent() {
+            m_active = false;
+            m_type = DOOR_EVENT_CLOSE;
+        }
+    };
+
+    class VehicleDoors {
+    public:
+        DoorEvent events[6]; // События для всех 6 дверей
+
+        VehicleDoors(CVehicle *) {}
+    };
+
+    static VehicleExtendedData<VehicleDoors> VehDoors; // Наше расширение
+
+    static void EnableDoorEvent(CAutomobile *automobile, eDoors doorId) { // Включить событие двери
+        if (automobile->IsComponentPresent(componentByDoorId[doorId])) {
+            if (automobile->m_carDamage.GetDoorStatus(doorId) != DAMSTATE_NOTPRESENT) {
+                DoorEvent &event = VehDoors.Get(automobile).events[doorId];
+                if (event.m_type == DOOR_EVENT_OPEN)
+                    event.m_type = DOOR_EVENT_CLOSE; // Если последнее событие - открытие, то закрываем
+                else
+                    event.m_type = DOOR_EVENT_OPEN; // Если последнее событие закрытие - то открываем
+                event.m_active = true; // Включаем обработку
+                m_nLastTimeWhenAnyActionWasEnabled = CTimer::m_snTimeInMilliseconds;
+            }
+        }
     }
-}
+
+    static void ProcessDoors(CVehicle *vehicle) { // Обработка событий для конкретного авто
+        if (vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+            CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle);
+            for (unsigned int i = 0; i < 6; i++) { // Обрабатываем все события
+                eDoors doorId = static_cast<eDoors>(i);
+                DoorEvent &event = VehDoors.Get(automobile).events[doorId];
+                if (event.m_active) { // Если событие активно
+                    if (event.m_type == DOOR_EVENT_OPEN) {
+                        event.m_openingState += ACTION_TIME_STEP;
+                        if (event.m_openingState > 1.0f) { // Если полностью открыли
+                            event.m_active = false; // Отключаем обработку
+                            automobile->OpenDoor(componentByDoorId[doorId], doorId, 1.0f); // Полностью открываем
+                            event.m_openingState = 1.0f;
+                        }
+                        else
+                            automobile->OpenDoor(componentByDoorId[doorId], doorId, event.m_openingState);
+                    }
+                    else {
+                        event.m_openingState -= ACTION_TIME_STEP;
+                        if (event.m_openingState < 0.0f) { // Если полностью открыли
+                            event.m_active = false; // Отключаем обработку
+                            automobile->OpenDoor(componentByDoorId[doorId], doorId, 0.0f); // Полностью открываем
+                            event.m_openingState = 0.0f;
+                        }
+                        else
+                            automobile->OpenDoor(componentByDoorId[doorId], doorId, event.m_openingState);
+                    }
+                }
+            }
+        }
+    }
+
+    static void MainProcess() { // Обработка нажатия клавиш и запуск событий
+        if (CTimer::m_snTimeInMilliseconds > (m_nLastTimeWhenAnyActionWasEnabled + TIME_FOR_KEYPRESS)) { // если прошло 500 мс с того времени, как мы начали открывать/закрывать что-то
+            CVehicle *vehicle = FindPlayerVehicle();
+            if (vehicle && vehicle->m_nVehicleClass == VEHICLE_AUTOMOBILE) {
+                CAutomobile *automobile = reinterpret_cast<CAutomobile *>(vehicle); // опять же, приведение типов. Т.к. мы будет юзать damageManager, нам нужно убедиться, что транспорт - это автомобиль (CAutomobile)
+                if (KeyPressed(219)) // [
+                    EnableDoorEvent(automobile, BONNET); // капот
+                else if (KeyPressed(221)) // ]
+                    EnableDoorEvent(automobile, BOOT); // багажник
+                else if (KeyPressed(186) && KeyPressed(187)) // ; =
+                    EnableDoorEvent(automobile, DOOR_FRONT_LEFT); // левая передняя дверь
+                else if (KeyPressed(222) && KeyPressed(187)) // ' =
+                    EnableDoorEvent(automobile, DOOR_FRONT_RIGHT); // правая передняя дверь
+                else if (KeyPressed(186) && KeyPressed(189)) // ; -
+                    EnableDoorEvent(automobile, DOOR_REAR_LEFT); // левая задняя дверь
+                else if (KeyPressed(222) && KeyPressed(189)) // ' -
+                    EnableDoorEvent(automobile, DOOR_REAR_RIGHT); // правая задняя дверь
+                else if (KeyPressed(VK_F12)) {
+                    EnableDoorEvent(automobile, BONNET);
+                    EnableDoorEvent(automobile, BOOT);
+                    EnableDoorEvent(automobile, DOOR_FRONT_LEFT);
+                    EnableDoorEvent(automobile, DOOR_FRONT_RIGHT);
+                    EnableDoorEvent(automobile, DOOR_REAR_LEFT);
+                    EnableDoorEvent(automobile, DOOR_REAR_RIGHT);
+                }
+            }
+        }
+    }
+
+    DoorsExample() {
+        Events::gameProcessEvent += MainProcess; // Тут обрабатываем нажатия и запускаем события
+        Events::vehicleRenderEvent += ProcessDoors; // Тут обрабатываем события, а также выключаем их
+    }
+} example;
+
+int DoorsExample::componentByDoorId[6] = { CAR_BONNET, CAR_BOOT, CAR_DOOR_LF, CAR_DOOR_RF, CAR_DOOR_LR, CAR_DOOR_RR };
+int DoorsExample::m_nLastTimeWhenAnyActionWasEnabled = 0;
+VehicleExtendedData<DoorsExample::VehicleDoors> DoorsExample::VehDoors;
+
+
+
+//#include "plugin.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    Test() {
+//        Events::gameProcessEvent += [] {
+//            CPed *player = FindPlayerPed();
+//            if (player) {
+//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
+//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
+//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 7.0f)) {
+//                        vehicle->m_autoPilot.m_nAnimationId = TEMPACT_REVERSE;
+//                        vehicle->m_autoPilot.m_nAnimationTime = 20000;
+//                    }
+//                }
+//            }
+//        };
+//    }
+//} test;
+
+//#include "plugin.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static void Patch_41065D();
+//    static void Patch_580FD4();
+//    static void Patch_61DCFA();
+//    
+//    Test() {
+//        patch::RedirectJump(0x41065D, Patch_41065D);
+//        patch::RedirectJump(0x580FD4, Patch_580FD4);
+//        patch::RedirectJump(0x61DCFA, Patch_61DCFA);
+//        
+//        //patch::SetInt(0x41065D + 2, 2000, true);
+//        //patch::SetInt(0x580FD4 + 2, 2000, true);
+//        patch::SetInt(0x58102C + 1, 2000, true);
+//        patch::SetInt(0x61D98B + 1, 2000, true);
+//        patch::SetInt(0x61D9E5 + 1, 2000, true);
+//        patch::SetInt(0x61DAA5 + 1, 2000, true);
+//        patch::SetInt(0x61DBA5 + 1, 2000, true);
+//        //patch::SetInt(0x61DCFA + 2, 2000, true);
+//        patch::SetInt(0x61DD39 + 1, 2000, true);
+//    }
+//} test;
+//
+//void __declspec(naked) Test::Patch_41065D() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov ebp, 0x410663
+//        jmp ebp
+//    }
+//}
+//
+//void __declspec(naked) Test::Patch_580FD4() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov eax, 0x580FDA
+//        jmp eax
+//    }
+//}
+//
+//void __declspec(naked) Test::Patch_61DCFA() {
+//    __asm {
+//        cmp ebx, 2000
+//        mov ebp, 0x61DD00
+//        jmp ebp
+//    }
+//}
 
 
 //#include "plugin.h"
@@ -354,28 +509,6 @@ void __declspec(naked) Test::Patch_61DCFA() {
 //int Test::m_min = 0;
 //int Test::m_sec = 0;
 //int Test::m_millisec = 0;
-
-//#include "plugin.h"
-//
-//using namespace plugin;
-//
-//class Test {
-//public:
-//    Test() {
-//        Events::gameProcessEvent += [] {
-//            CPed *player = FindPlayerPed();
-//            if (player) {
-//                for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
-//                    CVehicle *vehicle = CPools::ms_pVehiclePool->GetAt(i);
-//                    if (vehicle && (DistanceBetweenPoints(player->GetPosition(), vehicle->GetPosition()) < 7.0f)) {
-//                        vehicle->m_autoPilot.m_nAnimationId = TEMPACT_REVERSE;
-//                        vehicle->m_autoPilot.m_nAnimationTime = 20000;
-//                    }
-//                }
-//            }
-//        };
-//    }
-//} test;
 
 //#include "plugin.h"
 //#include "extensions\KeyCheck.h"

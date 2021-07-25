@@ -1,10 +1,10 @@
 /*
-Plugin-SDK (Grand Theft Auto) source file
-Authors: GTA Community. See more here
-https://github.com/DK22Pac/plugin-sdk
-Do not delete this comment block. Respect others' work!
+    Plugin-SDK (Grand Theft Auto) source file
+    Authors: GTA Community. See more here
+    https://github.com/DK22Pac/plugin-sdk
+    Do not delete this comment block. Respect others' work!
 */
-#include <plugin_III.h>
+#include "plugin.h"
 #include "game_III\common.h"
 #include "game_III\CAutomobile.h"
 #include "game_III\CTimer.h"
@@ -12,7 +12,7 @@ Do not delete this comment block. Respect others' work!
 using namespace plugin;
 
 const float ACTION_TIME_STEP = 0.05f;
-const unsigned int TIME_FOR_KEYPRESS = 500;
+const int TIME_FOR_KEYPRESS = 500;
 
 class DoorsExample {
 public:
@@ -115,7 +115,7 @@ public:
                     EnableDoorEvent(automobile, DOOR_FRONT_LEFT);
                     EnableDoorEvent(automobile, DOOR_FRONT_RIGHT);
                     EnableDoorEvent(automobile, DOOR_REAR_LEFT);
-                    EnableDoorEvent(automobile, DOOR_REAR_RIGHT); 
+                    EnableDoorEvent(automobile, DOOR_REAR_RIGHT);
                 }
             }
         }

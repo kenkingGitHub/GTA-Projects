@@ -1,43 +1,107 @@
 #include "plugin.h"
-#include "CSprite2d.h"
-#include "CFileLoader.h"
+#include "extensions\KeyCheck.h"
+#include "CUserDisplay.h"
+#include "extensions\ScriptCommands.h"
+#include "eScriptCommands.h"
+#include "CRunningScript.h"
+#include "CTheScripts.h"
+
+int &adress = *(int *)0xA4CAC0;
 
 using namespace plugin;
 
 class Test {
 public:
-    static RwTexture *textureTest;
-    static RwTexDictionary *m_txd;
-    static int m_test;
+    static int timer;
+    enum eTimerState { STATE_ADD, STATE_CLEAR };
+    static eTimerState m_currentState;
 
     Test() {
-        Events::initRwEvent += [] {
-            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\MYTEST.TXD"));
-            textureTest = GetFirstTexture(m_txd);
-            m_test++;
-        };
-
         Events::drawingEvent += [] {
             gamefont::Print({
-                Format("m_test %d", m_test),
-            }, 10, 210, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+                Format("id %d", CUserDisplay::OnscnTimer.m_Clock.m_nVarId),
+                Format("direction %d", CUserDisplay::OnscnTimer.m_Clock.m_nTimerDirection),
+                Format("enabled %d", CUserDisplay::OnscnTimer.m_Clock.m_bEnabled),
+                Format("text %s", CUserDisplay::OnscnTimer.m_Clock.m_szDisplayedText),
+                Format("key %s", &CUserDisplay::OnscnTimer.m_Clock.m_szDescriptionTextKey),
+                Format("var $8197 %d", adress)
+                }, 10, 10, 1, FONT_DEFAULT, 0.75f, 0.75f, color::White);
 
-            if (textureTest) {
-                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, textureTest->raster);
-                CSprite2d::SetVertices(CRect(20.0f, 20.0f, 100.0f, 100.0f), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255));
-                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            
+            KeyCheck::Update();
+            switch (m_currentState) {
+            case STATE_ADD:
+                if (!CUserDisplay::OnscnTimer.m_Clock.m_bEnabled) {
+                    if (KeyCheck::CheckWithDelay('M', 1000)) {
+                        adress = 46000; //in CLEO $8197 = 120000
+                        CUserDisplay::OnscnTimer.AddClock(timer, "TIMER", 1); //03C3: set_timer_with_text_to $8197 type 1 text 'TIMER'
+                        //Command<COMMAND_DISPLAY_ONSCREEN_TIMER_WITH_STRING>(timer, 1, "GXTTIME");
+                        m_currentState = STATE_CLEAR;
+                    }
+                    if (KeyCheck::CheckWithDelay('U', 1000)) {
+                        CUserDisplay::OnscnTimer.AddClock(timer, "TIMER", 0); //03C3: set_timer_with_text_to $8197 type 0 text 'TIMER'
+                        //Command<COMMAND_DISPLAY_ONSCREEN_TIMER_WITH_STRING>(timer, 0, "GXTTIME");
+                        m_currentState = STATE_CLEAR;
+                    }
+                }
+                break;
+            case STATE_CLEAR:
+                if (KeyCheck::CheckWithDelay('N', 1000) /*|| adress > 121000 || adress < 1*/) {
+                    CUserDisplay::OnscnTimer.ClearClock(timer); //014F: stop_timer $8197
+                    adress = 0; //$8197 = 0
+                    //Command<COMMAND_CLEAR_ONSCREEN_TIMER>(timer);
+                    m_currentState = STATE_ADD;
+                }
+                break;
             }
-        };
-
-        Events::shutdownRwEvent += [] {
-            RwTexDictionaryDestroy(m_txd);
         };
     }
 } test;
 
-RwTexDictionary  *Test::m_txd;
-RwTexture *Test::textureTest;
-int Test::m_test = 0;
+int Test::timer = 12640;
+Test::eTimerState Test::m_currentState = STATE_ADD;
+
+
+//#include "plugin.h"
+//#include "CSprite2d.h"
+//#include "CFileLoader.h"
+//
+//using namespace plugin;
+//
+//class Test {
+//public:
+//    static RwTexture *textureTest;
+//    static RwTexDictionary *m_txd;
+//    static int m_test;
+//
+//    Test() {
+//        Events::initRwEvent += [] {
+//            m_txd = CFileLoader::LoadTexDictionary(GAME_PATH("models\\MYTEST.TXD"));
+//            textureTest = GetFirstTexture(m_txd);
+//            m_test++;
+//        };
+//
+//        Events::drawingEvent += [] {
+//            gamefont::Print({
+//                Format("m_test %d", m_test),
+//            }, 10, 210, 1, FONT_DEFAULT, 0.75f, 0.75f, color::Orange);
+//
+//            if (textureTest) {
+//                RwEngineInstance->dOpenDevice.fpRenderStateSet(rwRENDERSTATETEXTURERASTER, textureTest->raster);
+//                CSprite2d::SetVertices(CRect(20.0f, 20.0f, 100.0f, 100.0f), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255), CRGBA(255, 255, 255, 255));
+//                RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+//            }
+//        };
+//
+//        Events::shutdownRwEvent += [] {
+//            RwTexDictionaryDestroy(m_txd);
+//        };
+//    }
+//} test;
+//
+//RwTexDictionary  *Test::m_txd;
+//RwTexture *Test::textureTest;
+//int Test::m_test = 0;
 
 
 //#include "plugin.h"
@@ -60,7 +124,6 @@ int Test::m_test = 0;
 //        };
 //    }
 //} playerCoors;
-
 
 //#include "plugin.h"
 //#include <vector>
@@ -187,10 +250,6 @@ int Test::m_test = 0;
 //        ReadSettingsFile();
 //    }
 //} vehAdv;
-
-
-
-
 
 //#include "plugin.h"
 //#include "common.h"

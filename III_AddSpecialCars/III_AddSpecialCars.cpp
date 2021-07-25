@@ -586,6 +586,30 @@ public:
         return result;
     }
 
+    // CVehicle::SetDriver
+    static void __fastcall SetDriver(CVehicle *_this, int, CPed *driver) {
+        _this->m_pDriver = driver;
+        _this->m_pDriver->RegisterReference((CEntity**)&_this->m_pDriver);
+
+        if (_this->m_nVehicleFlags.b08 && driver == FindPlayerPed()) {
+            unsigned int model = driver->m_pVehicle->m_nModelIndex;
+            if (model == MODEL_AMBULAN || GetAmbulanModels().find(model) != GetAmbulanModels().end())
+                FindPlayerPed()->m_fHealth = min(FindPlayerPed()->m_fHealth + 20.0f, 100.0f);
+            else if (model == MODEL_POLICE || GetPoliceModels().find(model) != GetPoliceModels().end())
+                driver->GiveWeapon(WEAPONTYPE_SHOTGUN, 5);
+            else if (model == MODEL_ENFORCER || GetEnforcerModels().find(model) != GetEnforcerModels().end())
+                driver->m_fArmour = max(driver->m_fArmour, 100.0f);
+            else if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_BORGNINE || GetTaxiModels().find(model) != GetTaxiModels().end())
+                CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 25;
+            _this->m_nVehicleFlags.b08 = false; //bFreebies
+        }
+
+        _this->ApplyTurnForce(0.0f, 0.0f, -0.2f*driver->m_fMass,
+            driver->GetPosition().x  - _this->GetPosition().x,
+            driver->GetPosition().y - _this->GetPosition().y,
+            0.0f);
+    }
+
     // cMusicManager::PlayerInCar
     static bool __fastcall PlayerInCar(cMusicManager *_this) {
         int action;
@@ -816,6 +840,8 @@ public:
         patch::RedirectJump(0x57E4B0, PlayerInCar);
         patch::RedirectJump(0x426700, IsCarSprayable);
         patch::RedirectJump(0x5527E0, IsVehicleNormal);
+
+        patch::RedirectJump(0x551F20, SetDriver); // update 23.07.2021
 
         patch::RedirectCall(0x446A93, OpcodePlayerDrivingTaxiVehicle);
         patch::Nop(0x446A98, 0x4C); // or jump 0x446AE4
