@@ -504,6 +504,41 @@ public:
         return result;
     }
 
+    // CVehicle::SetDriver
+    static void __fastcall SetDriver(CVehicle *_this, int, CPed *driver) {
+        _this->m_pDriver = driver;
+        _this->m_pDriver->RegisterReference((CEntity**)&_this->m_pDriver);
+
+        if (_this->m_nVehicleFlags.b08 && driver == FindPlayerPed()) {
+            _this->m_nVehicleFlags.b08 = false; //bFreebies
+            unsigned int model = driver->m_pVehicle->m_nModelIndex;
+            if (model == MODEL_AMBULAN || Ambulan_IDs.find(_this->m_nModelIndex) != Ambulan_IDs.end())
+                FindPlayerPed()->m_fHealth = max(FindPlayerPed()->m_fHealth, min(FindPlayerPed()->m_fHealth + 20.0f, CWorld::Players[0].m_nMaxHealth));
+            else if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_ZEBRA || model == MODEL_KAUFMAN || Taxi_IDs.find(model) != Taxi_IDs.end())
+                CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 12;
+            else if (model == MODEL_ENFORCER || Enforcer_IDs.find(_this->m_nModelIndex) != Enforcer_IDs.end())
+                driver->m_fArmour = max(driver->m_fArmour, CWorld::Players[0].m_nMaxArmour);
+            else if (model == MODEL_CADDY) {
+                if (!(driver->IsPlayer() && ((CPlayerPed*)driver)->DoesPlayerWantNewWeapon(WEAPONTYPE_GOLFCLUB, true)))
+                    CStreaming::RequestModel(261, 1);
+            }
+            else if (model == MODEL_POLICE || Police_IDs.find(_this->m_nModelIndex) != Police_IDs.end()) {
+                CStreaming::RequestModel(277, 1);
+                _this->m_nVehicleFlags.b08 = true;
+            }
+        }
+
+        if (_this->m_nVehicleClass == VEHICLE_BIKE)
+            _this->ApplyMoveForce(-0.02f*driver->m_fMass * _this->m_placement.up.x, 
+                                  -0.02f*driver->m_fMass * _this->m_placement.up.y,
+                                  -0.02f*driver->m_fMass * _this->m_placement.up.z);
+        else
+            _this->ApplyTurnForce(0.0f, 0.0f, -0.02f*driver->m_fMass,
+                driver->GetPosition().x - _this->GetPosition().x,
+                driver->GetPosition().y - _this->GetPosition().y,
+                0.0f);
+    }
+
     static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
         script->CollectParameters(&script->m_nIp, 1);
         bool isTaxiModel = false;
@@ -903,6 +938,8 @@ public:
         patch::RedirectJump(0x419BB0, AddPoliceCarOccupants);
         patch::RedirectJump(0x426850, ChoosePoliceCarModel);
         patch::RedirectJump(0x5B8520, UsesSiren);
+
+        patch::RedirectJump(0x5B89F0, SetDriver); // update 26.07.2021
 
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
         patch::RedirectJump(0x53A905, Patch_53A905);
