@@ -16,6 +16,7 @@
 #include "eScriptCommands.h"
 #include "CCarAI.h"
 #include "CCopPed.h"
+#include "eEntityStatus.h"
 
 int &/*CCarCtrl::*/MiamiViceCycle = *(int *)0xA0FD6C;
 int &/*CCarCtrl::*/LastTimeMiamiViceGenerated = *(int *)0x9751A8;
@@ -512,18 +513,18 @@ public:
         if (_this->m_nVehicleFlags.b08 && driver == FindPlayerPed()) {
             _this->m_nVehicleFlags.b08 = false; //bFreebies
             unsigned int model = driver->m_pVehicle->m_nModelIndex;
-            if (model == MODEL_AMBULAN || Ambulan_IDs.find(_this->m_nModelIndex) != Ambulan_IDs.end())
+            if (model == MODEL_AMBULAN || Ambulan_IDs.find(model) != Ambulan_IDs.end())
                 FindPlayerPed()->m_fHealth = max(FindPlayerPed()->m_fHealth, min(FindPlayerPed()->m_fHealth + 20.0f, CWorld::Players[0].m_nMaxHealth));
             else if (model == MODEL_TAXI || model == MODEL_CABBIE || model == MODEL_ZEBRA || model == MODEL_KAUFMAN || Taxi_IDs.find(model) != Taxi_IDs.end())
                 CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 12;
-            else if (model == MODEL_ENFORCER || Enforcer_IDs.find(_this->m_nModelIndex) != Enforcer_IDs.end())
+            else if (model == MODEL_ENFORCER || Enforcer_IDs.find(model) != Enforcer_IDs.end())
                 driver->m_fArmour = max(driver->m_fArmour, CWorld::Players[0].m_nMaxArmour);
             else if (model == MODEL_CADDY) {
                 if (!(driver->IsPlayer() && ((CPlayerPed*)driver)->DoesPlayerWantNewWeapon(WEAPONTYPE_GOLFCLUB, true)))
-                    CStreaming::RequestModel(261, 1);
+                    CStreaming::RequestModel(MODEL_GOLFCLUB, 1);
             }
-            else if (model == MODEL_POLICE || Police_IDs.find(_this->m_nModelIndex) != Police_IDs.end()) {
-                CStreaming::RequestModel(277, 1);
+            else if (model == MODEL_POLICE || Police_IDs.find(model) != Police_IDs.end()) {
+                CStreaming::RequestModel(MODEL_CHROMEGUN, 1);
                 _this->m_nVehicleFlags.b08 = true;
             }
         }
@@ -537,6 +538,31 @@ public:
                 driver->GetPosition().x - _this->GetPosition().x,
                 driver->GetPosition().y - _this->GetPosition().y,
                 0.0f);
+    }
+
+    // CVehicle::RemoveDriver
+    static void __fastcall RemoveDriver(CVehicle *_this) {
+
+        _this->m_nState = STATUS_ABANDONED;
+        if (_this->m_pDriver == FindPlayerPed()) {
+            unsigned int model = _this->m_nModelIndex;
+            if ((model == MODEL_POLICE || Police_IDs.find(model) != Police_IDs.end()) && CStreaming::ms_aInfoForModel[MODEL_CHROMEGUN].m_nLoadState == LOADSTATE_LOADED) {
+                if (_this->m_nVehicleFlags.b08) {
+                    if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPONTYPE_SHOTGUN, true))
+                        _this->m_pDriver->GiveWeapon(WEAPONTYPE_SHOTGUN, 5, true);
+                    else
+                        _this->m_pDriver->GrantAmmo(WEAPONTYPE_SHOTGUN, 5);
+                    _this->m_nVehicleFlags.b08 = false; //bFreebies
+                }
+                CStreaming::SetModelIsDeletable(MODEL_CHROMEGUN);
+            }
+            else if (model == MODEL_CADDY && CStreaming::ms_aInfoForModel[MODEL_GOLFCLUB].m_nLoadState == LOADSTATE_LOADED) {
+                if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPONTYPE_GOLFCLUB, true))
+                    _this->m_pDriver->GiveWeapon(WEAPONTYPE_GOLFCLUB, 1, true);
+                CStreaming::SetModelIsDeletable(MODEL_GOLFCLUB);
+            }
+        }
+        _this->m_pDriver = nullptr;
     }
 
     static void __fastcall OpcodePlayerDrivingTaxiVehicle(CRunningScript *script) {
@@ -940,6 +966,7 @@ public:
         patch::RedirectJump(0x5B8520, UsesSiren);
 
         patch::RedirectJump(0x5B89F0, SetDriver); // update 26.07.2021
+        patch::RedirectJump(0x5B8920, RemoveDriver);
 
         patch::RedirectJump(0x58BE1F, Patch_58BE1F);
         patch::RedirectJump(0x53A905, Patch_53A905);
