@@ -386,29 +386,44 @@ public:
     }
 
     // CVehicle::RemoveDriver
-    /*static void __fastcall RemoveDriver(CVehicle *_this, bool unk) {
+    static void __fastcall RemoveDriver(CVehicle *_this, int, bool unk) {
 
         _this->m_nStatus = STATUS_ABANDONED;
+        CPed *ped = _this->m_pDriver;
+        if (!unk) {
+            if (!ped || !ped->IsPlayer())
+                _this->m_nVehicleFlags.bEngineOn = false;
+        }
         if (_this->m_pDriver == FindPlayerPed()) {
             unsigned int model = _this->m_nModelIndex;
-            if ((model == MODEL_POLICE || Police_IDs.find(model) != Police_IDs.end()) && CStreaming::ms_aInfoForModel[MODEL_CHROMEGUN].m_nLoadState == LOADSTATE_LOADED) {
+            if ((model == MODEL_COPCARLA || model == MODEL_COPCARSF
+                || model == MODEL_COPCARVG || model == MODEL_COPCARRU
+                || CopCarLA_IDs.find(_this->m_nModelIndex) != CopCarLA_IDs.end()
+                || CopCarSF_IDs.find(_this->m_nModelIndex) != CopCarSF_IDs.end()
+                || CopCarVG_IDs.find(_this->m_nModelIndex) != CopCarVG_IDs.end()
+                || CopCarRed_IDs.find(_this->m_nModelIndex) != CopCarRed_IDs.end()
+                || CopCarFlint_IDs.find(_this->m_nModelIndex) != CopCarFlint_IDs.end()
+                || CopCarBone_IDs.find(_this->m_nModelIndex) != CopCarBone_IDs.end()) 
+                && CStreaming::ms_aInfoForModel[MODEL_CHROMEGUN].m_nLoadState == LOADSTATE_LOADED) {
                 if (_this->m_nVehicleFlags.bFreebies) {
-                    if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPONTYPE_SHOTGUN, true))
-                        _this->m_pDriver->GiveWeapon(WEAPONTYPE_SHOTGUN, 5, true);
+                    if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPON_SHOTGUN, true))
+                        _this->m_pDriver->GiveWeapon(WEAPON_SHOTGUN, 5, true);
                     else
-                        _this->m_pDriver->GrantAmmo(WEAPONTYPE_SHOTGUN, 5);
+                        _this->m_pDriver->GrantAmmo(WEAPON_SHOTGUN, 5);
                     _this->m_nVehicleFlags.bFreebies = false; 
                 }
                 CStreaming::SetModelIsDeletable(MODEL_CHROMEGUN);
             }
             else if (model == MODEL_CADDY && CStreaming::ms_aInfoForModel[MODEL_GOLFCLUB].m_nLoadState == LOADSTATE_LOADED) {
-                if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPONTYPE_GOLFCLUB, true))
-                    _this->m_pDriver->GiveWeapon(WEAPONTYPE_GOLFCLUB, 1, true);
+                if (((CPlayerPed*)_this->m_pDriver)->DoesPlayerWantNewWeapon(WEAPON_GOLFCLUB, true))
+                    _this->m_pDriver->GiveWeapon(WEAPON_GOLFCLUB, 1, true);
                 CStreaming::SetModelIsDeletable(MODEL_GOLFCLUB);
             }
         }
+        if (ped)
+            ped->CleanUpOldReference((CEntity **)&_this->m_pDriver);
         _this->m_pDriver = nullptr;
-    }*/
+    }
 
     static int __cdecl GetDefaultCopCarModel() {
         switch (m_CurrLevel) {
