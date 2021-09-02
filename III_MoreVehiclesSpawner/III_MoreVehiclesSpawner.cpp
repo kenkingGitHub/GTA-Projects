@@ -29,7 +29,7 @@ public:
     static std::string typedBuffer;
     static std::string errorMessage;
     static std::string errorMessageBuffer;
-    static unsigned int errorMessageTimer;
+    static int errorMessageTimer;
     static bool enabled;
 
     static CVehicle* SpawnVehicle(unsigned int modelIndex, CVector position, float orientation) {
@@ -42,14 +42,14 @@ public:
                 CStreaming::SetModelIsDeletable(modelIndex);
                 CStreaming::SetModelTxdIsDeletable(modelIndex);
             }
-            //CVehicle *vehicle = nullptr;
+            CVehicle *vehicle = nullptr;
             if (reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[modelIndex])->m_nVehicleType)
-                vehicle = new CBoat(modelIndex, 1);
+                vehicle = operator_new<CBoat, int, unsigned char>(modelIndex, 1);
             else
-                vehicle = new CAutomobile(modelIndex, 1);
+                vehicle = operator_new<CAutomobile, int, unsigned char>(modelIndex, 1);
             if (vehicle) {
                 // Размещаем транспорт в игровом мире
-                vehicle->SetPosition(position);
+                vehicle->SetPos(position);
                 vehicle->SetOrientation(0.0f, 0.0f, orientation);
                 vehicle->m_nState = 4;
                 if (modelIndex == MODEL_RCBANDIT)
@@ -215,5 +215,5 @@ public:
 std::string MoreVehiclesSpawner::typedBuffer;
 std::string MoreVehiclesSpawner::errorMessage;
 std::string MoreVehiclesSpawner::errorMessageBuffer;
-unsigned int MoreVehiclesSpawner::errorMessageTimer = 0;
+int MoreVehiclesSpawner::errorMessageTimer = 0;
 bool MoreVehiclesSpawner::enabled = false;

@@ -530,9 +530,9 @@ public:
         }
 
         if (_this->m_nVehicleClass == VEHICLE_BIKE)
-            _this->ApplyMoveForce(-0.02f*driver->m_fMass * _this->m_placement.up.x, 
-                                  -0.02f*driver->m_fMass * _this->m_placement.up.y,
-                                  -0.02f*driver->m_fMass * _this->m_placement.up.z);
+            _this->ApplyMoveForce(-0.02f*driver->m_fMass * _this->m_placement.at.x,
+                                  -0.02f*driver->m_fMass * _this->m_placement.at.y,
+                                  -0.02f*driver->m_fMass * _this->m_placement.at.z);
         else
             _this->ApplyTurnForce(0.0f, 0.0f, -0.02f*driver->m_fMass,
                 driver->GetPosition().x - _this->GetPosition().x,
