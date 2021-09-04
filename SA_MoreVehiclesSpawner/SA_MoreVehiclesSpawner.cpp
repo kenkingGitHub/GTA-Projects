@@ -7,12 +7,12 @@ Do not delete this comment block. Respect others' work!
 #include <string>
 #include "plugin.h"
 #include "extensions\KeyCheck.h"
-#include "game_sa\common.h"
-#include "game_sa\CModelInfo.h"
-#include "game_sa\CCheat.h"
-#include "game_sa\CTimer.h"
-#include "game_sa\CFont.h"
-#include "game_sa\CSprite2d.h"
+#include "common.h"
+#include "CModelInfo.h"
+#include "CCheat.h"
+#include "CTimer.h"
+#include "CFont.h"
+#include "CSprite2d.h"
 
 using namespace plugin;
 

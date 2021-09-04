@@ -332,9 +332,8 @@ public:
 
     // CVehicle::SetDriver
     static void __fastcall SetDriver(CVehicle *_this, int, CPed *driver) {
-        CPed *ped = _this->m_pDriver;
-        if (ped)
-            ped->CleanUpOldReference((CEntity **)&_this->m_pDriver);
+        if (_this->m_pDriver)
+            _this->m_pDriver->CleanUpOldReference((CEntity **)&_this->m_pDriver);
 
         _this->m_pDriver = driver;
         _this->m_pDriver->RegisterReference((CEntity**)&_this->m_pDriver);
@@ -386,12 +385,11 @@ public:
     }
 
     // CVehicle::RemoveDriver
-    static void __fastcall RemoveDriver(CVehicle *_this, int, bool unk) {
+    static void __fastcall RemoveDriver(CVehicle *_this, int, bool bEngineOn) {
 
         _this->m_nStatus = STATUS_ABANDONED;
-        CPed *ped = _this->m_pDriver;
-        if (!unk) {
-            if (!ped || !ped->IsPlayer())
+        if (!bEngineOn) {
+            if (!_this->m_pDriver || !_this->m_pDriver->IsPlayer())
                 _this->m_nVehicleFlags.bEngineOn = false;
         }
         if (_this->m_pDriver == FindPlayerPed()) {
@@ -420,8 +418,8 @@ public:
                 CStreaming::SetModelIsDeletable(MODEL_GOLFCLUB);
             }
         }
-        if (ped)
-            ped->CleanUpOldReference((CEntity **)&_this->m_pDriver);
+        if (_this->m_pDriver)
+            _this->m_pDriver->CleanUpOldReference((CEntity **)&_this->m_pDriver);
         _this->m_pDriver = nullptr;
     }
 
@@ -1497,6 +1495,9 @@ public:
         patch::RedirectJump(0x461C0A, Patch_461C0A);
         patch::RedirectJump(0x43069E, Patch_43069E); 
         patch::RedirectJump(0x431EC0, Patch_431EC0);
+
+        patch::RedirectJump(0x6D16A0, SetDriver); // update 03.09.2021
+        patch::RedirectJump(0x6D1950, RemoveDriver);
 
         patch::RedirectCall(0x42CDDD, IsLawEnforcementVehicleCheck);
         patch::RedirectCall(0x42DC19, IsLawEnforcementVehicleCheck);
